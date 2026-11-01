@@ -1,0 +1,34 @@
+# .NET build outputs and local package caches
+[Bb]in/
+[Oo]bj/
+/artifacts/
+*.nupkg
+*.snupkg
+
+# Test, coverage, and benchmark outputs
+TestResults/
+coverage/
+coverage.*
+*.coverage
+*.coveragexml
+BenchmarkDotNet.Artifacts/
+
+# Local IDE state and user settings
+.idea/
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+# Operating system metadata
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+
+# Temporary editor files
+*.swp
+*.swo
+*~

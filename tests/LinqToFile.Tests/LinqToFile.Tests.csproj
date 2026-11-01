@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><IsPackable>false</IsPackable><IsTestProject>true</IsTestProject></PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.1" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
+    <ProjectReference Include="../../LinqToFile/LinqToFile.csproj" />
+    <ProjectReference Include="../../LinqToFile.Generator/LinqToFile.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="../../LinqToFile.Generator/LinqToFile.Generator.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="../../README.md" Link="Examples/README.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../samples/Models/Person.cs" Link="Examples/Person.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../samples/NativeAot/Program.cs" Link="Examples/Program.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

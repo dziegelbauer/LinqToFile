@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IsAotCompatible>true</IsAotCompatible>
+        <PackageId>LinqToFile</PackageId>
+        <Version>0.1.0-alpha.1</Version>
+        <Description>Reflection-free, streaming LINQ queries over tabular files.</Description>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="../LinqToFile.Generator/LinqToFile.Generator.csproj" ReferenceOutputAssembly="false" PrivateAssets="all" />
+        <None Include="../LinqToFile.Generator/bin/$(Configuration)/netstandard2.0/LinqToFile.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" />
+        <None Include="../README.md" Pack="true" PackagePath="/" />
+        <None Include="../LICENSE" Pack="true" PackagePath="/" />
+    </ItemGroup>
+</Project>
