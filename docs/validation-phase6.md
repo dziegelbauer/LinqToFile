@@ -4,7 +4,8 @@
 
 Release preparation passes local checks on macOS arm64.
 The expanded clean-consumer check is included in the three-platform CI workflow.
-Its hosted results are pending.
+The user confirmed successful CI after commit `d8c7030`.
+Phase 6 is complete. Hosted results are recorded from that confirmation; run logs were not independently retrieved.
 No public package or GitHub release has been created by this work.
 
 ## Package
@@ -45,4 +46,4 @@ Use the commands in the [release guide](release.md).
 The local environment used SDK 10.0.403 and runtime 10.0.14.
 The Release solution build passes with zero warnings and errors.
 All 485 unit tests pass after the documentation update.
-Windows and Linux execution of the expanded check awaits CI.
+The user confirmed that the expanded CI validation passed on Windows, Linux, and macOS.
