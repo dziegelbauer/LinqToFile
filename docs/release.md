@@ -2,7 +2,7 @@
 
 ## Current artifact
 
-The current local package version is `0.1.0-alpha.6`.
+The current local package version is `0.1.0-alpha.7`.
 It is a prerelease artifact. No public NuGet release is made by the build.
 The API can change before a stable release.
 
@@ -44,7 +44,7 @@ It repeats the application run with Native AOT.
 Successful execution prints this message:
 
 ```text
-Package validation passed: LinqToFile 0.1.0-alpha.6 (osx-arm64)
+Package validation passed: LinqToFile 0.1.0-alpha.7 (osx-arm64)
 ```
 
 The script removes its temporary workspace after execution.
@@ -66,7 +66,9 @@ NuGet metadata follows the [MSBuild package reference](https://learn.microsoft.c
 
 ## Scope of the initial release
 
-CSV is the only implemented file format. Headers are required.
+CSV implements the agreed initial reader scope. Headers are required.
+The package also includes the experimental [XLSX stage 1 foundation](xlsx.md).
+Shared strings, formulas, native date conversion, and async XLSX remain planned.
 The reader supports strict parsing, generated property mapping, and sync/async streaming.
 It supports owned records and full list, array, or dictionary materialization.
 It does not provide a custom `IQueryable` provider, file writing, or change tracking.

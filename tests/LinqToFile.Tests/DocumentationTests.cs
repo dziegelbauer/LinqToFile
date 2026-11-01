@@ -10,13 +10,14 @@ public sealed class DocumentationTests
     [InlineData("csv-and-errors.md", 1)]
     [InlineData("conversions.md", 1)]
     [InlineData("sources-and-async.md", 2)]
+    [InlineData("xlsx.md", 2)]
     public void CSharpExamplesMatchTheRunnableSample(string file, int expectedCount)
     {
         var directory = Path.Combine(AppContext.BaseDirectory, "Examples");
         var readme = File.ReadAllText(Path.Combine(directory, file));
         var examples = Regex.Matches(readme, "```csharp\\r?\\n(.*?)```", RegexOptions.Singleline);
         Assert.Equal(expectedCount, examples.Count);
-        var sources = new[] { "Person.txt", "Program.txt" }
+        var sources = new[] { "Person.txt", "Program.txt", "WorkbookEntry.txt", "WorkbookSample.txt" }
             .Select(name => Normalize(File.ReadAllText(Path.Combine(directory, name)))).ToArray();
         foreach (Match example in examples)
             Assert.Contains(sources, source => source.Contains(Normalize(example.Groups[1].Value), StringComparison.Ordinal));

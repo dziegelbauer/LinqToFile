@@ -11,7 +11,17 @@ public sealed class TabularRow
     private int length;
     private int fieldStart;
     private readonly int capacityLimit;
+    private CellKind[]? kinds;
+    internal string? WorksheetName { get; set; }
+    internal long? WorksheetRowNumber { get; set; }
+    internal string? PartName { get; set; }
     internal int CurrentFieldLength => length - fieldStart;
+    internal ReadOnlySpan<char> CurrentField => buffer.AsSpan(fieldStart, length - fieldStart);
+    internal void ReplaceCurrentField(ReadOnlySpan<char> value)
+    {
+        length = fieldStart;
+        foreach (char c in value) Append(c);
+    }
     internal bool TrimFields { get; set; }
     internal int Count { get; private set; }
     internal long RecordNumber { get; set; }
@@ -32,6 +42,8 @@ public sealed class TabularRow
         length = fieldStart = Count = 0;
     }
 
+    internal void LimitFields(int count) => Count = Math.Min(Count, count);
+
     internal void Append(char value)
     {
         if (length == buffer.Length)
@@ -44,8 +56,17 @@ public sealed class TabularRow
     }
 
     internal void EndField()
+        => EndField(CellKind.Text);
+
+    internal void EndField(CellKind kind)
     {
         if (Count == fields.Length) Array.Resize(ref fields, checked(fields.Length * 2));
+        if (kind != CellKind.Text && kinds is null) kinds = new CellKind[fields.Length];
+        if (kinds is not null)
+        {
+            if (kinds.Length < fields.Length) Array.Resize(ref kinds, fields.Length);
+            kinds[Count] = kind;
+        }
         fields[Count++] = fieldStart..length;
         fieldStart = length;
     }
@@ -60,10 +81,26 @@ public sealed class TabularRow
     public string ReadString(int ordinal, string member) => GetField(ordinal).ToString();
     public bool IsEmpty(int ordinal) => GetField(ordinal).IsEmpty;
 
+    // Generated enum readers use this boundary too; native numeric/boolean cells are not text.
+    public ReadOnlySpan<char> GetTextField(int ordinal, string member)
+    {
+        RequireKind(ordinal, member, CellKind.Text);
+        return GetField(ordinal);
+    }
+
+    private void RequireKind(int ordinal, string member, CellKind allowed)
+    {
+        if (kinds is not null && kinds[ordinal] != CellKind.Text && kinds[ordinal] != allowed)
+            throw CreateConversionException(ordinal, member);
+    }
+
     public T ReadNumber<T>(int ordinal, string member, NumberStyles styles) where T : struct, INumberBase<T>
     {
         var text = GetField(ordinal);
-        if (text.IndexOf('\0') < 0 && T.TryParse(text, styles, Culture, out var value) && T.IsFinite(value)) return value;
+        RequireKind(ordinal, member, CellKind.Number);
+        bool native = kinds is not null && kinds[ordinal] == CellKind.Number;
+        if (text.IndexOf('\0') < 0 && T.TryParse(text, native ? NumberStyles.Float : styles,
+                native ? CultureInfo.InvariantCulture : Culture, out var value) && T.IsFinite(value)) return value;
         throw CreateConversionException(ordinal, member);
     }
 
@@ -75,24 +112,25 @@ public sealed class TabularRow
 
     public bool ReadBoolean(int ordinal, string member)
     {
+        RequireKind(ordinal, member, CellKind.Boolean);
         var text = GetField(ordinal);
         return text.IndexOf('\0') < 0 && bool.TryParse(text, out var value)
             ? value : throw CreateConversionException(ordinal, member);
     }
 
     public Guid ReadGuid(int ordinal, string member) =>
-        Guid.TryParse(GetField(ordinal), out var value) ? value : throw CreateConversionException(ordinal, member);
+        Guid.TryParse(GetTextField(ordinal, member), out var value) ? value : throw CreateConversionException(ordinal, member);
 
     public char ReadChar(int ordinal, string member)
     {
-        var text = GetField(ordinal);
+        var text = GetTextField(ordinal, member);
         return text.Length == 1 ? text[0] : throw CreateConversionException(ordinal, member);
     }
 
     public DateTime ReadDateTime(int ordinal, string member)
     {
         // AdjustToUniversal leaves offset-free input Unspecified, without assuming a local zone.
-        if (DateTime.TryParse(GetField(ordinal), Culture, DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AdjustToUniversal,
+        if (DateTime.TryParse(GetTextField(ordinal, member), Culture, DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AdjustToUniversal,
                 out var value) && value.Kind == DateTimeKind.Unspecified)
             return value;
         throw CreateConversionException(ordinal, member);
@@ -100,7 +138,7 @@ public sealed class TabularRow
 
     public DateTimeOffset ReadDateTimeOffset(int ordinal, string member)
     {
-        var text = GetField(ordinal);
+        var text = GetTextField(ordinal, member);
         // Check for an explicit zone using the BCL parser, then retain the original offset.
         if (DateTime.TryParse(text, Culture, DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AdjustToUniversal,
                 out var marker) && marker.Kind == DateTimeKind.Utc &&
@@ -110,16 +148,36 @@ public sealed class TabularRow
     }
 
     public DateOnly ReadDateOnly(int ordinal, string member) =>
-        DateOnly.TryParse(GetField(ordinal), Culture, DateTimeStyles.AllowWhiteSpaces, out var value)
+        DateOnly.TryParse(GetTextField(ordinal, member), Culture, DateTimeStyles.AllowWhiteSpaces, out var value)
             ? value : throw CreateConversionException(ordinal, member);
 
     public TimeOnly ReadTimeOnly(int ordinal, string member) =>
-        TimeOnly.TryParse(GetField(ordinal), Culture, DateTimeStyles.AllowWhiteSpaces, out var value)
+        TimeOnly.TryParse(GetTextField(ordinal, member), Culture, DateTimeStyles.AllowWhiteSpaces, out var value)
             ? value : throw CreateConversionException(ordinal, member);
 
     public TimeSpan ReadTimeSpan(int ordinal, string member) =>
-        TimeSpan.TryParse(GetField(ordinal), Culture, out var value) ? value : throw CreateConversionException(ordinal, member);
+        TimeSpan.TryParse(GetTextField(ordinal, member), Culture, out var value) ? value : throw CreateConversionException(ordinal, member);
 
     public TabularConversionException CreateConversionException(int ordinal, string member) =>
-        new(RecordNumber, LineNumber, FailureLineNumber, ordinal + 1, Headers[ordinal], member);
+        WithLocation(new TabularConversionException(RecordNumber, LineNumber, FailureLineNumber, ordinal + 1,
+            ordinal < Headers.Length ? Headers[ordinal] : "", member));
+
+    internal TException WithLocation<TException>(TException error) where TException : TabularFileException
+    {
+        error.WorksheetName = WorksheetName;
+        error.WorksheetRowNumber = WorksheetRowNumber;
+        error.PartName = PartName;
+        if (WorksheetRowNumber is long row && error.ColumnIndex is int column)
+        {
+            Span<char> reference = stackalloc char[32];
+            int index = 8;
+            int end = index;
+            while (column > 0) { reference[--index] = (char)('A' + (column - 1) % 26); column = (column - 1) / 26; }
+            row.TryFormat(reference[end..], out int written, provider: CultureInfo.InvariantCulture);
+            error.CellReference = reference.Slice(index, end - index + written).ToString();
+        }
+        return error;
+    }
 }
+
+internal enum CellKind : byte { Text, Number, Boolean }

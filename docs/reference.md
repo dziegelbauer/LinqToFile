@@ -1,5 +1,8 @@
 # Mapping and API reference
 
+Model requirements and annotations apply to CSV and XLSX.
+The source options below describe CSV. See the [XLSX guide](xlsx.md) for the experimental XLSX API and limits.
+
 ## Model requirements
 
 A mapped model must be a public, partial, non-abstract class.

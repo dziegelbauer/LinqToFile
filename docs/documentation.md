@@ -46,3 +46,5 @@ The test suite compiles generic helpers and checks the generated mapping contrac
 The package check uses the same sample with a local package reference.
 The clean package-consumer check also compiles and runs both C# examples from the packaged README.
 It runs outside the repository with a fresh package cache.
+The XLSX model and query examples match the cross-assembly workbook sample.
+That sample checks both supported workbook variants under JIT and Native AOT.

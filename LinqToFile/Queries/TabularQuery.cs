@@ -11,7 +11,7 @@ internal static class TabularQuery<T, TOptions> where T : class, ITabularRecord<
         using var lease = source.Open();
         ValidateReadable(lease.Stream);
         using var reader = format.Open(lease.Stream, options);
-        if (!reader.Read()) throw MissingHeader();
+        if (!reader.Read()) throw MissingHeader(reader.Row);
         var ordinals = SchemaBinding<T>.Bind(reader.Row, options);
         var mapper = T.Mapper;
         int count = reader.Row.Count;
@@ -29,7 +29,7 @@ internal static class TabularQuery<T, TOptions> where T : class, ITabularRecord<
         cancellationToken.ThrowIfCancellationRequested();
         ValidateReadable(lease.Stream);
         await using var reader = await format.OpenAsync(lease.Stream, options, cancellationToken).ConfigureAwait(false);
-        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false)) throw MissingHeader();
+        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false)) throw MissingHeader(reader.Row);
         cancellationToken.ThrowIfCancellationRequested();
         var ordinals = SchemaBinding<T>.Bind(reader.Row, options);
         var mapper = T.Mapper;
@@ -47,5 +47,7 @@ internal static class TabularQuery<T, TOptions> where T : class, ITabularRecord<
         if (!stream.CanRead) throw new InvalidOperationException("The source stream does not support reading.");
     }
 
-    private static TabularSchemaException MissingHeader() => new("The required header is missing.", 1, 1, 1);
+    private static TabularSchemaException MissingHeader(LinqToFile.Infrastructure.TabularRow row) =>
+        row.WithLocation(new TabularSchemaException("The required header is missing.", 1,
+            row.WorksheetName is null ? 1 : 0, row.WorksheetName is null ? 1 : 0));
 }

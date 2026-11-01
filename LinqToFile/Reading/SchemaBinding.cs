@@ -23,9 +23,9 @@ internal static class SchemaBinding<T> where T : class, ITabularRecord<T>
         {
             var header = row.GetField(i).ToString();
             if (string.IsNullOrWhiteSpace(header))
-                throw new TabularSchemaException("A header is empty or whitespace-only.", 1, row.LineNumber, row.FailureLineNumber, i + 1);
+                throw row.WithLocation(new TabularSchemaException("A header is empty or whitespace-only.", 1, row.LineNumber, row.FailureLineNumber, i + 1));
             if (!headerMap.TryAdd(header, i))
-                throw new TabularSchemaException("A duplicate header was found.", 1, row.LineNumber, row.FailureLineNumber, i + 1, header);
+                throw row.WithLocation(new TabularSchemaException("A duplicate header was found.", 1, row.LineNumber, row.FailureLineNumber, i + 1, header));
             headers[i] = header;
         }
         row.Headers = headers;
@@ -39,9 +39,9 @@ internal static class SchemaBinding<T> where T : class, ITabularRecord<T>
         for (int i = 0; i < names.Length; i++)
         {
             if (!used.Add(names[i]))
-                throw new TabularSchemaException("Multiple properties map to the same column.", 1, row.LineNumber, row.FailureLineNumber, header: names[i], member: members[i]);
+                throw row.WithLocation(new TabularSchemaException("Multiple properties map to the same column.", 1, row.LineNumber, row.FailureLineNumber, header: names[i], member: members[i]));
             if (!headerMap.TryGetValue(names[i], out ordinals[i]))
-                throw new TabularSchemaException("A mapped column is missing.", 1, row.LineNumber, row.FailureLineNumber, header: names[i], member: members[i]);
+                throw row.WithLocation(new TabularSchemaException("A mapped column is missing.", 1, row.LineNumber, row.FailureLineNumber, header: names[i], member: members[i]));
             row.TargetMembers[ordinals[i]] = members[i];
         }
         row.TrimFields = options.TrimFields;

@@ -1,0 +1,352 @@
+using System.Globalization;
+using System.IO.Compression;
+using System.Xml;
+using LinqToFile.Infrastructure;
+using LinqToFile.Reading;
+
+namespace LinqToFile.Formats.Xlsx;
+
+internal sealed class XlsxRecordReader : IRecordReader
+{
+    private readonly XlsxPackage package;
+    private readonly XlsxOptions options;
+    private readonly List<(CellAddress First, CellAddress Last)> merges = [];
+    private readonly char[] chunk = new char[1024];
+    private XmlReader? reader;
+    private int previousRow;
+    private int width;
+    private int column;
+    private bool header = true;
+    private bool inData;
+    private long recordNumber;
+    public TabularRow Row { get; } = new(1024, null);
+
+    internal XlsxRecordReader(XlsxPackage package, XlsxOptions options)
+    {
+        this.package = package;
+        this.options = options;
+        Row.WorksheetName = package.WorksheetName;
+        Row.PartName = package.WorksheetPart;
+        try
+        {
+            Preflight();
+            reader = package.OpenWorksheet();
+        }
+        catch (TabularFileException error) { throw Row.WithLocation(error); }
+        catch (XmlException) { throw Error("The worksheet XML is malformed."); }
+        catch (InvalidDataException) { throw Error("The worksheet could not be decompressed."); }
+    }
+
+    private void Preflight()
+    {
+        using var scan = package.OpenWorksheet();
+        scan.MoveToContent();
+        if (scan.LocalName != "worksheet" || scan.NamespaceURI != package.SpreadsheetNamespace)
+            throw Error("The worksheet root or namespace is invalid.");
+        bool dataFound = false;
+        bool mergesFound = false;
+        bool inMerges = false;
+        while (!scan.EOF)
+        {
+            if (scan.NodeType == XmlNodeType.Element)
+            {
+                XlsxXml.CheckRequiredMarkup(scan);
+                if (scan.Depth == 1 && scan.NamespaceURI == package.SpreadsheetNamespace && scan.LocalName == "sheetData")
+                {
+                    if (dataFound) throw Error("Duplicate sheet data is not permitted.");
+                    dataFound = true;
+                }
+                if (scan.NamespaceURI == package.SpreadsheetNamespace && scan.LocalName == "mergeCells")
+                {
+                    if (scan.Depth != 1 || mergesFound) throw Error("Merge declarations are invalid.");
+                    mergesFound = true;
+                    inMerges = !scan.IsEmptyElement;
+                }
+                if (scan.NamespaceURI == package.SpreadsheetNamespace && scan.LocalName == "mergeCell")
+                {
+                    if (scan.Depth != 2 || !inMerges) throw Error("A merge declaration is invalid.");
+                    string reference = scan.GetAttribute("ref") ?? throw Error("A merge coordinate is missing.");
+                    int colon = reference.IndexOf(':');
+                    var first = CellAddress.Parse(colon < 0 ? reference.AsSpan() : reference.AsSpan(0, colon));
+                    var last = colon < 0 ? first : CellAddress.Parse(reference.AsSpan(colon + 1));
+                    if (first.Row > last.Row || first.Column > last.Column) throw Error("A merge range is reversed.");
+                    merges.Add((first, last));
+                }
+            }
+            else if (scan.NodeType == XmlNodeType.EndElement && scan.Depth == 1 && scan.LocalName == "mergeCells") inMerges = false;
+            scan.Read();
+        }
+        if (!dataFound) throw Error("The worksheet has no sheet data element.");
+    }
+
+    public bool Read()
+    {
+        try { return ReadCore(); }
+        catch (TabularFileException error) { throw Row.WithLocation(error); }
+        catch (XmlException) { throw Error("The worksheet XML is malformed."); }
+        catch (InvalidDataException) { throw Error("The worksheet could not be decompressed."); }
+    }
+
+    private bool ReadCore()
+    {
+        var xml = reader!;
+        while (xml.Read())
+        {
+            if (xml.Depth == 1 && xml.NamespaceURI == package.SpreadsheetNamespace && xml.LocalName == "sheetData")
+            {
+                if (xml.NodeType == XmlNodeType.Element) inData = !xml.IsEmptyElement;
+                else if (xml.NodeType == XmlNodeType.EndElement) inData = false;
+                continue;
+            }
+            if (!inData || xml.NodeType != XmlNodeType.Element) continue;
+            if (xml.Depth != 2 || xml.NamespaceURI != package.SpreadsheetNamespace || xml.LocalName != "row")
+                throw Error("An unsupported element occurs in sheet data.");
+            bool content = ReadRow(xml);
+            int row = checked((int)Row.WorksheetRowNumber!.Value);
+            if (header && options.HeaderRow is int selected)
+            {
+                if (row < selected) continue;
+                if (row > selected || !content)
+                {
+                    Row.WorksheetRowNumber = selected;
+                    throw Row.WithLocation(new TabularSchemaException("The selected header row is empty or missing.", 1, 0, 0));
+                }
+            }
+            if (!content) continue;
+            Row.RecordNumber = ++recordNumber;
+            if (header)
+            {
+                header = false;
+                width = column;
+                Row.LimitFields(width);
+                foreach (var merge in merges)
+                    if (merge.First.Column <= width && merge.Last.Row >= row)
+                    {
+                        Row.WorksheetRowNumber = Math.Max(row, merge.First.Row);
+                        throw Error("A merged range intersects the table.", merge.First.Column);
+                    }
+            }
+            else
+            {
+                Row.LimitFields(width);
+                while (Row.Count < width) Row.EndField();
+            }
+            return true;
+        }
+        if (header && options.HeaderRow is int missing)
+        {
+            Row.WorksheetRowNumber = missing;
+            throw Row.WithLocation(new TabularSchemaException("The selected header row is empty or missing.", 1, 0, 0));
+        }
+        return false;
+    }
+
+    private bool ReadRow(XmlReader xml)
+    {
+        Row.Reset();
+        Row.RecordNumber = recordNumber + 1;
+        string? explicitIndex = xml.GetAttribute("r");
+        int physicalRow = previousRow + 1;
+        if (explicitIndex is not null && (!int.TryParse(explicitIndex, NumberStyles.None, CultureInfo.InvariantCulture, out physicalRow) || physicalRow < 1))
+            throw Error("A worksheet row coordinate is invalid.");
+        Row.WorksheetRowNumber = physicalRow;
+        if (physicalRow <= previousRow || physicalRow > 1_048_576) throw Error("Worksheet rows are duplicated, decreasing, or out of range.");
+        int previousColumn = 0;
+        int lastContent = 0;
+        int depth = xml.Depth;
+        if (!xml.IsEmptyElement)
+        {
+            while (xml.Read() && !(xml.NodeType == XmlNodeType.EndElement && xml.Depth == depth))
+            {
+                if (xml.NodeType != XmlNodeType.Element) continue;
+                if (xml.Depth != depth + 1 || xml.NamespaceURI != package.SpreadsheetNamespace || xml.LocalName != "c")
+                    throw Error("An unsupported element occurs in a worksheet row.");
+                XlsxXml.CheckRequiredMarkup(xml);
+                string? reference = xml.GetAttribute("r");
+                var address = reference is null ? new CellAddress(previousColumn + 1, physicalRow) : CellAddress.Parse(reference);
+                if (previousColumn == 0 && explicitIndex is null && reference is not null)
+                {
+                    physicalRow = address.Row;
+                    Row.WorksheetRowNumber = physicalRow;
+                    if (physicalRow <= previousRow) throw Error("Worksheet rows are duplicated or decreasing.", address.Column);
+                }
+                if (address.Row != physicalRow || address.Column <= previousColumn || address.Column > 16384)
+                    throw Error("Worksheet cell coordinates are inconsistent or duplicated.", address.Column);
+                previousColumn = address.Column;
+                bool beforeHeader = header && options.HeaderRow is int selected && physicalRow < selected;
+                if (beforeHeader) { SkipCell(xml); continue; }
+                while (Row.Count < address.Column - 1) Row.EndField();
+                bool hasValue = ReadCell(xml, address.Column);
+                if (hasValue)
+                {
+                    lastContent = address.Column;
+                    if (!header && address.Column > width) throw Error("A value occurs beyond the header range.", address.Column);
+                }
+            }
+        }
+        previousRow = physicalRow;
+        column = lastContent;
+        return lastContent != 0;
+    }
+
+    private static void SkipCell(XmlReader xml)
+    {
+        if (xml.IsEmptyElement) return;
+        int depth = xml.Depth;
+        while (xml.Read() && !(xml.NodeType == XmlNodeType.EndElement && xml.Depth == depth)) { }
+    }
+
+    private bool ReadCell(XmlReader xml, int ordinal)
+    {
+        string? type = xml.GetAttribute("t");
+        if (type is not (null or "n" or "b" or "inlineStr" or "str" or "e" or "s" or "d"))
+            throw Error("The cell type is not supported.", ordinal);
+        bool valueFound = false;
+        bool inlineFound = false;
+        int depth = xml.Depth;
+        if (!xml.IsEmptyElement)
+        {
+            while (xml.Read() && !(xml.NodeType == XmlNodeType.EndElement && xml.Depth == depth))
+            {
+                if (xml.NodeType != XmlNodeType.Element) continue;
+                XlsxXml.CheckRequiredMarkup(xml);
+                if (xml.Depth != depth + 1 || xml.NamespaceURI != package.SpreadsheetNamespace)
+                    throw Error("The cell contains unsupported markup.", ordinal);
+                if (xml.LocalName == "f") throw Error("Formula cells are not supported in XLSX stage 1.", ordinal);
+                if (xml.LocalName == "v")
+                {
+                    if (valueFound || inlineFound || type == "inlineStr") throw Error("The cell has conflicting value elements.", ordinal);
+                    valueFound = true;
+                    ReadText(xml, ordinal);
+                }
+                else if (xml.LocalName == "is")
+                {
+                    if (inlineFound || valueFound || type != "inlineStr") throw Error("The cell has conflicting inline text.", ordinal);
+                    inlineFound = true;
+                    ReadInline(xml, ordinal);
+                }
+                else throw Error("The cell contains unsupported markup.", ordinal);
+            }
+        }
+        CellKind kind = CellKind.Text;
+        if (Row.CurrentFieldLength != 0)
+        {
+            switch (type)
+            {
+                case "s": throw Error("Shared-string cells are not supported in XLSX stage 1.", ordinal);
+                case "d": throw Error("Native ISO date cells are not supported in XLSX stage 1.", ordinal);
+                case "e": throw Error("A spreadsheet error cell was found.", ordinal);
+                case "b":
+                    var boolean = Row.CurrentField.Trim();
+                    if (!boolean.SequenceEqual("0") && !boolean.SequenceEqual("1")) throw Error("A native boolean cell is invalid.", ordinal);
+                    Row.ReplaceCurrentField(boolean.SequenceEqual("1") ? "true" : "false");
+                    kind = CellKind.Boolean;
+                    break;
+                case null or "n":
+                    if (!IsNumber(Row.CurrentField.Trim())) throw Error("A native numeric cell is invalid.", ordinal);
+                    kind = CellKind.Number;
+                    break;
+            }
+        }
+        bool content = Row.CurrentFieldLength != 0;
+        if (kind == CellKind.Text && HasTextEscape(Row.CurrentField))
+            throw Error("Spreadsheet text escapes are not supported in XLSX stage 1.", ordinal);
+        Row.EndField(kind);
+        return content;
+    }
+
+    private void ReadInline(XmlReader xml, int ordinal)
+    {
+        if (xml.IsEmptyElement) return;
+        int depth = xml.Depth;
+        bool found = false;
+        while (xml.Read() && !(xml.NodeType == XmlNodeType.EndElement && xml.Depth == depth))
+        {
+            if (xml.NodeType != XmlNodeType.Element) continue;
+            XlsxXml.CheckRequiredMarkup(xml);
+            if (found || xml.Depth != depth + 1 || xml.LocalName != "t" || xml.NamespaceURI != package.SpreadsheetNamespace)
+                throw Error("Rich or extended text is not supported in XLSX stage 1.", ordinal);
+            found = true;
+            ReadText(xml, ordinal);
+        }
+    }
+
+    private void ReadText(XmlReader xml, int ordinal)
+    {
+        if (xml.IsEmptyElement) return;
+        int depth = xml.Depth;
+        while (xml.Read() && !(xml.NodeType == XmlNodeType.EndElement && xml.Depth == depth))
+        {
+            if (xml.NodeType is XmlNodeType.Text or XmlNodeType.CDATA or XmlNodeType.SignificantWhitespace or XmlNodeType.Whitespace)
+            {
+                int count;
+                while ((count = xml.ReadValueChunk(chunk, 0, chunk.Length)) != 0)
+                    for (int i = 0; i < count; i++) Row.Append(chunk[i]);
+            }
+            else throw Error("A cell value contains invalid markup.", ordinal);
+        }
+    }
+
+    private static bool IsNumber(ReadOnlySpan<char> value)
+    {
+        int i = 0;
+        if (i < value.Length && value[i] is '+' or '-') i++;
+        int digits = 0;
+        while (i < value.Length && char.IsAsciiDigit(value[i])) { i++; digits++; }
+        if (i < value.Length && value[i] == '.')
+        {
+            i++;
+            while (i < value.Length && char.IsAsciiDigit(value[i])) { i++; digits++; }
+        }
+        if (digits == 0) return false;
+        if (i < value.Length && value[i] is 'e' or 'E')
+        {
+            i++;
+            if (i < value.Length && value[i] is '+' or '-') i++;
+            int start = i;
+            while (i < value.Length && char.IsAsciiDigit(value[i])) i++;
+            if (start == i) return false;
+        }
+        return i == value.Length;
+    }
+
+    private static bool HasTextEscape(ReadOnlySpan<char> value)
+    {
+        for (int i = 0; i + 6 < value.Length; i++)
+            if (value[i] == '_' && value[i + 1] == 'x' && value[i + 6] == '_' &&
+                char.IsAsciiHexDigit(value[i + 2]) && char.IsAsciiHexDigit(value[i + 3]) &&
+                char.IsAsciiHexDigit(value[i + 4]) && char.IsAsciiHexDigit(value[i + 5])) return true;
+        return false;
+    }
+
+    private XlsxFormatException Error(string message, int? ordinal = null) => Row.WithLocation(new XlsxFormatException(message,
+        Row.RecordNumber, ordinal, ordinal is int index && index <= Row.Headers.Length ? Row.Headers[index - 1] : null,
+        ordinal is int member && member <= Row.TargetMembers.Length ? Row.TargetMembers[member - 1] : null));
+    public TabularFileException CreateFieldCountException(int expected) => Error("The record differs from the header range.");
+    public ValueTask<bool> ReadAsync(CancellationToken cancellationToken) =>
+        throw new NotSupportedException("Asynchronous XLSX enumeration is not supported in stage 1.");
+    public void Dispose() { try { reader?.Dispose(); } finally { package.Dispose(); } }
+    public ValueTask DisposeAsync() { Dispose(); return default; }
+}
+
+internal sealed class XlsxRecordReaderFactory : IRecordReaderFactory<XlsxOptions>
+{
+    internal static readonly XlsxRecordReaderFactory Instance = new();
+    public IRecordReader Open(Stream stream, XlsxOptions options)
+    {
+        XlsxPackage? package = null;
+        try
+        {
+            package = new(stream, options);
+            return new XlsxRecordReader(package, options);
+        }
+        catch (InvalidDataException)
+        {
+            package?.Dispose();
+            throw new XlsxFormatException("The workbook is not a supported XLSX archive.");
+        }
+        catch { package?.Dispose(); throw; }
+    }
+    public ValueTask<IRecordReader> OpenAsync(Stream stream, XlsxOptions options, CancellationToken cancellationToken) =>
+        throw new NotSupportedException("Asynchronous XLSX enumeration is not supported in stage 1.");
+}

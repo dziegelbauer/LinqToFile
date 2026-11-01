@@ -24,12 +24,13 @@ The single consumer package includes the generator without runtime package depen
 | `Reading` | Shared options, text decoding, buffering, reader contracts, and schema binding |
 | `Queries` | Sync/async enumeration and common materialization |
 | `Formats/Csv` | CSV options, parser, reader adapter, fluent source, and format exception |
+| `Formats/Xlsx` | Package relationships, worksheet streaming, merge preflight, options, and format errors |
 | `Mapping` | Model attributes and the static mapping interface |
 | `Infrastructure` | Generated mapper contract and reusable `TabularRow` |
 | `Errors` | Shared exception types |
 
 The public entry point remains `TabularFile`.
-Public CSV source and exception namespaces remain `LinqToFile`.
+Public CSV and XLSX source and exception namespaces remain `LinqToFile`.
 Folders separate responsibilities without a separate package for each layer.
 
 ## Source lifetime
@@ -56,11 +57,20 @@ The test passes in both sync and async modes without the CSV parser.
 
 This internal boundary prepares the library for more formats.
 It is not a public provider API.
-A second real format must validate that API before publication.
+XLSX stage 1 now exercises this boundary with a second real format.
+A public provider API remains a separate design decision.
 
-`TabularRow` currently stores text-backed cells.
+`TabularRow` stores cell text with optional native cell kinds for XLSX.
 Its typed readers and empty-value check isolate generated mappers from parsing.
-Future formats can extend cell representation without another source-lifetime implementation.
+Native numeric values use invariant span parsing; native booleans do not pass as numeric or enum values.
+CSV keeps its text-only path and conversion rules.
+`TextOptions` isolates encoding, BOM handling, and text buffering from common tabular options.
+
+The XLSX reader uses ZIP and XML types from the BCL.
+It loads package/workbook metadata and streams worksheet cells into reusable row buffers.
+Merge preflight reads the selected worksheet before record streaming begins.
+It does not retain the whole sheet or convert future row values.
+The [XLSX guide](xlsx.md) describes stage 1 limits.
 
 ## Generated mapping
 

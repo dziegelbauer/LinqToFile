@@ -1,5 +1,9 @@
 # Value conversions
 
+These rules describe CSV text conversion.
+XLSX text cells reuse these conversions; native XLSX cells have additional type rules and stage limits.
+See the [XLSX guide](xlsx.md) before mapping native cells.
+
 ## Supported types
 
 The reader maps these types and their nullable value forms:

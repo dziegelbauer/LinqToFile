@@ -75,6 +75,7 @@ try
         suppliedRows.Length != 2 || !supplied.CanRead)
         throw new InvalidOperationException("The async query result is incorrect.");
     Console.WriteLine($"Async CSV: {asyncAdults.Count} adult; {dictionary.Count} dictionary entries");
+    WorkbookSample.Run();
 }
 finally
 {

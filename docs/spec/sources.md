@@ -25,4 +25,4 @@
 - Reuse BCL async filtering/projection/list/array methods. A shared dictionary builder uses TryAdd and a generic ArgumentException message so duplicate keys do not disclose values.
 - User callbacks and explicitly called BCL operators retain their own exception behavior.
 - The internal reader boundary is tested with a synthetic non-CSV byte format. It is not a public provider API.
-- TabularRow currently stores text-backed cells. Future formats can extend cell representation separately from lifecycle/query execution.
+- XLSX stage 1 extends TabularRow with optional native cell kinds and worksheet/part context, while preserving the CSV text-only path. Shared TextOptions now isolates encoding/BOM/buffer options from common TabularOptions. XLSX reuses StreamSource, schema binding, and TabularQuery for synchronous paths/seekable streams; factories and async sources remain later XLSX stages.

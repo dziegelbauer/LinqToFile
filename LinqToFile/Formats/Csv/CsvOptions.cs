@@ -2,7 +2,7 @@ using LinqToFile.Reading;
 
 namespace LinqToFile.Formats.Csv;
 
-internal sealed record CsvOptions : TabularOptions
+internal sealed record CsvOptions : TextOptions
 {
     internal char Delimiter { get; init; } = ',';
     internal char Quote { get; init; } = '"';

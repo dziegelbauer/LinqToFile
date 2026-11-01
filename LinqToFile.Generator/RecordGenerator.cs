@@ -262,7 +262,7 @@ public sealed class RecordGenerator : IIncrementalGenerator
         bool flags = type.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == "System.FlagsAttribute");
         source.Append("private static ").Append(name).Append(" ReadEnum_").Append(suffix)
             .AppendLine("(global::LinqToFile.Infrastructure.TabularRow row, int ordinal, string member) {");
-        source.AppendLine("var text = row.GetField(ordinal).Trim();");
+        source.AppendLine("var text = row.GetTextField(ordinal, member).Trim();");
         if (flags)
         {
             source.Append(name).AppendLine(" result = default;");

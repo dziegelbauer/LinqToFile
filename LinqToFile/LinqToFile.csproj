@@ -13,7 +13,7 @@
         <RepositoryUrl>https://github.com/dziegelbauer/LinqToFile.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>linq;csv;tabular;streaming;nativeaot;source-generator</PackageTags>
-        <PackageReleaseNotes>Initial prerelease: typed CSV queries, sync and async streaming, generated mapping, and Native AOT support. API changes remain possible.</PackageReleaseNotes>
+        <PackageReleaseNotes>Prerelease: complete CSV reader and XLSX stage 1 foundation. XLSX currently supports synchronous seekable input with inline text, numbers, and booleans. Shared strings, formulas, and native date conversion remain future stages. API changes remain possible.</PackageReleaseNotes>
     </PropertyGroup>
 
     <ItemGroup>

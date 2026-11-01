@@ -1,5 +1,8 @@
 # Sources and async queries
 
+This guide describes CSV sources.
+The [XLSX foundation](xlsx.md) currently supports synchronous paths and seekable streams only.
+
 ## Source kinds
 
 | Entry point | Source | Ownership and reuse |
@@ -115,6 +118,6 @@ A synthetic byte-format test uses the same source, binding, and mapping code.
 It does not use the CSV parser.
 This internal reader boundary can support another format without a new ownership implementation.
 
-The row currently stores text-backed cells.
-A future format can extend cell representation separately from query execution.
-A public provider API remains deferred until another real format validates the design.
+The row stores cell text with optional native cell kinds for XLSX.
+XLSX stage 1 reuses the source, schema, and query boundary for a second real format.
+A public provider API remains a separate design decision.

@@ -35,5 +35,8 @@ Status: complete. Phase 6 work was committed as d8c7030. The user confirmed that
 Validate NuGet consumption with generator included, Apache-2.0 license and package metadata, documentation/examples, and tabular-format boundaries.
 Acceptance: clean consumer and cross-project model samples work from the package; agreed license included; user/contributor documentation matches shipped behavior; deferred features are explicit.
 
+## Next format: XLSX
+Behavior and [implementation stages](xlsx-plan.md) are approved. Stage 1 is implemented and locally validated with 583 passing tests and project/package Native AOT samples; hosted confirmation remains pending. Full XLSX support remains incomplete. See [XLSX planning](xlsx.md) and [stage 1 validation](../validation-xlsx-stage1.md).
+
 ## Future objectives
 Other tabular formats; headerless files; per-column error policies; configurable missing columns; opt-in raw error values; custom converters/null tokens/exact date formats; broader model shapes and fields; custom IQueryable if justified. Writing and change tracking are outside initial scope.

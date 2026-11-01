@@ -16,5 +16,8 @@
     <None Include="../../docs/sources-and-async.md" Link="Examples/sources-and-async.md" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../samples/Models/Person.cs" Link="Examples/Person.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../samples/NativeAot/Program.cs" Link="Examples/Program.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../docs/xlsx.md" Link="Examples/xlsx.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../samples/Models/WorkbookEntry.cs" Link="Examples/WorkbookEntry.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../samples/NativeAot/WorkbookSample.cs" Link="Examples/WorkbookSample.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

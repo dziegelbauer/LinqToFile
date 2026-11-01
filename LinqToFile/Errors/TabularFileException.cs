@@ -9,6 +9,10 @@ public class TabularFileException : Exception
     public int? ColumnIndex { get; }
     public string? ColumnHeader { get; }
     public string? TargetMember { get; }
+    public string? WorksheetName { get; internal set; }
+    public long? WorksheetRowNumber { get; internal set; }
+    public string? CellReference { get; internal set; }
+    public string? PartName { get; internal set; }
 
     internal TabularFileException(string message, long record, long line, long failureLine,
         int? column = null, string? header = null, string? member = null) : base(message)

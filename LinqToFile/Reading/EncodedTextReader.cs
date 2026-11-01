@@ -4,14 +4,14 @@ namespace LinqToFile.Reading;
 
 internal static class EncodedTextReader
 {
-    internal static StreamReader Open(Stream stream, TabularOptions options, bool leaveOpen = false)
+    internal static StreamReader Open(Stream stream, TextOptions options, bool leaveOpen = false)
     {
         var prefix = new byte[4];
         int count = stream.ReadAtLeast(prefix.AsSpan(), prefix.Length, throwOnEndOfStream: false);
         return Create(stream, prefix, count, options, leaveOpen);
     }
 
-    internal static async ValueTask<StreamReader> OpenAsync(Stream stream, TabularOptions options,
+    internal static async ValueTask<StreamReader> OpenAsync(Stream stream, TextOptions options,
         CancellationToken cancellationToken, bool leaveOpen = false)
     {
         var prefix = new byte[4];
@@ -20,7 +20,7 @@ internal static class EncodedTextReader
         return Create(stream, prefix, count, options, leaveOpen);
     }
 
-    private static StreamReader Create(Stream stream, byte[] prefix, int count, TabularOptions options, bool leaveOpen)
+    private static StreamReader Create(Stream stream, byte[] prefix, int count, TextOptions options, bool leaveOpen)
     {
         var bytes = prefix.AsSpan(0, count);
         Encoding? detected = bytes switch
