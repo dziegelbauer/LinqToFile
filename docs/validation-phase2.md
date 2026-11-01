@@ -1,5 +1,8 @@
 # Phase 2 validation
 
+This historical record describes phase 2 at commit `cf12b87`.
+The [phase 3 record](validation-phase3.md) describes the current mapping and conversion checks.
+
 ## Scope
 
 Phase 1 is commit `9f8d8f5`.

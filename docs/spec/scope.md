@@ -23,6 +23,7 @@
 - Plan first; implement in small, user-directed steps.
 
 ## Future objectives
+- Platform-sized nint/nuint conversions.
 - Other tabular formats.
 - Headerless CSV.
 - Configurable per-column error handling through annotations.

@@ -17,6 +17,9 @@ An override replaces the base property.
 The nearest column annotation supplies the header name.
 A derived column annotation can replace a base column annotation.
 Conflicts between column and ignore annotations cause compiler errors.
+An inherited generic base can supply properties with concrete types.
+A hidden mapped base property causes a compiler error.
+This rule also applies when a field or method hides that property.
 
 ## Attributes
 
@@ -40,6 +43,7 @@ Public fields are not mapped.
 |---|---|
 | `TabularFile.Csv<T>(path)` | Makes a deferred file source |
 | `WithEncoding(encoding)` | Returns a new source with a copy of the encoding |
+| `WithCulture(culture)` | Returns a new source with a read-only copy of the conversion culture |
 | `WithHeaderComparison(comparer)` | Returns a new source with the selected header comparison |
 | `WithDelimiter(character)` | Sets the field delimiter |
 | `WithQuote(character)` | Sets the quote character |
@@ -54,6 +58,9 @@ Public fields are not mapped.
 
 The supported comparers are `StringComparer.Ordinal` and `StringComparer.OrdinalIgnoreCase`.
 The default is `StringComparer.Ordinal`.
+Exact column conflicts cause compiler errors.
+Comparison-dependent mapping conflicts throw when `WithHeaderComparison` runs.
+Duplicate file headers still throw during enumeration.
 Options do not change the original source.
 Options apply before standard LINQ operators.
 Boolean options default to true when the caller omits the argument.
@@ -70,12 +77,16 @@ The generator supplies the mapping methods without application code.
 | Type | Input |
 |---|---|
 | `string` | The unescaped field text, including whitespace |
-| `int` | An integer with an optional sign and surrounding whitespace |
+| Fixed-width integers | An integer with an optional sign and surrounding whitespace |
+| `Half`, `float`, `double` | A finite number, with optional exponent |
 | `decimal` | A number with an optional sign, decimal point, and surrounding whitespace |
 | `bool` | `true` or `false`, without case sensitivity |
 | `Guid` | A GUID accepted by the BCL span parser |
+| `char` | Exactly one UTF-16 code unit |
+| Enums | Declared case-sensitive names, with name combinations for flags |
+| Temporal types | Culture-based dates, times, and durations under the offset rules |
 
-Numeric conversions use `InvariantCulture`.
+Numeric and temporal conversions default to `InvariantCulture`.
 The numeric parser does not accept thousands separators or currency symbols.
 An empty field becomes an empty string.
 An empty field becomes null for a nullable value property.
@@ -93,4 +104,5 @@ Quoted and unquoted empty fields have the same meaning.
 
 An unmarked class cannot satisfy the generated interface constraint.
 The C# compiler reports that use as a constraint error.
-More conversion types and configurable culture are planned for later phases.
+The [conversion guide](conversions.md) lists all types and their rules.
+Custom converters and exact-format annotations remain future goals.

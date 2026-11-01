@@ -48,10 +48,11 @@ public sealed class ReadingTests
             Assert.True(enumerator.MoveNext());
             Assert.Equal(1, enumerator.Current.Value);
             Assert.Equal(new[] { 1, 2 }, source.Select(r => r.Value));
+            enumerator.Dispose();
             File.WriteAllText(path, "Value\n3");
             Assert.Equal(3, source.Single().Value);
         }
-        finally { File.Delete(path); }
+        finally { enumerator.Dispose(); File.Delete(path); }
     }
 
     [Fact]

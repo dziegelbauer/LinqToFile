@@ -54,10 +54,16 @@ public sealed class GeneratorTests
     [InlineData("[TabularRecord] public partial class Model { [Ignore] public required string Value { get; init; } }", "LTF002")]
     [InlineData("[TabularRecord] public partial class Model { [Column(\"x\")] public int Value { get; } }", "LTF002")]
     [InlineData("[TabularRecord] public partial class Model { [Column(\" \")] public int Value { get; set; } }", "LTF002")]
-    [InlineData("[TabularRecord] public partial class Model { public System.DateTime Value { get; set; } }", "LTF003")]
+    [InlineData("[TabularRecord] public partial class Model { public object Value { get; set; } = new(); }", "LTF003")]
     [InlineData("[TabularRecord] public partial class Model { [Column(\"x\"), Ignore] public int Value { get; set; } }", "LTF004")]
     [InlineData("[TabularRecord] public partial class Model { [Column(\"x\")] public int A { get; set; } [Column(\"x\")] public int B { get; set; } }", "LTF004")]
     [InlineData("[TabularRecord] public partial class Model { public required int Value; }", "LTF002")]
+    [InlineData("[TabularRecord] public partial class Model { public nint Value { get; init; } }", "LTF003")]
+    [InlineData("[TabularRecord] public partial class Model { public nuint Value { get; init; } }", "LTF003")]
+    [InlineData("[TabularRecord] public partial class Model { [Column(\"x\")] public static int Value { get; set; } }", "LTF002")]
+    [InlineData("[TabularRecord] public partial class Model { [Column(\"x\")] public int Value { get; private set; } }", "LTF002")]
+    [InlineData("[TabularRecord] public partial class Model { [Column(null)] public int Value { get; init; } }", "LTF002")]
+    [InlineData("[TabularRecord] public partial class Model { [Column(\"x\")] public int this[int index] { get => 0; set {} } }", "LTF002")]
     public void ReportsUnsupportedShapes(string declaration, string id)
     {
         var (result, _) = Generate("using LinqToFile; " + declaration);
@@ -109,5 +115,105 @@ public sealed class GeneratorTests
             [TabularRecord] public partial class Model : Base { [Ignore] public override int Value { get; set; } }
             """);
         Assert.Contains(conflict.Diagnostics, d => d.Id == "LTF004");
+    }
+
+    [Theory]
+    [InlineData("public int Value { get; set; }", "public new int Value { get; set; }")]
+    [InlineData("public int Value { get; set; }", "[Ignore] public new int Value { get; set; }")]
+    [InlineData("public int Value { get; set; }", "public new int Value;")]
+    [InlineData("public int Value { get; set; }", "public new void Value() {}")]
+    [InlineData("[Ignore] public virtual int Value { get; set; }", "[Column(\"x\")] public override int Value { get; set; }")]
+    public void RejectsInheritedMappingAmbiguity(string baseProperty, string derivedMember)
+    {
+        var (result, _) = Generate("using LinqToFile; public class Base { " + baseProperty +
+            " } [TabularRecord] public partial class Model : Base { " + derivedMember + " }");
+        Assert.Contains(result.Diagnostics, d => d.Id == "LTF004");
+    }
+
+    [Theory]
+    [InlineData("public int Value => 0;", "public new int Value { get; init; }")]
+    [InlineData("[Ignore] public int Value { get; set; }", "public new int Value { get; init; }")]
+    [InlineData("[Column(\"old\")] public virtual int Value { get; set; }", "[Column(\"new\")] public override int Value { get; set; }")]
+    public void PermitsUnambiguousInheritance(string baseProperty, string derivedMember)
+    {
+        var (result, output) = Generate("using LinqToFile; public class Base { " + baseProperty +
+            " } [TabularRecord] public partial class Model : Base { " + derivedMember + " }");
+        Assert.Empty(result.Diagnostics);
+        Assert.DoesNotContain(output.GetDiagnostics(), d => d.Severity == DiagnosticSeverity.Error);
+    }
+
+    [Theory]
+    [InlineData("public partial interface Container")]
+    [InlineData("public readonly partial struct Container")]
+    [InlineData("public readonly ref partial struct Container")]
+    [InlineData("public partial record Container")]
+    public void SupportsNestedModelsInDifferentPartialContainerKinds(string container)
+    {
+        var (result, output) = Generate("using LinqToFile; " + container +
+            " { [TabularRecord] public sealed partial class Model { public int Value { get; init; } } }");
+        Assert.Empty(result.Diagnostics);
+        Assert.DoesNotContain(output.GetDiagnostics(), d => d.Severity == DiagnosticSeverity.Error);
+    }
+
+    [Fact]
+    public void EnumParsersUseGeneratedNamesAndNoRuntimeEnumDiscovery()
+    {
+        var (result, output) = Generate("""
+            using LinqToFile;
+            [System.Flags] public enum Access : ulong { None = 0, @class = 1, Huge = 1UL << 63 }
+            [TabularRecord] public partial class Model { public Access Value { get; init; } public Access? Optional { get; init; } }
+            """);
+        Assert.Empty(result.Diagnostics);
+        Assert.DoesNotContain(output.GetDiagnostics(), d => d.Severity == DiagnosticSeverity.Error);
+        var code = Assert.Single(result.GeneratedTrees).GetText().ToString();
+        Assert.Contains("\"class\"", code);
+        Assert.Contains("token.SequenceEqual", code);
+        Assert.DoesNotContain("Enum.Parse", code);
+        Assert.DoesNotContain("Enum.TryParse", code);
+        Assert.DoesNotContain("GetNames", code);
+    }
+
+    [Fact]
+    public void MapsSubstitutedPropertiesFromGenericBaseClasses()
+    {
+        var (result, output) = Generate("""
+            using LinqToFile;
+            public class Base<T> { public required T Value { get; init; } }
+            [TabularRecord] public partial class Model : Base<System.Int128> { }
+            """);
+        Assert.Empty(result.Diagnostics);
+        Assert.DoesNotContain(output.GetDiagnostics(), d => d.Severity == DiagnosticSeverity.Error);
+    }
+
+    [Fact]
+    public void DeclaredObsoleteEnumNamesDoNotBreakGeneratedCompilation()
+    {
+        var (result, output) = Generate("""
+            using LinqToFile;
+            [System.Flags] public enum Access : long {
+                [System.Obsolete("Use Current", true)] Legacy = long.MinValue,
+                Current = 1
+            }
+            [TabularRecord] public partial class Model { public Access Value { get; init; } }
+            """);
+        Assert.Empty(result.Diagnostics);
+        Assert.DoesNotContain(output.GetDiagnostics(), d => d.Severity == DiagnosticSeverity.Error);
+    }
+
+    [Theory]
+    [InlineData("sbyte", "-128")]
+    [InlineData("byte", "255")]
+    [InlineData("short", "-32768")]
+    [InlineData("ushort", "65535")]
+    [InlineData("int", "-2147483648")]
+    [InlineData("uint", "4294967295U")]
+    [InlineData("long", "-9223372036854775808L")]
+    [InlineData("ulong", "18446744073709551615UL")]
+    public void EnumConstantEmissionPreservesEveryUnderlyingRange(string underlyingType, string constant)
+    {
+        var (result, output) = Generate("using LinqToFile; public enum Edge : " + underlyingType +
+            " { Value = " + constant + " } [TabularRecord] public partial class Model { public Edge Value { get; init; } }");
+        Assert.Empty(result.Diagnostics);
+        Assert.DoesNotContain(output.GetDiagnostics(), d => d.Severity == DiagnosticSeverity.Error);
     }
 }

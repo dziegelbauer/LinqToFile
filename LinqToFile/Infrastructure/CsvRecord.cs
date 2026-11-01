@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Numerics;
 
 namespace LinqToFile.Infrastructure;
 
@@ -17,6 +18,8 @@ public sealed class CsvRecord
     internal long LineNumber { get; set; }
     internal long FailureLineNumber { get; set; }
     internal string[] Headers { get; set; } = [];
+    internal string?[] TargetMembers { get; set; } = [];
+    internal CultureInfo Culture { get; set; } = CultureInfo.InvariantCulture;
 
     internal CsvRecord(int initialCapacity, int? maxRecordLength)
     {
@@ -56,21 +59,66 @@ public sealed class CsvRecord
 
     public string ReadString(int ordinal, string member) => GetField(ordinal).ToString();
 
-    public int ReadInt32(int ordinal, string member) =>
-        int.TryParse(GetField(ordinal), NumberStyles.Integer, CultureInfo.InvariantCulture, out var value)
-            ? value : throw ConversionError(ordinal, member);
+    public T ReadNumber<T>(int ordinal, string member, NumberStyles styles) where T : struct, INumberBase<T>
+    {
+        var text = GetField(ordinal);
+        if (text.IndexOf('\0') < 0 && T.TryParse(text, styles, Culture, out var value) && T.IsFinite(value)) return value;
+        throw CreateConversionException(ordinal, member);
+    }
+
+    public int ReadInt32(int ordinal, string member) => ReadNumber<int>(ordinal, member, NumberStyles.Integer);
 
     public decimal ReadDecimal(int ordinal, string member) =>
-        decimal.TryParse(GetField(ordinal),
-            NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite,
-            CultureInfo.InvariantCulture, out var value) ? value : throw ConversionError(ordinal, member);
+        ReadNumber<decimal>(ordinal, member,
+            NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite);
 
-    public bool ReadBoolean(int ordinal, string member) =>
-        bool.TryParse(GetField(ordinal), out var value) ? value : throw ConversionError(ordinal, member);
+    public bool ReadBoolean(int ordinal, string member)
+    {
+        var text = GetField(ordinal);
+        return text.IndexOf('\0') < 0 && bool.TryParse(text, out var value)
+            ? value : throw CreateConversionException(ordinal, member);
+    }
 
     public Guid ReadGuid(int ordinal, string member) =>
-        Guid.TryParse(GetField(ordinal), out var value) ? value : throw ConversionError(ordinal, member);
+        Guid.TryParse(GetField(ordinal), out var value) ? value : throw CreateConversionException(ordinal, member);
 
-    private TabularConversionException ConversionError(int ordinal, string member) =>
+    public char ReadChar(int ordinal, string member)
+    {
+        var text = GetField(ordinal);
+        return text.Length == 1 ? text[0] : throw CreateConversionException(ordinal, member);
+    }
+
+    public DateTime ReadDateTime(int ordinal, string member)
+    {
+        // AdjustToUniversal leaves offset-free input Unspecified, without assuming a local zone.
+        if (DateTime.TryParse(GetField(ordinal), Culture, DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AdjustToUniversal,
+                out var value) && value.Kind == DateTimeKind.Unspecified)
+            return value;
+        throw CreateConversionException(ordinal, member);
+    }
+
+    public DateTimeOffset ReadDateTimeOffset(int ordinal, string member)
+    {
+        var text = GetField(ordinal);
+        // Check for an explicit zone using the BCL parser, then retain the original offset.
+        if (DateTime.TryParse(text, Culture, DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AdjustToUniversal,
+                out var marker) && marker.Kind == DateTimeKind.Utc &&
+            DateTimeOffset.TryParse(text, Culture, DateTimeStyles.AllowWhiteSpaces, out var value))
+            return value;
+        throw CreateConversionException(ordinal, member);
+    }
+
+    public DateOnly ReadDateOnly(int ordinal, string member) =>
+        DateOnly.TryParse(GetField(ordinal), Culture, DateTimeStyles.AllowWhiteSpaces, out var value)
+            ? value : throw CreateConversionException(ordinal, member);
+
+    public TimeOnly ReadTimeOnly(int ordinal, string member) =>
+        TimeOnly.TryParse(GetField(ordinal), Culture, DateTimeStyles.AllowWhiteSpaces, out var value)
+            ? value : throw CreateConversionException(ordinal, member);
+
+    public TimeSpan ReadTimeSpan(int ordinal, string member) =>
+        TimeSpan.TryParse(GetField(ordinal), Culture, out var value) ? value : throw CreateConversionException(ordinal, member);
+
+    public TabularConversionException CreateConversionException(int ordinal, string member) =>
         new(RecordNumber, LineNumber, FailureLineNumber, ordinal + 1, Headers[ordinal], member);
 }

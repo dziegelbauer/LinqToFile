@@ -8,6 +8,7 @@ public sealed class DocumentationTests
     [Theory]
     [InlineData("README.md", 2)]
     [InlineData("csv-and-errors.md", 1)]
+    [InlineData("conversions.md", 1)]
     public void CSharpExamplesMatchTheRunnableSample(string file, int expectedCount)
     {
         var directory = Path.Combine(AppContext.BaseDirectory, "Examples");

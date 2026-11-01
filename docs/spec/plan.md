@@ -16,6 +16,7 @@ Implement configured encoding/BOM behavior, dialect, strict quoting, newline/bla
 Acceptance: specification cases pass across tiny buffers, split encoding sequences, multiline fields, malformed input, non-seekable sources, and header-only files. Parser memory grows with active record size rather than file size.
 
 ## 3. Complete schema and generated mapping
+Status: complete. Phase 2 was committed as cf12b87. Phase 3 implements all agreed scalar types, nullable forms, culture snapshots, reflection-free enum name parsing, temporal offset policies, and richer schema/member diagnostics. The Release build has zero warnings/errors and 323 tests pass. Conversion checks pass in Auckland and Los Angeles time zones; cross-assembly JIT and Native AOT samples run, including the alpha.3 package. See [phase 3 validation](../validation-phase3.md).
 Implement annotations, inheritance diagnostics, header comparison/validation, supported types, strict conversion policies, and cross-project mappings.
 Acceptance: compile-time diagnostics and runtime errors match mapping.md; no runtime reflection; retained records survive buffer reuse; conversion errors omit raw values.
 

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Text;
+using System.Globalization;
 using LinqToFile.Infrastructure;
 
 namespace LinqToFile;
@@ -35,7 +36,24 @@ public sealed class CsvSource<T> : IEnumerable<T> where T : class, ITabularRecor
     {
         if (!ReferenceEquals(value, StringComparer.Ordinal) && !ReferenceEquals(value, StringComparer.OrdinalIgnoreCase))
             throw new ArgumentException("Use StringComparer.Ordinal or StringComparer.OrdinalIgnoreCase.", nameof(value));
+        ValidateMapping(value);
         return new(path, options with { HeaderComparison = value });
+    }
+
+    public CsvSource<T> WithCulture(CultureInfo value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        var snapshot = CultureInfo.ReadOnly((CultureInfo)value.Clone());
+        return new(path, options with { Culture = snapshot });
+    }
+
+    private static void ValidateMapping(StringComparer comparer)
+    {
+        var columns = T.Mapper.Columns;
+        for (int i = 0; i < columns.Length; i++)
+        for (int j = 0; j < i; j++)
+            if (comparer.Equals(columns[i], columns[j]))
+                throw new ArgumentException("Multiple mapped properties have equal column names under the selected comparison.", nameof(comparer));
     }
 
     public CsvSource<T> WithDelimiter(char value)
@@ -103,6 +121,8 @@ public sealed class CsvSource<T> : IEnumerable<T> where T : class, ITabularRecor
             headers[i] = header;
         }
         row.Headers = headers;
+        row.Culture = options.Culture;
+        row.TargetMembers = new string?[headers.Length];
         var ordinals = Bind(mapper, headerMap, row);
         row.TrimFields = options.TrimFields;
         while (parser.Read())
@@ -111,8 +131,9 @@ public sealed class CsvSource<T> : IEnumerable<T> where T : class, ITabularRecor
             {
                 int missingOrExtra = Math.Min(row.Count, headers.Length);
                 string? header = missingOrExtra < headers.Length ? headers[missingOrExtra] : null;
+                string? member = missingOrExtra < row.TargetMembers.Length ? row.TargetMembers[missingOrExtra] : null;
                 throw new CsvFormatException("The record field count differs from the header.",
-                    row.RecordNumber, row.LineNumber, row.FailureLineNumber, missingOrExtra + 1, header);
+                    row.RecordNumber, row.LineNumber, row.FailureLineNumber, missingOrExtra + 1, header, member);
             }
             yield return mapper.Read(row, ordinals);
         }
@@ -121,14 +142,16 @@ public sealed class CsvSource<T> : IEnumerable<T> where T : class, ITabularRecor
     private static int[] Bind(RecordMapper<T> mapper, Dictionary<string, int> headers, CsvRecord row)
     {
         var names = mapper.Columns;
+        var members = mapper.Members;
         var ordinals = new int[names.Length];
         var used = new HashSet<string>(headers.Comparer);
         for (var i = 0; i < names.Length; i++)
         {
             if (!used.Add(names[i]))
-                throw new TabularSchemaException("Multiple properties map to the same column.", 1, row.LineNumber, row.FailureLineNumber, header: names[i]);
+                throw new TabularSchemaException("Multiple properties map to the same column.", 1, row.LineNumber, row.FailureLineNumber, header: names[i], member: members[i]);
             if (!headers.TryGetValue(names[i], out ordinals[i]))
-                throw new TabularSchemaException("A mapped column is missing.", 1, row.LineNumber, row.FailureLineNumber, header: names[i]);
+                throw new TabularSchemaException("A mapped column is missing.", 1, row.LineNumber, row.FailureLineNumber, header: names[i], member: members[i]);
+            row.TargetMembers[ordinals[i]] = members[i];
         }
         return ordinals;
     }

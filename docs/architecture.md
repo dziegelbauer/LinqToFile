@@ -27,6 +27,20 @@ This contract makes a direct dependency that Native AOT can keep.
 It avoids reflection, global registration, and application startup hooks.
 Models from another assembly use the same contract.
 Nested models must have partial containing types.
+Generated column and member names supply schema diagnostics without reflection.
+Name arrays share storage when the property names and column names are identical.
+
+Numeric readers use the BCL generic math interfaces over character spans.
+The generated code selects a fixed parsing style for each numeric type.
+Enum readers compare declared names by token length and character content.
+Flags readers combine those named values without temporary token strings.
+
+Temporal readers use the BCL date/time parsers.
+An offset probe uses `DateTimeStyles.AdjustToUniversal` without an assumed time zone.
+Offset-free results remain unspecified under that style.
+The reader rejects offset-bearing `DateTime` inputs.
+A second parse keeps the original offset for `DateTimeOffset`.
+The [BCL style reference](https://learn.microsoft.com/en-us/dotnet/api/system.globalization.datetimestyles?view=net-10.0) describes the probe behavior.
 
 ## Record ownership
 
@@ -70,6 +84,7 @@ A second format must test that design before the project adds a provider API.
 
 The [phase 1 validation record](validation-phase1.md) gives the initial results and reproduction commands.
 The [phase 2 validation record](validation-phase2.md) gives the CSV reader checks.
+The [phase 3 validation record](validation-phase3.md) gives the mapping and conversion checks.
 
 1. Update the relevant specification when a decision changes.
 2. Add tests for new behavior.

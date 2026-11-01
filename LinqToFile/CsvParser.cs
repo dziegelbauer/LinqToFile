@@ -122,7 +122,8 @@ internal sealed class CsvParser
     {
         int ordinal = Record.Count;
         string? header = ordinal < Record.Headers.Length ? Record.Headers[ordinal] : null;
-        return new(message, Record.RecordNumber, Record.LineNumber, line, ordinal + 1, header);
+        string? member = ordinal < Record.TargetMembers.Length ? Record.TargetMembers[ordinal] : null;
+        return new(message, Record.RecordNumber, Record.LineNumber, line, ordinal + 1, header, member);
     }
 
     private enum State { Start, Unquoted, Quoted, Closed }

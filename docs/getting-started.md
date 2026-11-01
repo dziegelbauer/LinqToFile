@@ -38,7 +38,7 @@ dotnet restore samples/NativeAot -p:UseLocalPackage=true --source "$PWD/artifact
 dotnet run --project samples/NativeAot -c Release -p:UseLocalPackage=true --no-restore
 ```
 
-For another project, add a package reference to `LinqToFile` version `0.1.0-alpha.2`.
+For another project, add a package reference to `LinqToFile` version `0.1.0-alpha.3`.
 Use the local feed during restore.
 A project that declares models must reference the package.
 The caller does not register mappers.
@@ -51,6 +51,7 @@ A class without an explicit constructor has an implicit parameterless constructo
 
 `Csv<T>(path)` makes a source without an immediate file read.
 Enumeration opens the file.
+The [conversion guide](conversions.md) gives the scalar types and culture rules.
 `Where`, `Select`, and `Take` can read records one at a time.
 `ToList` and `ToArray` keep all selected records.
 `OrderBy` must keep records before it can return a sorted result.

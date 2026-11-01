@@ -1,4 +1,5 @@
 using System.Text;
+using System.Globalization;
 
 namespace LinqToFile;
 
@@ -6,6 +7,7 @@ internal sealed record CsvOptions
 {
     internal Encoding Encoding { get; init; } = new UTF8Encoding(false, true);
     internal StringComparer HeaderComparison { get; init; } = StringComparer.Ordinal;
+    internal CultureInfo Culture { get; init; } = CultureInfo.InvariantCulture;
     internal char Delimiter { get; init; } = ',';
     internal char Quote { get; init; } = '"';
     internal bool DetectBom { get; init; } = true;
