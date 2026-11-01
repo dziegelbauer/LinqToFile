@@ -4,8 +4,9 @@
 
 Local checks pass on macOS arm64.
 The repository is published on GitHub.
-The first reported Windows failure occurred during package-consumer restore.
-Phase 5 remains open until the hosted platform jobs pass.
+The user confirmed that all three hosted jobs passed after correction `61536a1`.
+Phase 5 is complete.
+Hosted results below come from that confirmation. Run logs were not independently retrieved.
 
 ## Local results
 
@@ -15,7 +16,7 @@ Phase 5 remains open until the hosted platform jobs pass.
 - Project-reference and alpha.5 package Native AOT samples publish and run.
 - Repeated benchmarks cover parsing, mapping, sync/async streaming, strings, large fields, and collections.
 - Buffer trials cover 512, 4096, and 16384 decoded characters.
-- The CI file passes a local YAML syntax check. The Windows correction awaits hosted confirmation.
+- The CI file passes a local YAML syntax check.
 
 The local SDK was 10.0.403. The runtime was 10.0.14.
 See [performance measurements](performance.md) for raw samples and measurement limits.
@@ -28,9 +29,9 @@ It does not publish a package or create a release.
 
 | Runner | Runtime identifier | Hosted result |
 |---|---|---|
-| Ubuntu 24.04 | linux-x64 | Pending |
-| Windows 2025 | win-x64 | Package-consumer restore failed; correction awaits rerun |
-| macOS 15 | osx-arm64 | Pending |
+| Ubuntu 24.04 | linux-x64 | Passed, user confirmed |
+| Windows 2025 | win-x64 | Passed, user confirmed |
+| macOS 15 | osx-arm64 | Passed, user confirmed |
 
 Each job builds the solution and runs all tests.
 It runs the JIT sample and publishes and runs the Native AOT sample.
@@ -41,8 +42,8 @@ This avoids passing feed URLs through `dotnet publish --source`.
 The Windows log reported NU1301 with `https:\api.nuget.org\v3\index.json` inside a local project path.
 The corrected restore and publish commands pass under PowerShell on macOS arm64 with a fresh package cache.
 The resulting Native AOT sample prints the expected output.
-This local check does not replace the Windows rerun.
-This checks that the package supplies the generator to the separate model project.
+The user then confirmed a successful Windows rerun.
+The package-consumer check confirms that the package supplies the generator to the separate model project.
 Test reports and benchmark JSON are uploaded as job artifacts.
 Benchmark timing is informational. There is no machine-specific time limit for a scan.
 
