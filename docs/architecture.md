@@ -70,7 +70,13 @@ The XLSX reader uses ZIP and XML types from the BCL.
 It loads package/workbook metadata and streams worksheet cells into reusable row buffers.
 Merge preflight reads the selected worksheet before record streaming begins.
 It does not retain the whole sheet or convert future row values.
-The [XLSX guide](xlsx.md) describes stage 1 limits.
+The [XLSX guide](xlsx.md) describes the current scope and limits.
+Stage 2 adds shared-string storage, cached formulas, rich text, native temporal conversion, and resource accounting.
+The shared-string store keeps text and references within its memory budget or moves both content and its fixed-width index to disk.
+The row can reuse immutable cached strings when trimming does not change them.
+Excel serial conversion is an explicit per-reader policy; other formats do not inherit it from numeric cell kinds alone.
+Exact decimal arithmetic handles serial dates and durations before a single tick-rounding step.
+ISO date cells use invariant parsing and preserve explicit offsets.
 
 ## Generated mapping
 

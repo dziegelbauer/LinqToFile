@@ -8,7 +8,7 @@ internal sealed class ArchiveViewStream : Stream
     private readonly long length;
     internal ArchiveViewStream(Stream stream)
     {
-        if (!stream.CanSeek) throw new XlsxFormatException("Non-seekable input is not supported in XLSX stage 1.");
+        if (!stream.CanSeek) throw new XlsxFormatException("Non-seekable XLSX input is not supported until stage 3.");
         this.stream = stream;
         origin = stream.Position;
         length = stream.Length - origin;

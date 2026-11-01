@@ -38,7 +38,7 @@ dotnet restore samples/NativeAot -p:UseLocalPackage=true --configfile .github/pa
 dotnet run --project samples/NativeAot -c Release -p:UseLocalPackage=true --no-restore
 ```
 
-For another project, add a package reference to `LinqToFile` version `0.1.0-alpha.7`.
+For another project, add a package reference to `LinqToFile` version `0.1.0-alpha.8`.
 Use the local feed during restore.
 A project that declares models must reference the package.
 The caller does not register mappers.
@@ -81,6 +81,6 @@ The [source guide](sources-and-async.md) gives the lifetime rules and query exam
 
 ## Read an XLSX workbook
 
-The experimental [XLSX foundation](xlsx.md) supports synchronous reading of a limited cell subset.
+The [XLSX reader](xlsx.md) supports synchronous reading with shared strings, cached formulas, native temporal conversions, and resource limits.
 Check that guide before using an existing workbook.
 The executable sample checks both Transitional and Strict XLSX workbooks.

@@ -27,6 +27,14 @@ public sealed class FormatIndependenceTests
     }
 
     private sealed record ByteOptions : TabularOptions;
+    [Fact]
+    public void NativeNumbersFromAnotherFormatDoNotImplicitlyUseExcelDateRules()
+    {
+        var stream = new ProbeStream([1]);
+        Assert.Throws<TabularConversionException>(() => TabularQuery<SheetDateTime, ByteOptions>
+            .Read(new StreamSource(stream, false), new ByteOptions(), ByteReaderFactory.Instance).Single());
+        Assert.Equal(1, stream.SyncDisposals);
+    }
 
     private sealed class ByteReaderFactory : IRecordReaderFactory<ByteOptions>
     {
@@ -71,7 +79,7 @@ public sealed class FormatIndependenceTests
         {
             Row.Reset();
             Row.Append((char)('0' + value[0]));
-            Row.EndField();
+            Row.EndField(CellKind.Number);
             Row.RecordNumber = ++number;
             Row.LineNumber = Row.FailureLineNumber = number;
             return true;

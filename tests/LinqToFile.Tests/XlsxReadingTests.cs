@@ -233,10 +233,8 @@ public sealed class XlsxReadingTests
 
     [Theory]
     [InlineData("s", "0")]
-    [InlineData("d", "2026-01-01")]
     [InlineData("e", "#N/A")]
     [InlineData("b", "true")]
-    [InlineData("str", "_x0041_")]
     public void UnsupportedOrInvalidCellFeaturesFailExplicitly(string type, string value)
     {
         using var stream = Create(SingleColumn(value, type));
@@ -246,12 +244,12 @@ public sealed class XlsxReadingTests
     }
 
     [Fact]
-    public void FormulaAndRichTextAreExplicitStageTwoFeatures()
+    public void ReadsCachedFormulaAndRichText()
     {
         using var formula = Create(Row(1, Text("A1", "Value")) + Row(2, "<c r=\"A2\"><f>1+1</f><v>2</v></c>"));
-        Assert.Contains("Formula", Assert.Throws<XlsxFormatException>(() => TabularFile.Xlsx<SheetInteger>(formula).Single()).Message);
+        Assert.Equal(2, TabularFile.Xlsx<SheetInteger>(formula).Single().Value);
         using var rich = Create(Row(1, Text("A1", "Value")) + Row(2, "<c r=\"A2\" t=\"inlineStr\"><is><r><t>x</t></r></is></c>"));
-        Assert.Contains("Rich", Assert.Throws<XlsxFormatException>(() => TabularFile.Xlsx<SheetString>(rich).Single()).Message);
+        Assert.Equal("x", TabularFile.Xlsx<SheetString>(rich).Single().Value);
     }
 
     [Fact]

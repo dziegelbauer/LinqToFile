@@ -3,9 +3,10 @@
 ## Status
 
 The integrated XLSX foundation passes local checks on macOS arm64.
-Full XLSX support remains incomplete. Stages 2 and 3 are not implemented.
-The existing CI workflow will run the new tests and samples on Windows, Linux, and macOS after publication.
-Those hosted results are pending.
+This record describes stage 1 at commit `7b798b7`.
+See [stage 2 validation](validation-xlsx-stage2.md) for later cell and storage work.
+The user confirmed successful Windows, Linux, and macOS CI after commit `7b798b7`.
+Stage 1 is complete. Hosted results are recorded from that confirmation; run logs were not independently retrieved.
 
 ## Local evidence
 

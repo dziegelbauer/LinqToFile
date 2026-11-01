@@ -36,6 +36,14 @@ internal static class XlsxFixture
 
     internal static string Text(string reference, string value) =>
         $"<c r=\"{reference}\" t=\"inlineStr\"><is><t xml:space=\"preserve\">{SecurityElement.Escape(value)}</t></is></c>";
+    internal static void SharedStrings(Dictionary<string, string> parts, string items, bool strict = false)
+    {
+        string ns = strict ? "http://purl.oclc.org/ooxml/spreadsheetml/main" : "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+        string rel = strict ? "http://purl.oclc.org/ooxml/officeDocument/relationships" : "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+        parts["[Content_Types].xml"] = parts["[Content_Types].xml"].Replace("</Types>", "<Override PartName=\"/xl/sharedStrings.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml\"/></Types>", StringComparison.Ordinal);
+        parts["xl/_rels/workbook.xml.rels"] = parts["xl/_rels/workbook.xml.rels"].Replace("</Relationships>", $"<Relationship Id=\"strings\" Type=\"{rel}/sharedStrings\" Target=\"sharedStrings.xml\"/></Relationships>", StringComparison.Ordinal);
+        parts["xl/sharedStrings.xml"] = $"<sst xmlns=\"{ns}\">{items}</sst>";
+    }
     internal static string Number(string reference, string value) => $"<c r=\"{reference}\"><v>{SecurityElement.Escape(value)}</v></c>";
     internal static string Cell(string reference, string type, string value) =>
         $"<c r=\"{reference}\" t=\"{type}\"><v>{SecurityElement.Escape(value)}</v></c>";

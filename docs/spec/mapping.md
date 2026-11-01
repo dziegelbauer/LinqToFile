@@ -57,7 +57,7 @@
 
 ## XLSX foundation
 - Existing TabularRecord/Column/Ignore annotations are shared with XLSX, as approved during XLSX planning. Generated enum readers use GetTextField to enforce native-cell conversion boundaries; numeric/boolean native cells cannot masquerade as text tokens.
-- Native XLSX kinds and worksheet diagnostics extend TabularRow without runtime reflection or a second mapper registration mechanism. Stage 1 does not convert native serial/ISO dates; text conversions retain the existing rules. Full XLSX conversion requirements are in xlsx.md.
+- Native XLSX kinds and worksheet diagnostics extend TabularRow without runtime reflection or a second mapper registration mechanism. Stage 2 converts native serial/ISO dates with exact tick rounding and target-specific boundaries; text conversions retain the existing rules. Excel numeric temporal interpretation requires the reader's explicit date-system opt-in, so other formats retain their own semantics. Full XLSX conversion requirements are in xlsx.md.
 
 ## Unresolved
 - Supported scalar conversions are implemented in phase 3. Further conversion families remain future work.

@@ -1,6 +1,6 @@
 # XLSX implementation plan
 
-Status: sequencing approved. Stage 1 is implemented and locally validated: warning-free Release build, 583 passing tests, cross-assembly JIT/Native AOT samples through both project references and the alpha.7 package, and the external clean package check. Hosted Windows/Linux/macOS confirmation remains pending. See ../validation-xlsx-stage1.md. Stages 2 and 3 remain future implementation work; only stage 1 was authorized to begin.
+Status: sequencing approved. Stage 1 is implemented and locally validated: warning-free Release build, 583 passing tests, cross-assembly JIT/Native AOT samples through both project references and the alpha.7 package, and the external clean package check. The user confirmed successful Windows/Linux/macOS CI after commit 7b798b7; stage 1 is complete. Hosted results are user-reported, not independently retrieved. See ../validation-xlsx-stage1.md. Stage 2 is authorized and implemented; local validation passes: 688 tests, warning-free Release build, project/package JIT and Native AOT, and clean package consumption; hosted CI is pending. Stage 3 has not started. See ../validation-xlsx-stage2.md.
 
 ## 1. Integrated foundation
 

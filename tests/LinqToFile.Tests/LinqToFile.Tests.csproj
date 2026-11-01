@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><TargetFramework>net10.0</TargetFramework><IsPackable>false</IsPackable><IsTestProject>true</IsTestProject></PropertyGroup>
   <ItemGroup>
+    <None Update="Fixtures/Xlsx/*.xlsx" CopyToOutputDirectory="PreserveNewest" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.1" PrivateAssets="all" />
@@ -19,5 +20,6 @@
     <None Include="../../docs/xlsx.md" Link="Examples/xlsx.md" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../samples/Models/WorkbookEntry.cs" Link="Examples/WorkbookEntry.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../samples/NativeAot/WorkbookSample.cs" Link="Examples/WorkbookSample.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../samples/NativeAot/WorkbookCellsSample.cs" Link="Examples/WorkbookCellsSample.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

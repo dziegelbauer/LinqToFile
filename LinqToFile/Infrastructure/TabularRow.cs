@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Numerics;
+using LinqToFile.Reading;
 
 namespace LinqToFile.Infrastructure;
 
@@ -12,11 +13,16 @@ public sealed class TabularRow
     private int fieldStart;
     private readonly int capacityLimit;
     private CellKind[]? kinds;
+    private string?[]? retainedStrings;
     internal string? WorksheetName { get; set; }
     internal long? WorksheetRowNumber { get; set; }
     internal string? PartName { get; set; }
     internal int CurrentFieldLength => length - fieldStart;
     internal ReadOnlySpan<char> CurrentField => buffer.AsSpan(fieldStart, length - fieldStart);
+    internal Span<char> CurrentFieldStorage => buffer.AsSpan(fieldStart, length - fieldStart);
+    internal void TruncateCurrentField(int count) => length = fieldStart + count;
+    internal void Append(ReadOnlySpan<char> value) { foreach (char c in value) Append(c); }
+    internal NumericDateSystem DateSystem { get; set; }
     internal void ReplaceCurrentField(ReadOnlySpan<char> value)
     {
         length = fieldStart;
@@ -58,7 +64,7 @@ public sealed class TabularRow
     internal void EndField()
         => EndField(CellKind.Text);
 
-    internal void EndField(CellKind kind)
+    internal void EndField(CellKind kind, string? retained = null)
     {
         if (Count == fields.Length) Array.Resize(ref fields, checked(fields.Length * 2));
         if (kind != CellKind.Text && kinds is null) kinds = new CellKind[fields.Length];
@@ -66,6 +72,12 @@ public sealed class TabularRow
         {
             if (kinds.Length < fields.Length) Array.Resize(ref kinds, fields.Length);
             kinds[Count] = kind;
+        }
+        if (retained is not null && retainedStrings is null) retainedStrings = new string?[fields.Length];
+        if (retainedStrings is not null)
+        {
+            if (retainedStrings.Length < fields.Length) Array.Resize(ref retainedStrings, fields.Length);
+            retainedStrings[Count] = retained;
         }
         fields[Count++] = fieldStart..length;
         fieldStart = length;
@@ -78,7 +90,14 @@ public sealed class TabularRow
         return TrimFields ? value.Trim() : value;
     }
 
-    public string ReadString(int ordinal, string member) => GetField(ordinal).ToString();
+    public string ReadString(int ordinal, string member)
+    {
+        var value = GetField(ordinal);
+        if (kinds is not null && kinds[ordinal] == CellKind.Boolean)
+            return value.SequenceEqual("true") ? "true" : "false";
+        // Shared strings are already immutable owned values; reuse them when trimming did not alter the field.
+        return retainedStrings?[ordinal] is string retained && retained.Length == value.Length ? retained : value.ToString();
+    }
     public bool IsEmpty(int ordinal) => GetField(ordinal).IsEmpty;
 
     // Generated enum readers use this boundary too; native numeric/boolean cells are not text.
@@ -101,6 +120,13 @@ public sealed class TabularRow
         bool native = kinds is not null && kinds[ordinal] == CellKind.Number;
         if (text.IndexOf('\0') < 0 && T.TryParse(text, native ? NumberStyles.Float : styles,
                 native ? CultureInfo.InvariantCulture : Culture, out var value) && T.IsFinite(value)) return value;
+        if (native && ExactDecimal.TryParse(text, out var exact))
+        {
+            if (exact.IsZero) return T.Zero;
+            Span<char> normalized = stackalloc char[40];
+            if (styles == NumberStyles.Integer && exact.TryInteger(out var integer) && integer.TryFormat(normalized, out int written, provider: CultureInfo.InvariantCulture) &&
+                T.TryParse(normalized[..written], NumberStyles.Integer, CultureInfo.InvariantCulture, out value)) return value;
+        }
         throw CreateConversionException(ordinal, member);
     }
 
@@ -129,6 +155,11 @@ public sealed class TabularRow
 
     public DateTime ReadDateTime(int ordinal, string member)
     {
+        if (kinds is not null && kinds[ordinal] == CellKind.Number)
+            return DateSystem != NumericDateSystem.None && NativeTemporal.TryCalendar(GetField(ordinal), DateSystem == NumericDateSystem.Excel1904, false, out var serial)
+                ? serial : throw CreateConversionException(ordinal, member);
+        if (kinds is not null && kinds[ordinal] == CellKind.IsoDate)
+            return NativeTemporal.TryIso(GetField(ordinal), out var iso) && iso.Offset is null ? iso.DateTime : throw CreateConversionException(ordinal, member);
         // AdjustToUniversal leaves offset-free input Unspecified, without assuming a local zone.
         if (DateTime.TryParse(GetTextField(ordinal, member), Culture, DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AdjustToUniversal,
                 out var value) && value.Kind == DateTimeKind.Unspecified)
@@ -138,6 +169,9 @@ public sealed class TabularRow
 
     public DateTimeOffset ReadDateTimeOffset(int ordinal, string member)
     {
+        if (kinds is not null && kinds[ordinal] == CellKind.IsoDate)
+            return NativeTemporal.TryIso(GetField(ordinal), out var iso) && !iso.DateOnly && iso.Offset is TimeSpan offset
+                ? new DateTimeOffset(iso.DateTime, offset) : throw CreateConversionException(ordinal, member);
         var text = GetTextField(ordinal, member);
         // Check for an explicit zone using the BCL parser, then retain the original offset.
         if (DateTime.TryParse(text, Culture, DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AdjustToUniversal,
@@ -147,16 +181,32 @@ public sealed class TabularRow
         throw CreateConversionException(ordinal, member);
     }
 
-    public DateOnly ReadDateOnly(int ordinal, string member) =>
-        DateOnly.TryParse(GetTextField(ordinal, member), Culture, DateTimeStyles.AllowWhiteSpaces, out var value)
+    public DateOnly ReadDateOnly(int ordinal, string member)
+    {
+        if (kinds is not null && kinds[ordinal] == CellKind.Number)
+            return DateSystem != NumericDateSystem.None && NativeTemporal.TryCalendar(GetField(ordinal), DateSystem == NumericDateSystem.Excel1904, true, out var serial)
+                ? DateOnly.FromDateTime(serial) : throw CreateConversionException(ordinal, member);
+        if (kinds is not null && kinds[ordinal] == CellKind.IsoDate)
+            return NativeTemporal.TryIso(GetField(ordinal), out var iso) && iso.DateOnly
+                ? DateOnly.FromDateTime(iso.DateTime) : throw CreateConversionException(ordinal, member);
+        return DateOnly.TryParse(GetTextField(ordinal, member), Culture, DateTimeStyles.AllowWhiteSpaces, out var value)
             ? value : throw CreateConversionException(ordinal, member);
+    }
 
-    public TimeOnly ReadTimeOnly(int ordinal, string member) =>
-        TimeOnly.TryParse(GetTextField(ordinal, member), Culture, DateTimeStyles.AllowWhiteSpaces, out var value)
+    public TimeOnly ReadTimeOnly(int ordinal, string member)
+    {
+        if (kinds is not null && kinds[ordinal] == CellKind.Number)
+            return DateSystem != NumericDateSystem.None && NativeTemporal.TryTime(GetField(ordinal), out var serial) ? serial : throw CreateConversionException(ordinal, member);
+        return TimeOnly.TryParse(GetTextField(ordinal, member), Culture, DateTimeStyles.AllowWhiteSpaces, out var value)
             ? value : throw CreateConversionException(ordinal, member);
+    }
 
-    public TimeSpan ReadTimeSpan(int ordinal, string member) =>
-        TimeSpan.TryParse(GetTextField(ordinal, member), Culture, out var value) ? value : throw CreateConversionException(ordinal, member);
+    public TimeSpan ReadTimeSpan(int ordinal, string member)
+    {
+        if (kinds is not null && kinds[ordinal] == CellKind.Number)
+            return DateSystem != NumericDateSystem.None && NativeTemporal.TryDuration(GetField(ordinal), out var serial) ? serial : throw CreateConversionException(ordinal, member);
+        return TimeSpan.TryParse(GetTextField(ordinal, member), Culture, out var value) ? value : throw CreateConversionException(ordinal, member);
+    }
 
     public TabularConversionException CreateConversionException(int ordinal, string member) =>
         WithLocation(new TabularConversionException(RecordNumber, LineNumber, FailureLineNumber, ordinal + 1,
@@ -166,7 +216,7 @@ public sealed class TabularRow
     {
         error.WorksheetName = WorksheetName;
         error.WorksheetRowNumber = WorksheetRowNumber;
-        error.PartName = PartName;
+        error.PartName ??= PartName;
         if (WorksheetRowNumber is long row && error.ColumnIndex is int column)
         {
             Span<char> reference = stackalloc char[32];
@@ -180,4 +230,4 @@ public sealed class TabularRow
     }
 }
 
-internal enum CellKind : byte { Text, Number, Boolean }
+internal enum CellKind : byte { Text, Number, Boolean, IsoDate }

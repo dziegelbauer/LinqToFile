@@ -1,7 +1,7 @@
 # LinqToFile
 
 Read CSV files as typed C# objects with standard LINQ.
-An experimental XLSX foundation is also included.
+Synchronous XLSX reading is also included.
 The minimum target is .NET 10. The runtime uses only the BCL.
 The package includes a source generator. Runtime mapping uses no reflection.
 Native AOT is supported.
@@ -55,11 +55,12 @@ Supplied streams permit one enumeration and remain open by default.
 Options include `WithEncoding`, `WithCulture`, and `WithBufferSize`.
 Async materializers include `ToListAsync`, `ToArrayAsync`, and `ToDictionaryAsync`.
 
-The XLSX foundation supports synchronous paths and seekable streams with simple inline text, numbers, and booleans.
-It rejects shared strings, formulas, rich text, and native date cells in this stage.
-Many ordinary Excel workbooks require these planned features.
-Async XLSX and non-seekable input are also planned.
-See the [XLSX guide](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/xlsx.md) for current limits.
+XLSX supports synchronous paths and seekable streams with shared/inline text, rich text, numbers, booleans, dates, and cached formula results.
+Shared strings have a configurable memory budget and can spill to temporary files.
+Optional resource limits cover the workbook, decompression, cell text, and temporary storage.
+Formulas are not recalculated. Saved results can be stale, and missing results throw.
+Async XLSX, factories, and non-seekable input remain planned.
+See the [XLSX guide](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/xlsx.md) for conversion rules and current limits.
 Headerless input and other formats remain future objectives.
 Custom converters and per-column error recovery are also future objectives.
 

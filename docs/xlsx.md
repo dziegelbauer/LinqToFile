@@ -1,21 +1,21 @@
-# XLSX foundation
+# Read XLSX workbooks
 
 ## Current scope
 
-XLSX stage 1 is an experimental reader foundation.
+XLSX stage 2 provides synchronous cell reading and storage controls.
 It supports synchronous reading from paths and seekable streams.
 It reads the agreed subset of Transitional and Strict workbooks.
 It does not require Excel or an additional runtime package.
 
-Supported cells contain simple inline text, numeric values, booleans, or empty values.
-Shared strings, formulas, rich text, spreadsheet text escapes, and native ISO date cells are not supported yet.
-The reader throws when it encounters those features in the table.
-Numeric serial dates cannot yet map to temporal properties.
-Text cells can use the existing supported text conversions and culture option.
-Ordinary Excel files often use shared strings, so many workbooks require the next implementation stage.
+Supported cells contain shared/inline text, rich text, numbers, booleans, native ISO dates, or empty values.
+Formula cells use saved cached results. The reader never calculates formulas.
+Saved results can be stale. Missing cached results throw.
+Text cells use the existing supported text conversions and culture option.
+Rich-text runs become plain text. Visual formatting and phonetic annotations are ignored.
+Spreadsheet text escapes are decoded once, independently for each text run.
 
-Async XLSX queries, factories, non-seekable input, temporary storage, and resource-limit options are planned.
-They are not available in this stage.
+Async XLSX queries, factories, and non-seekable input remain planned for stage 3.
+They are not available yet. Temporary storage and resource limits are available now.
 
 ## Model and query
 
@@ -59,6 +59,13 @@ The generated mapper uses the same annotations as CSV.
 | `WithHeaderComparison(comparer)` | Use ordinal or ordinal, case-insensitive header matching |
 | `WithHeaderTrimming()` | Trim headers before matching |
 | `WithFieldTrimming()` | Trim field values before conversion |
+| `WithSharedStringMemoryBudget(bytes)` | Set the retained shared-string budget; default 8 MiB |
+| `WithTemporaryFiles(enabled)` | Permit or forbid disk spill; default true |
+| `WithTemporaryDirectory(path)` | Select the directory for generated temporary files |
+| `WithMaxWorkbookBytes(bytes)` | Limit archive bytes from the stream origin through its end |
+| `WithMaxDecompressedBytes(bytes)` | Limit all decompressed bytes read, including repeated reads |
+| `WithMaxCellTextLength(length)` | Limit resolved UTF-16 cell text before trimming |
+| `WithMaxTemporaryBytes(bytes)` | Limit aggregate live temporary-file lengths |
 
 Options are immutable. Invalid arguments throw immediately.
 The default is the first worksheet in workbook order, including hidden worksheets.
@@ -88,6 +95,73 @@ Numeric cells cannot become booleans, enums, characters, or GUIDs.
 String targets receive numeric storage text or canonical true/false for boolean cells.
 No cell display formatting is rendered.
 
+## Dates and times
+
+Numeric temporal conversion is selected by the target property type, not the cell display style.
+
+| Target | Native numeric cell | Native ISO date cell |
+|---|---|---|
+| `DateTime` | Workbook serial date; unspecified kind | Offset-free date or full date-time |
+| `DateOnly` | Whole-day serial only | Date-only form only |
+| `DateTimeOffset` | Rejected; no offset is stored | Full date-time with an explicit offset |
+| `TimeOnly` | Fraction of a day, from 0 inclusive to 1 exclusive | Rejected |
+| `TimeSpan` | Signed elapsed days, including fractions and multiple days | Rejected |
+| `string` | Stored numeric text | Stored ISO text |
+
+The workbook selects the 1900 or 1904 date system.
+This reader maps serial zero to 1899-12-31 or 1904-01-01, respectively.
+Negative calendar serials and the fictitious 1900-system day 60 throw.
+Durations do not use calendar or leap-day rules.
+`DateOnly` rejects fractional days. `TimeOnly` never wraps whole days.
+
+Native numeric temporal values use exact decimal arithmetic before one rounding step.
+The rounding unit is a 100-nanosecond tick, with midpoint-to-even rounding.
+Out-of-range values, rounding onto the fictitious day, and `TimeOnly` rounding to 24:00 throw.
+There is no local-time-zone inference or conversion.
+
+Native ISO cells accept YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss.
+The full date-time can include fractional seconds and Z or a signed HH:mm offset.
+Fractional seconds use the same tick-rounding rule for typed temporal targets.
+Leap seconds, 24:00, invalid dates, and invalid offsets throw.
+String properties preserve stored ISO text, including its precision.
+
+## Shared strings and limits
+
+The shared-string table is processed before records are returned.
+When its retained text and index fit the budget, it stays in memory.
+If it would exceed the budget, both content and a fixed-width index move to temporary files.
+The reader does not retain a growing offset array in memory after spill.
+In-memory strings can be reused as immutable returned values when trimming does not change them.
+Spilled strings are copied into the active row buffer and returned as owned values.
+
+The memory budget is an accounting limit for retained shared-string storage, not a process-memory cap.
+Active row/text buffers, ZIP/workbook metadata, merge metadata, and caller-retained results are separate.
+The reader creates temporary files only when spill is needed and deletes them on disposal or failure.
+It does not create the configured directory. That directory must exist when spill occurs.
+If temporary files are disabled, exceeding the memory budget throws instead of using unbounded RAM.
+A zero memory budget forces non-empty shared-string tables to disk.
+
+Maximum-size limits default to null, which means unlimited.
+Zero is valid. Negative arguments throw immediately.
+The decompressed-byte limit includes metadata, the shared-string table, preflight, and reopened worksheet reads.
+The cell limit counts resolved UTF-16 code units after XML/text-escape decoding and rich-text flattening, before trimming.
+It applies to headers, unmapped columns, and shared-string items during preprocessing, including unused items.
+Native boolean text counts its canonical true/false representation.
+Temporary bytes count live logical file lengths, not cumulative writes or filesystem block allocation.
+The disk index uses 12 bytes per string, in addition to two bytes per UTF-16 code unit.
+
+The extended [sample model](../samples/Models/WorkbookCells.cs) includes all temporal target types.
+Its query forces disk storage to exercise spill and limits:
+
+```csharp
+var row = TabularFile.Xlsx<WorkbookCells>(stream)
+    .WithSharedStringMemoryBudget(0)
+    .WithMaxTemporaryBytes(64 * 1024)
+    .WithMaxDecompressedBytes(1024 * 1024)
+    .WithMaxCellTextLength(128)
+    .Single();
+```
+
 ## Validation and errors
 
 Before yielding records, the reader scans worksheet metadata for merged ranges.
@@ -97,7 +171,7 @@ It does not materialize the worksheet or convert future data rows.
 Merges overlapping the header columns from the header row onward throw, including in trailing blank rows.
 Merged titles entirely above an explicitly selected header are allowed.
 
-Malformed package structure and unsupported cell features throw `XlsxFormatException`.
+Malformed package structure, invalid native cells, missing formula caches, and exceeded resource limits throw `XlsxFormatException`.
 Schema and conversion errors use the existing shared exception types.
 Errors expose `WorksheetName`, `WorksheetRowNumber`, `CellReference`, and `PartName` when available.
 `ColumnIndex` is the physical worksheet column, starting at 1.
@@ -118,6 +192,7 @@ The sample checks both workbook variants and prints this line:
 
 ```text
 XLSX: Transitional and Strict; typed records: Ada
+XLSX cells: shared strings, formulas, temporal values, disk spill
 ```
 
 The package-reference and Native AOT sample checks run the same code.

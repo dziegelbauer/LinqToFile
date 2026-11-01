@@ -18,10 +18,11 @@ internal static class WorkbookSample
                 throw new InvalidOperationException("The XLSX sample result is incorrect.");
         }
         Console.WriteLine("XLSX: Transitional and Strict; typed records: Ada");
+        WorkbookCellsSample.Run();
     }
 
     // This fixture uses inline text so the stage 1 sample needs no shared-string table.
-    private static MemoryStream Create(bool strict)
+    internal static MemoryStream Create(bool strict)
     {
         string ns = strict ? "http://purl.oclc.org/ooxml/spreadsheetml/main" : "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
         string rel = strict ? "http://purl.oclc.org/ooxml/officeDocument/relationships" : "http://schemas.openxmlformats.org/officeDocument/2006/relationships";

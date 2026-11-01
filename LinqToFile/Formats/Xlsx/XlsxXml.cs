@@ -31,7 +31,11 @@ internal static class XlsxXml
                 if (ns is not (Transitional or Strict or TransitionalRelationships or StrictRelationships or PackageRelationships or ContentTypes))
                     throw new XlsxFormatException("Required XML markup is not supported.");
             }
-        if (reader.NamespaceURI == Compatibility)
-            throw new XlsxFormatException("Alternate XML content is not supported in XLSX stage 1.");
+    }
+
+    internal static void CheckNonElement(XmlReader reader)
+    {
+        if (reader.NodeType is XmlNodeType.Text or XmlNodeType.CDATA && !string.IsNullOrWhiteSpace(reader.Value))
+            throw new XlsxFormatException("Unexpected text occurs outside a cell value.");
     }
 }

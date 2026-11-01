@@ -15,10 +15,17 @@ internal sealed class XlsxPackage : IDisposable
     internal string WorksheetName { get; }
     internal string WorksheetPart { get; }
     internal string SpreadsheetNamespace { get; }
+    internal bool Date1904 { get; }
+    internal SharedStringStore? SharedStrings { get; private set; }
+    internal XlsxResources Resources { get; }
 
     internal XlsxPackage(Stream source, XlsxOptions options)
     {
-        archive = new ZipArchive(new ArchiveViewStream(source), ZipArchiveMode.Read, leaveOpen: false);
+        var view = new ArchiveViewStream(source);
+        if (options.MaxWorkbookBytes is long maximum && view.Length > maximum)
+            throw Error("The workbook-byte limit was exceeded.");
+        Resources = new(options);
+        archive = new ZipArchive(view, ZipArchiveMode.Read, leaveOpen: false);
         try
         {
             foreach (var entry in archive.Entries)
@@ -55,6 +62,11 @@ internal sealed class XlsxPackage : IDisposable
             string relationNamespace = SpreadsheetNamespace == XlsxXml.Strict ? XlsxXml.StrictRelationships : XlsxXml.TransitionalRelationships;
             var workbook = Load(workbookPart, "workbook", SpreadsheetNamespace);
             var relationships = Relationships(workbookPart);
+            var properties = workbook.Elements(XName.Get("workbookPr", SpreadsheetNamespace)).ToArray();
+            if (properties.Length > 1) throw Error("Duplicate workbook properties are invalid.", workbookPart);
+            string? dateSystem = properties.Length == 0 ? null : (string?)properties[0].Attribute("date1904");
+            Date1904 = dateSystem switch { null or "0" or "false" => false, "1" or "true" => true,
+                _ => throw Error("The workbook date system is invalid.", workbookPart) };
             var sheets = workbook.Elements(XName.Get("sheets", SpreadsheetNamespace)).ToArray();
             if (sheets.Length != 1) throw Error("A workbook must have one sheet collection.", workbookPart);
             var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -65,7 +77,7 @@ internal sealed class XlsxPackage : IDisposable
             foreach (var sheet in sheets[0].Elements())
             {
                 if (sheet.Name != XName.Get("sheet", SpreadsheetNamespace)) throw Error("Invalid sheet declaration.", workbookPart);
-                string name = Required(sheet, "name", workbookPart);
+                string name = XlsxText.DecodeMetadata(Required(sheet, "name", workbookPart));
                 if (string.IsNullOrWhiteSpace(name) || !names.Add(name)) throw Error("Worksheet names are invalid or ambiguous.", workbookPart);
                 if (!uint.TryParse(Required(sheet, "sheetId", workbookPart), NumberStyles.None, CultureInfo.InvariantCulture, out uint id) || id == 0 || !ids.Add(id))
                     throw Error("Sheet identifiers are invalid or ambiguous.", workbookPart);
@@ -86,24 +98,42 @@ internal sealed class XlsxPackage : IDisposable
             }
             WorksheetName = selectedName ?? throw Error("The requested worksheet could not be found.", workbookPart);
             WorksheetPart = selectedPart!;
+            var stringRelations = relationships.Values.Where(r => r.Type == relationNamespace + "/sharedStrings").ToArray();
+            if (stringRelations.Length > 1) throw Error("Shared-string relationships are ambiguous.", workbookPart);
+            if (stringRelations.Length == 1)
+            {
+                var relation = stringRelations[0];
+                if (relation.External) throw Error("An external shared-string relationship is not supported.", workbookPart);
+                string part = Resolve(workbookPart, relation.Target);
+                RequireContentType(part, "application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml");
+                try
+                {
+                    using var xml = OpenPart(part);
+                    SharedStrings = new(options, Resources);
+                    SharedStrings.Load(xml, SpreadsheetNamespace);
+                }
+                catch (TabularFileException error) { error.PartName ??= part; error.WorksheetName ??= WorksheetName; throw; }
+                catch (XmlException) { throw Error("The shared-string XML is malformed.", part); }
+                catch (InvalidDataException) { throw Error("The shared-string part could not be decompressed.", part); }
+            }
         }
-        catch { archive.Dispose(); throw; }
+        catch { Dispose(); throw; }
     }
 
-    internal XmlReader OpenWorksheet() => XlsxXml.Open(RequirePart(WorksheetPart).Open());
+    internal XmlReader OpenWorksheet() => OpenPart(WorksheetPart);
+    private XmlReader OpenPart(string part) => XlsxXml.Open(Resources.Count(RequirePart(part).Open(), part));
 
     private XElement Load(string part, string rootName, string ns)
     {
         try
         {
-            using var reader = XlsxXml.Open(RequirePart(part).Open());
+            using var reader = OpenPart(part);
             // Enforce must-understand semantics on every materialized metadata element.
             var document = XDocument.Load(reader);
             var root = document.Root;
             if (root?.Name != XName.Get(rootName, ns)) throw Error("A required XML root or namespace is invalid.", part);
             foreach (var element in root.DescendantsAndSelf())
             {
-                if (element.Name.NamespaceName == XlsxXml.Compatibility) throw Error("Alternate XML content is not supported in XLSX stage 1.", part);
                 var required = (string?)element.Attribute(XName.Get("MustUnderstand", XlsxXml.Compatibility));
                 if (required is null) continue;
                 foreach (string prefix in required.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
@@ -182,6 +212,6 @@ internal sealed class XlsxPackage : IDisposable
     }
 
     internal static XlsxFormatException Error(string message, string? part = null) => new(message) { PartName = part };
-    public void Dispose() => archive.Dispose();
+    public void Dispose() { try { archive.Dispose(); } finally { Resources.Dispose(); } }
     private sealed record Relationship(string Type, string Target, bool External);
 }

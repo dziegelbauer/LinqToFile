@@ -1,7 +1,7 @@
 # Sources and async queries
 
 This guide describes CSV sources.
-The [XLSX foundation](xlsx.md) currently supports synchronous paths and seekable streams only.
+The [XLSX reader](xlsx.md) currently supports synchronous paths and seekable streams only.
 
 ## Source kinds
 

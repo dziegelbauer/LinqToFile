@@ -7,7 +7,7 @@ using LinqToFile.Sources;
 
 namespace LinqToFile;
 
-/// <summary>An immutable, deferred XLSX source. Stage 1 supports synchronous seekable input.</summary>
+/// <summary>An immutable, deferred XLSX source for synchronous seekable input.</summary>
 public sealed class XlsxSource<T> : IEnumerable<T> where T : class, ITabularRecord<T>
 {
     private readonly StreamSource source;
@@ -41,6 +41,37 @@ public sealed class XlsxSource<T> : IEnumerable<T> where T : class, ITabularReco
     }
 
     public XlsxSource<T> WithFieldTrimming(bool enabled = true) => new(source, options with { TrimFields = enabled });
+    public XlsxSource<T> WithTemporaryDirectory(string path)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        return new(source, options with { TemporaryDirectory = Path.GetFullPath(path) });
+    }
+    public XlsxSource<T> WithTemporaryFiles(bool enabled = true) => new(source, options with { TemporaryFiles = enabled });
+    public XlsxSource<T> WithSharedStringMemoryBudget(long bytes)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(bytes);
+        return new(source, options with { SharedStringMemoryBudget = bytes });
+    }
+    public XlsxSource<T> WithMaxWorkbookBytes(long? bytes)
+    {
+        if (bytes < 0) throw new ArgumentOutOfRangeException(nameof(bytes));
+        return new(source, options with { MaxWorkbookBytes = bytes });
+    }
+    public XlsxSource<T> WithMaxDecompressedBytes(long? bytes)
+    {
+        if (bytes < 0) throw new ArgumentOutOfRangeException(nameof(bytes));
+        return new(source, options with { MaxDecompressedBytes = bytes });
+    }
+    public XlsxSource<T> WithMaxTemporaryBytes(long? bytes)
+    {
+        if (bytes < 0) throw new ArgumentOutOfRangeException(nameof(bytes));
+        return new(source, options with { MaxTemporaryBytes = bytes });
+    }
+    public XlsxSource<T> WithMaxCellTextLength(int? length)
+    {
+        if (length < 0) throw new ArgumentOutOfRangeException(nameof(length));
+        return new(source, options with { MaxCellTextLength = length });
+    }
     public XlsxSource<T> WithHeaderTrimming(bool enabled = true) => new(source, options with { TrimHeaders = enabled });
     public IEnumerable<T> AsEnumerable() => this;
     public IEnumerator<T> GetEnumerator() => TabularQuery<T, XlsxOptions>.Read(source, options, XlsxRecordReaderFactory.Instance).GetEnumerator();
