@@ -12,9 +12,17 @@ public sealed class StreamingAllocationTests
     public async Task NumericStreamingAllocatesOnlyOwnedModelsAsRecordCountGrows(bool asynchronous)
     {
         // Every read completes inline: no unrelated thread allocations enter this counter.
-        await Scan(1000, asynchronous);
-        long small = await Scan(10_000, asynchronous);
-        long large = await Scan(1_000_000, asynchronous);
+        // Warm both parsing and buffer refills; 1,000 short rows fit in the initial buffer.
+        await Scan(100_000, asynchronous);
+        ModelBytes(1000);
+        // One-time runtime work can occur on the measured thread. The minimum of repeated
+        // scans excludes that noise; a per-record allocation regression remains in every scan.
+        long small = long.MaxValue, large = long.MaxValue;
+        for (int attempt = 0; attempt < 3; attempt++)
+        {
+            small = Math.Min(small, await Scan(10_000, asynchronous));
+            large = Math.Min(large, await Scan(1_000_000, asynchronous));
+        }
         long models = ModelBytes(990_000);
         Assert.InRange(large - small - models, -4096, 4096);
     }
