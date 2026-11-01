@@ -8,6 +8,12 @@ Native AOT is supported.
 
 This is a prerelease package. The API can change before a stable release.
 
+Install the latest published prerelease:
+
+```sh
+dotnet add package LinqToFile --prerelease
+```
+
 ## Read a CSV file
 
 Add the package to each project that declares mapped models.
@@ -62,11 +68,12 @@ Formulas are not recalculated. Saved results can be stale, and missing results t
 Non-seekable XLSX input is copied to a temporary file before archive reading.
 XLSX part reads use async I/O in async queries. ZIP directory loading and seeks remain synchronous.
 See the [XLSX guide](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/xlsx.md) for conversion rules and current limits.
-Headerless input and other formats remain future objectives.
-Custom converters and per-column error recovery are also future objectives.
+Headers are required for both formats.
 
 ## Documentation and license
 
+- [User guide](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/README.md)
+- [Roadmap](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/roadmap.md)
 - [Get started](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/getting-started.md)
 - [API reference](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/reference.md)
 - [Sources and async queries](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/sources-and-async.md)

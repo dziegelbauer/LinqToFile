@@ -3,7 +3,9 @@
 ## Current artifact
 
 The current local package version is `0.1.0-alpha.9`.
-It is a prerelease artifact. No public NuGet release is made by the build.
+It is the local prerelease base version.
+Successful main CI runs append a unique run suffix and publish a prototype prerelease to nuget.org.
+See [publishing setup](publishing.md) for the one-time account configuration and feature-branch workflow.
 The API can change before a stable release.
 
 The package contains the runtime, source generator, README, and Apache-2.0 license.
@@ -62,14 +64,14 @@ Use `-PackageDirectory` to select another local feed directory.
 5. Review the package README, license, repository link, and release notes.
 6. Confirm the target NuGet feed and package ownership.
 
-Public package publication and GitHub release creation are separate actions.
-The current workflow performs validation only.
+Public prerelease publication is automatic after successful main CI.
+GitHub release creation and stable releases remain separate actions.
 NuGet metadata follows the [MSBuild package reference](https://learn.microsoft.com/en-us/nuget/reference/msbuild-targets).
 
 ## Scope of the initial release
 
 CSV implements the agreed initial reader scope. Headers are required.
-The package also includes [sync/async XLSX reading](xlsx.md) with shared-string spill, cached formulas, native temporal conversions, and resource limits.
+The package also includes [sync/async XLSX reading](../../xlsx.md) with shared-string spill, cached formulas, native temporal conversions, and resource limits.
 XLSX accepts paths, streams, and sync/async factories.
 Non-seekable XLSX input requires temporary storage. ZIP directory loading and seeks are synchronous.
 The reader supports strict parsing, generated property mapping, and sync/async streaming.

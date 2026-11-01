@@ -2,85 +2,98 @@
 
 ## Requirements
 
-The .NET 10 SDK is necessary for this repository.
-A native compiler for the target platform is also necessary for a Native AOT build.
+Use .NET 10 or later.
+The runtime uses only the BCL.
+The package includes the source generator that creates typed mappers during compilation.
 
-## Build and test
+A native compiler for your target platform is necessary only when you publish with Native AOT.
 
-From the repository root, run these commands:
+## Install the package
+
+To install a published prototype prerelease from nuget.org, run:
 
 ```sh
-dotnet build LinqToFile.sln -c Release
-dotnet test tests/LinqToFile.Tests -c Release
-dotnet run --project samples/NativeAot -c Release
+dotnet add MyApp/MyApp.csproj package LinqToFile --prerelease --source https://api.nuget.org/v3/index.json
 ```
 
-## Install a local package
+Replace the project path with your own path.
+Add the package to each project that declares mapped models.
+Use an explicit `--version` when you need a reproducible package version.
 
-The alpha package contains the runtime and source generator.
-It is a local test package. The project does not publish it to a public feed.
+## Build a local package
 
-1. Make the package:
+The repository provides a local prerelease package.
+To build it, run this command from the repository root:
 
 ```sh
 dotnet pack LinqToFile -c Release -o artifacts/feed
 ```
 
-2. Restore the sample with the package:
+Add the package to each project that declares mapped models.
+For an application project, use this command with your local feed path:
 
 ```sh
-dotnet restore samples/NativeAot -p:UseLocalPackage=true --configfile .github/package-validation.nuget.config
+dotnet add MyApp/MyApp.csproj package LinqToFile --version 0.1.0-alpha.9 --source /absolute/path/to/LinqToFile/artifacts/feed
 ```
 
-3. Run the sample with the package:
+Replace the project path and feed path with your own paths.
+Keep the local feed available when you restore the package on another machine.
 
-```sh
-dotnet run --project samples/NativeAot -c Release -p:UseLocalPackage=true --no-restore
-```
+## Declare a model
 
-For another project, add a package reference to `LinqToFile` version `0.1.0-alpha.9`.
-Use the local feed during restore.
-A project that declares models must reference the package.
-The caller does not register mappers.
-The [release guide](release.md) describes the clean package-consumer check.
+Use the model and query in the [repository README](../README.md).
+A mapped class must be public, partial, and non-abstract.
+It must have a public parameterless constructor.
+A class without an explicit constructor has an implicit parameterless constructor.
+
+Mark the class with `[TabularRecord]`.
+Properties need a public setter or init accessor.
+Use `[Column("header")]` when a column name differs from the property name.
+Use `[Ignore]` to exclude a property.
+The [mapping reference](reference.md) gives the complete model rules.
 
 ## Read records
 
-A model must have the `[TabularRecord]` attribute and a `partial` declaration.
-It must also have a public parameterless constructor.
-A class without an explicit constructor has an implicit parameterless constructor.
+Use `TabularFile.Csv<T>(path)` for CSV or `TabularFile.Xlsx<T>(path)` for XLSX.
+Both formats require column headers.
+Creating a source does not open the file.
+Enumeration opens the source, validates headers, and creates typed records.
 
-`Csv<T>(path)` makes a source without an immediate file read.
-Enumeration opens the file.
-The [conversion guide](conversions.md) gives the scalar types and culture rules.
-`Where`, `Select`, and `Take` can read records one at a time.
-`ToList` and `ToArray` keep all selected records.
-`OrderBy` must keep records before it can return a sorted result.
+Use standard LINQ to select records.
+`Where`, `Select`, and `Take` can process them one at a time.
+`ToList` and `ToArray` keep the selected records in memory.
+Configure the source before you apply LINQ operators.
 
-The library closes the file after completion, failure, or early exit from a `foreach` loop.
-A caller that uses an enumerator directly must dispose that enumerator.
+The library closes owned files after completion, failure, or early exit from a loop.
+Dispose an enumerator that you use directly.
+See [sources and async queries](sources-and-async.md) for supplied streams, factories, cancellation, and ownership.
 
-## Run Native AOT
+## Select a format
 
-On Apple Silicon macOS, run these commands:
+- Use the [CSV guide](csv-and-errors.md) for encoding, delimiters, quotes, trimming, and size limits.
+- Use the [XLSX guide](xlsx.md) for worksheets, cached formulas, native dates, and temporary storage.
+- Use the [conversion guide](conversions.md) for property types and culture rules.
+
+## Use Native AOT
+
+Mappings work with Native AOT without runtime registration or reflection.
+Each project that declares models must reference the package so its generator can run.
+
+Publish your application with its target runtime identifier:
 
 ```sh
-dotnet publish samples/NativeAot -c Release -r osx-arm64 -o artifacts/aot
-./artifacts/aot/NativeAot
+dotnet publish MyApp/MyApp.csproj -c Release -r osx-arm64 -p:PublishAot=true
 ```
 
-For another platform, use its runtime identifier and executable name.
-The sample uses a model from a separate assembly.
-The generated static interface supplies its mapper without runtime discovery.
+Use the runtime identifier for your target platform.
+For example, use `win-x64` for Windows x64 or `linux-x64` for Linux x64.
 
-## Stream and async queries
+## Run the repository sample
 
-The reader accepts supplied streams, synchronous stream factories, and async factories.
-It supports async enumeration, cancellation, lists, arrays, and dictionaries.
-The [source guide](sources-and-async.md) gives the lifetime rules and query examples.
+From the repository root, run:
 
-## Read an XLSX workbook
+```sh
+dotnet run --project samples/NativeAot -c Release
+```
 
-The [XLSX reader](xlsx.md) supports sync/async reading with shared strings, cached formulas, native temporal conversions, and resource limits.
-Check that guide before using an existing workbook.
-The executable sample checks both Transitional and Strict XLSX workbooks.
+The sample reads CSV and XLSX files with models from a separate assembly.

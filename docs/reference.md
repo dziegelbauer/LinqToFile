@@ -8,7 +8,7 @@ The source options below describe CSV. See the [XLSX guide](xlsx.md) for XLSX so
 A mapped model must be a public, partial, non-abstract class.
 The class and its containing types must be non-generic.
 Containing types must also be public and partial.
-C# record declarations are not available yet.
+C# record declarations are not supported.
 
 The model must have a public parameterless constructor.
 Properties can have a public setter or a public init accessor.
@@ -110,10 +110,10 @@ Quoted and unquoted empty fields have the same meaning.
 |---|---|
 | `LTF001` | The model shape is not supported |
 | `LTF002` | A member or annotation is not supported |
-| `LTF003` | The property type is not supported in this phase |
+| `LTF003` | The property type is not supported |
 | `LTF004` | The mapping contains a conflict |
 
 An unmarked class cannot satisfy the generated interface constraint.
 The C# compiler reports that use as a constraint error.
 The [conversion guide](conversions.md) lists all types and their rules.
-Custom converters and exact-format annotations remain future goals.
+Custom converters and exact-format annotations are not supported.

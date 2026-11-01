@@ -2,8 +2,10 @@
 
 ## Status
 
-Stage 3 implementation passes local validation.
-Hosted Windows/Linux/macOS results are pending for these changes.
+Stage 3 is complete for the approved XLSX subset.
+The user confirmed that CI passed after commit `339dc55`.
+The workflow covers Windows x64, Linux x64, and macOS arm64.
+Hosted results are user-reported and were not independently retrieved.
 No public package release has been created.
 
 The local artifact is `0.1.0-alpha.9`.

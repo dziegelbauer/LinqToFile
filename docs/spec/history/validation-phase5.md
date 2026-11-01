@@ -23,7 +23,7 @@ See [performance measurements](performance.md) for raw samples and measurement l
 
 ## GitHub Actions
 
-The [workflow](../.github/workflows/ci.yml) runs on pushes, pull requests, and manual requests.
+The [workflow](../../../.github/workflows/ci.yml) runs on pushes, pull requests, and manual requests.
 It grants read access to repository contents.
 It does not publish a package or create a release.
 

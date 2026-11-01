@@ -1,7 +1,7 @@
 # XLSX reader planning
 
 ## Confirmed
-- XLSX stage 1 is implemented and locally validated (583 tests; project/package JIT and Native AOT checks). The user confirmed successful CI after commit 7b798b7; stage 1 is complete. Stage 2 is complete: local validation passes with 688 tests and project/package JIT and Native AOT checks; the user confirmed CI passed after commit 32ff4d2. Stage 3 is authorized and implemented, with 719 local tests and project/package JIT and Native AOT checks passing; hosted CI is pending. The full approved behavior below spans all three stages. See xlsx-plan.md and ../xlsx.md for current scope.
+- XLSX stage 1 is implemented and locally validated (583 tests; project/package JIT and Native AOT checks). The user confirmed successful CI after commit 7b798b7; stage 1 is complete. Stage 2 is complete: local validation passes with 688 tests and project/package JIT and Native AOT checks; the user confirmed CI passed after commit 32ff4d2. Stage 3 is authorized and implemented, with 719 local tests and project/package JIT and Native AOT checks passing; the user confirmed CI passed after commit 339dc55, completing stage 3. The full approved behavior below spans all three stages. See xlsx-plan.md and ../xlsx.md for current scope.
 - Retain the project requirements: .NET 10+, BCL-only runtime, Native AOT, no runtime reflection, and minimized allocations.
 - Entry point: TabularFile.Xlsx<T>(), using existing generated mapping and annotations.
 - Select the first worksheet by default; WithWorksheet(name) selects one by name.
@@ -93,5 +93,5 @@
 - [BCL ZIP memory behavior](https://github.com/dotnet/docs/blob/main/docs/standard/io/zip-tar-best-practices.md)
 
 ## Implementation planning
-- [Approved stages and acceptance checks](xlsx-plan.md). Stage 2 is complete; stage 3 is locally validated with hosted CI pending. See [storage and conversion implementation](xlsx-storage.md) and [stage 2 validation](../validation-xlsx-stage2.md).
-- Stage 3 API/probe results and synchronous ZIP metadata boundaries are recorded in [execution notes](xlsx-execution.md) and [validation](../validation-xlsx-stage3.md). Preserve these boundaries and sync/async parity when changing either traversal path.
+- [Approved stages and acceptance checks](xlsx-plan.md). Stage 2 is complete; stage 3 is complete after user-confirmed CI success for 339dc55. See [storage and conversion implementation](xlsx-storage.md) and [stage 2 validation](history/validation-xlsx-stage2.md).
+- Stage 3 API/probe results and synchronous ZIP metadata boundaries are recorded in [execution notes](xlsx-execution.md) and [validation](history/validation-xlsx-stage3.md). Preserve these boundaries and sync/async parity when changing either traversal path.

@@ -17,4 +17,4 @@
 
 ## Validation and next work
 - Independent fixture source/license/provenance is in tests/LinqToFile.Tests/Fixtures/Xlsx/README.md. These files do not add a runtime dependency.
-- Stage 2 is complete. Stage 3 adds async factories, non-seekable spooling, and profiling; see xlsx-execution.md and ../validation-xlsx-stage3.md.
+- Stage 2 is complete. Stage 3 adds async factories, non-seekable spooling, and profiling; see xlsx-execution.md and history/validation-xlsx-stage3.md.
