@@ -3,7 +3,8 @@
 LinqToFile reads CSV files as typed C# records. Standard LINQ operators filter and select the records.
 The runtime uses only the .NET Base Class Library (BCL). The minimum target is .NET 10.
 
-This repository contains the phase 4 reader, typed mapper, and sync/async query API.
+This repository contains the reader, typed mapper, and sync/async query API.
+Phase 5 adds performance measurements and a GitHub Actions workflow.
 The API can change before a stable release.
 The package includes a source generator. The generator makes the mapper during compilation.
 The runtime does not use reflection.
@@ -90,6 +91,7 @@ Shared source and query code remains separate from the CSV adapter for future fi
 - [Phase 2 validation](docs/validation-phase2.md)
 - [Phase 3 validation](docs/validation-phase3.md)
 - [Phase 4 validation](docs/validation-phase4.md)
+- [Phase 5 validation](docs/validation-phase5.md)
 - [Documentation rules](docs/documentation.md)
 - [Future phases](docs/spec/plan.md)
 

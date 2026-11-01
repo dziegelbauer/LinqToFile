@@ -1,0 +1,70 @@
+name: Build and validate
+
+'on':
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            rid: linux-x64
+          - os: windows-2025
+            rid: win-x64
+          - os: macos-15
+            rid: osx-arm64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: '1'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - name: Install Linux AOT prerequisites
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
+      - name: Build
+        run: dotnet build LinqToFile.sln -c Release -warnaserror
+      - name: Test
+        run: dotnet test tests/LinqToFile.Tests -c Release --no-build --no-restore --logger trx --results-directory artifacts/tests
+      - name: Run JIT sample
+        run: dotnet run --project samples/NativeAot -c Release --no-build --no-restore
+      - name: Publish Native AOT sample
+        run: dotnet publish samples/NativeAot -c Release -r ${{ matrix.rid }} -p:TreatWarningsAsErrors=true -o artifacts/aot
+      - name: Run Native AOT sample
+        run: |
+          $executable = if ($IsWindows) { './artifacts/aot/NativeAot.exe' } else { './artifacts/aot/NativeAot' }
+          & $executable
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Pack local feed
+        run: dotnet pack LinqToFile -c Release --no-build --no-restore -o artifacts/feed
+      - name: Publish package consumer with Native AOT
+        run: dotnet publish samples/NativeAot -c Release -r ${{ matrix.rid }} -p:UseLocalPackage=true -p:TreatWarningsAsErrors=true -p:RestorePackagesPath="$PWD/artifacts/package-cache" --source "$PWD/artifacts/feed" --source https://api.nuget.org/v3/index.json -o artifacts/package-aot
+      - name: Run package consumer
+        run: |
+          $executable = if ($IsWindows) { './artifacts/package-aot/NativeAot.exe' } else { './artifacts/package-aot/NativeAot' }
+          & $executable
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Record performance measurements
+        run: dotnet run --project benchmarks/LinqToFile.Benchmarks -c Release --no-build --no-restore -- --output artifacts/benchmarks.json
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: validation-${{ matrix.rid }}
+          path: |
+            artifacts/tests
+            artifacts/benchmarks.json
+          if-no-files-found: warn

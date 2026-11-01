@@ -11,3 +11,4 @@ Ask in small batches; move answers into the relevant topic file.
 7. RESOLVED in phase 4: BCL async LINQ handles filtering/projection/list/array operations. The configured source exposes the async-foreach pattern and an explicit AsAsyncEnumerable boundary, preserving direct sync LINQ. A shared dictionary builder omits raw duplicate keys while preserving selectors, comparer, cancellation, and ArgumentException behavior.
 8. ASD-STE100 Issue 9 is the approved reference. Specialized review tooling remains a future implementation/release choice; examples have automated drift checks.
 9. Phase 1 uses xUnit and Roslyn compilation tests, with a BCL benchmark harness. Specialized benchmark tooling can be selected when broader performance work begins.
+10. RESOLVED in phase 5: GitHub Actions is the CI service. Repository publication and the first hosted platform runs are pending.

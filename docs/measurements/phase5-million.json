@@ -1,0 +1,335 @@
+{
+  "SchemaVersion": 1,
+  "Runtime": ".NET 10.0.14",
+  "OS": "macOS 27.2.0",
+  "Architecture": "Arm64",
+  "ProcessorCount": 16,
+  "Frequency": 1000000000,
+  "BufferSize": 4096,
+  "WarmupMinimumScans": 5,
+  "WarmupMinimumSeconds": 1,
+  "Iterations": 5,
+  "AllocationCounter": "GC.GetTotalAllocatedBytes(precise: true); entire process",
+  "Results": [
+    {
+      "Name": "numeric-file-sync",
+      "Records": 1000000,
+      "InputBytes": 6888896,
+      "MedianMilliseconds": 25.7526,
+      "MedianAllocatedBytes": 24019296,
+      "Samples": [
+        {
+          "Milliseconds": 25.635,
+          "AllocatedBytes": 24019296,
+          "Checksum": 499999500000
+        },
+        {
+          "Milliseconds": 25.7935,
+          "AllocatedBytes": 24019296,
+          "Checksum": 499999500000
+        },
+        {
+          "Milliseconds": 25.9227,
+          "AllocatedBytes": 24019296,
+          "Checksum": 499999500000
+        },
+        {
+          "Milliseconds": 25.7526,
+          "AllocatedBytes": 24019296,
+          "Checksum": 499999500000
+        },
+        {
+          "Milliseconds": 25.3977,
+          "AllocatedBytes": 24019296,
+          "Checksum": 499999500000
+        }
+      ]
+    },
+    {
+      "Name": "numeric-file-async",
+      "Records": 1000000,
+      "InputBytes": 6888896,
+      "MedianMilliseconds": 48.5198,
+      "MedianAllocatedBytes": 24734128,
+      "Samples": [
+        {
+          "Milliseconds": 65.4125,
+          "AllocatedBytes": 24734128,
+          "Checksum": 499999500000
+        },
+        {
+          "Milliseconds": 48.5198,
+          "AllocatedBytes": 24734128,
+          "Checksum": 499999500000
+        },
+        {
+          "Milliseconds": 48.5913,
+          "AllocatedBytes": 24734816,
+          "Checksum": 499999500000
+        },
+        {
+          "Milliseconds": 48.2867,
+          "AllocatedBytes": 24734128,
+          "Checksum": 499999500000
+        },
+        {
+          "Milliseconds": 48.229,
+          "AllocatedBytes": 24734128,
+          "Checksum": 499999500000
+        }
+      ]
+    },
+    {
+      "Name": "numeric-list-async",
+      "Records": 1000000,
+      "InputBytes": 6888896,
+      "MedianMilliseconds": 72.527,
+      "MedianAllocatedBytes": 41519696,
+      "Samples": [
+        {
+          "Milliseconds": 77.916,
+          "AllocatedBytes": 41518552,
+          "Checksum": 499999500000
+        },
+        {
+          "Milliseconds": 72.527,
+          "AllocatedBytes": 41521264,
+          "Checksum": 499999500000
+        },
+        {
+          "Milliseconds": 70.123,
+          "AllocatedBytes": 41519696,
+          "Checksum": 499999500000
+        },
+        {
+          "Milliseconds": 69.3578,
+          "AllocatedBytes": 41529344,
+          "Checksum": 499999500000
+        },
+        {
+          "Milliseconds": 79.3667,
+          "AllocatedBytes": 41516584,
+          "Checksum": 499999500000
+        }
+      ]
+    },
+    {
+      "Name": "numeric-dictionary-async",
+      "Records": 1000000,
+      "InputBytes": 6888896,
+      "MedianMilliseconds": 81.054,
+      "MedianAllocatedBytes": 100182096,
+      "Samples": [
+        {
+          "Milliseconds": 77.3915,
+          "AllocatedBytes": 100177808,
+          "Checksum": 499999500000
+        },
+        {
+          "Milliseconds": 81.054,
+          "AllocatedBytes": 100186264,
+          "Checksum": 499999500000
+        },
+        {
+          "Milliseconds": 94.8763,
+          "AllocatedBytes": 100182096,
+          "Checksum": 499999500000
+        },
+        {
+          "Milliseconds": 76.1604,
+          "AllocatedBytes": 100177808,
+          "Checksum": 499999500000
+        },
+        {
+          "Milliseconds": 81.0727,
+          "AllocatedBytes": 100186544,
+          "Checksum": 499999500000
+        }
+      ]
+    },
+    {
+      "Name": "quoted-file-sync",
+      "Records": 20000,
+      "InputBytes": 480006,
+      "MedianMilliseconds": 1.7634,
+      "MedianAllocatedBytes": 1619072,
+      "Samples": [
+        {
+          "Milliseconds": 1.7634,
+          "AllocatedBytes": 1619072,
+          "Checksum": 340000
+        },
+        {
+          "Milliseconds": 1.7525,
+          "AllocatedBytes": 1619072,
+          "Checksum": 340000
+        },
+        {
+          "Milliseconds": 1.8714,
+          "AllocatedBytes": 1619072,
+          "Checksum": 340000
+        },
+        {
+          "Milliseconds": 1.7818,
+          "AllocatedBytes": 1619296,
+          "Checksum": 340000
+        },
+        {
+          "Milliseconds": 1.7316,
+          "AllocatedBytes": 1619072,
+          "Checksum": 340000
+        }
+      ]
+    },
+    {
+      "Name": "quoted-file-async",
+      "Records": 20000,
+      "InputBytes": 480006,
+      "MedianMilliseconds": 2.3383,
+      "MedianAllocatedBytes": 1666376,
+      "Samples": [
+        {
+          "Milliseconds": 2.3383,
+          "AllocatedBytes": 1666376,
+          "Checksum": 340000
+        },
+        {
+          "Milliseconds": 2.3398,
+          "AllocatedBytes": 1666376,
+          "Checksum": 340000
+        },
+        {
+          "Milliseconds": 2.3612,
+          "AllocatedBytes": 1666752,
+          "Checksum": 340000
+        },
+        {
+          "Milliseconds": 2.2125,
+          "AllocatedBytes": 1666528,
+          "Checksum": 340000
+        },
+        {
+          "Milliseconds": 2.2487,
+          "AllocatedBytes": 1666376,
+          "Checksum": 340000
+        }
+      ]
+    },
+    {
+      "Name": "large-field-sync",
+      "Records": 1000,
+      "InputBytes": 4097006,
+      "MedianMilliseconds": 9.0415,
+      "MedianAllocatedBytes": 8271632,
+      "Samples": [
+        {
+          "Milliseconds": 8.908,
+          "AllocatedBytes": 8271632,
+          "Checksum": 4096000
+        },
+        {
+          "Milliseconds": 9.0482,
+          "AllocatedBytes": 8271632,
+          "Checksum": 4096000
+        },
+        {
+          "Milliseconds": 9.0415,
+          "AllocatedBytes": 8271632,
+          "Checksum": 4096000
+        },
+        {
+          "Milliseconds": 9.4032,
+          "AllocatedBytes": 8271632,
+          "Checksum": 4096000
+        },
+        {
+          "Milliseconds": 8.8924,
+          "AllocatedBytes": 8271632,
+          "Checksum": 4096000
+        }
+      ]
+    },
+    {
+      "Name": "parser-only",
+      "Records": 1000000,
+      "InputBytes": 6888896,
+      "MedianMilliseconds": 14.7924,
+      "MedianAllocatedBytes": 10872,
+      "Samples": [
+        {
+          "Milliseconds": 14.8622,
+          "AllocatedBytes": 10872,
+          "Checksum": 1000000
+        },
+        {
+          "Milliseconds": 14.8246,
+          "AllocatedBytes": 10872,
+          "Checksum": 1000000
+        },
+        {
+          "Milliseconds": 14.7924,
+          "AllocatedBytes": 10872,
+          "Checksum": 1000000
+        },
+        {
+          "Milliseconds": 14.2649,
+          "AllocatedBytes": 10872,
+          "Checksum": 1000000
+        },
+        {
+          "Milliseconds": 14.7159,
+          "AllocatedBytes": 10872,
+          "Checksum": 1000000
+        }
+      ]
+    },
+    {
+      "Name": "mapping-only",
+      "Records": 1000000,
+      "InputBytes": 0,
+      "MedianMilliseconds": 6.3102,
+      "MedianAllocatedBytes": 24000000,
+      "Samples": [
+        {
+          "Milliseconds": 6.4565,
+          "AllocatedBytes": 24000000,
+          "Checksum": 42000000
+        },
+        {
+          "Milliseconds": 6.3102,
+          "AllocatedBytes": 24000000,
+          "Checksum": 42000000
+        },
+        {
+          "Milliseconds": 6.3005,
+          "AllocatedBytes": 24000000,
+          "Checksum": 42000000
+        },
+        {
+          "Milliseconds": 6.3174,
+          "AllocatedBytes": 24000000,
+          "Checksum": 42000000
+        },
+        {
+          "Milliseconds": 6.2779,
+          "AllocatedBytes": 24000000,
+          "Checksum": 42000000
+        }
+      ]
+    }
+  ],
+  "StreamingHeap": [
+    {
+      "Records": 10000,
+      "LiveBytes": 14115384
+    },
+    {
+      "Records": 100000,
+      "LiveBytes": 14115488
+    },
+    {
+      "Records": 1000000,
+      "LiveBytes": 14115552
+    }
+  ]
+}

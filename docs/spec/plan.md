@@ -26,6 +26,7 @@ Complete source overloads, immutable configuration, independent path/factory enu
 Acceptance: sync/async parity; ToListAsync, ToArrayAsync, ToDictionaryAsync behavior; no blocking async-only enumeration; cleanup on completion, failure, cancellation, and early exit; race-safe single-use source claiming. Reuse BCL operators where suitable.
 
 ## 5. Performance and platform validation
+Status: local work validated; hosted checks pending. Phase 4 was committed as c72ad5c. GitHub Actions is the approved CI service. All 485 tests and the warning-free Release build pass locally. Project and alpha.5 package Native AOT samples run on macOS arm64. Reproducible benchmark reports, buffer trials, a sampling profile, and million-row allocation checks are recorded in [phase 5 validation](../validation-phase5.md). Keep the 4096-character default and current arrays; no runtime performance changes were justified. Hosted Windows/Linux/macOS execution remains pending repository publication; phase 5 is not complete.
 Measure allocations and throughput for parsing and typed streaming; tune buffers/pooling based on evidence. Complete Windows/Linux/macOS CI and supported Native AOT execution checks.
 Acceptance: reproducible benchmark baselines; representative numeric conversions avoid temporary field strings; large-file streaming memory does not grow with record count; platform and AOT checks pass.
 
