@@ -1,4 +1,4 @@
-# XLSX stage 2 implementation notes
+# XLSX storage implementation notes
 
 ## Storage and accounting
 - SharedStringStore initially retains strings in a List with capacity accounted before growth. Budget includes conservative aligned UTF-16 string storage, list storage, and its reference array. Control/parser objects and active row buffers are outside that budget; this is not a total-process cap.
@@ -17,4 +17,4 @@
 
 ## Validation and next work
 - Independent fixture source/license/provenance is in tests/LinqToFile.Tests/Fixtures/Xlsx/README.md. These files do not add a runtime dependency.
-- Stage 2 is authorized. Stage 3 async/factories/non-seekable sources and broader profiling remain separate work.
+- Stage 2 is complete. Stage 3 adds async factories, non-seekable spooling, and profiling; see xlsx-execution.md and ../validation-xlsx-stage3.md.

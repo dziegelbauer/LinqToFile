@@ -1,7 +1,8 @@
 # Sources and async queries
 
-This guide describes CSV sources.
-The [XLSX reader](xlsx.md) currently supports synchronous paths and seekable streams only.
+These lifetime and query rules apply to CSV and XLSX.
+Use `Xlsx<T>` and `XlsxAsync<T>` instead of `Csv<T>` and `CsvAsync<T>` for workbooks.
+The [XLSX guide](xlsx.md) explains archive setup, temporary storage, and synchronous ZIP metadata operations.
 
 ## Source kinds
 
@@ -18,8 +19,9 @@ A null factory is invalid at configuration time.
 A null or unreadable factory result fails during enumeration.
 
 Supplied streams start at their current position.
-The reader does not seek or rewind.
-Non-seekable streams are permitted.
+CSV does not seek or rewind.
+XLSX treats the current position as the archive origin and seeks within the remaining input.
+Non-seekable streams are permitted. XLSX copies them to a temporary file before opening the archive.
 
 ## Deferred execution and ownership
 
@@ -43,7 +45,7 @@ A new query configuration does not give it another allowance.
 
 ## Sync and async query boundaries
 
-A configured CSV source supports standard synchronous LINQ.
+A configured source supports standard synchronous LINQ.
 It also supports direct `await foreach` through the async enumeration pattern.
 
 `AsAsyncEnumerable()` returns an `IAsyncEnumerable<T>` for BCL async LINQ.
@@ -61,6 +63,10 @@ var asyncAdults = await TabularFile.Csv<Person>(path)
 ```
 
 Async enumeration uses asynchronous reads.
+XLSX additionally uses async archive creation, entry opening, XML reads, and spill-file reads/writes.
+The BCL reads the ZIP central directory synchronously when its entries are first accessed.
+Seeks, file creation, and metadata properties also remain synchronous.
+Cancellation is checked around setup and while XML processes buffered nodes.
 It does not wrap synchronous enumeration in `Task.Run`.
 An async-only factory source rejects synchronous enumeration without a factory call.
 A synchronous factory still opens its stream synchronously when an async query uses it.
@@ -119,5 +125,5 @@ It does not use the CSV parser.
 This internal reader boundary can support another format without a new ownership implementation.
 
 The row stores cell text with optional native cell kinds for XLSX.
-XLSX stage 1 reuses the source, schema, and query boundary for a second real format.
+XLSX reuses the source, schema, and query boundary for a second real format.
 A public provider API remains a separate design decision.

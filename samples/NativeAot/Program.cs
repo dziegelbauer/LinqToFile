@@ -76,6 +76,7 @@ try
         throw new InvalidOperationException("The async query result is incorrect.");
     Console.WriteLine($"Async CSV: {asyncAdults.Count} adult; {dictionary.Count} dictionary entries");
     WorkbookSample.Run();
+    await WorkbookAsyncSample.RunAsync();
 }
 finally
 {

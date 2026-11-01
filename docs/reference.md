@@ -1,7 +1,7 @@
 # Mapping and API reference
 
 Model requirements and annotations apply to CSV and XLSX.
-The source options below describe CSV. See the [XLSX guide](xlsx.md) for synchronous XLSX options, conversions, and limits.
+The source options below describe CSV. See the [XLSX guide](xlsx.md) for XLSX source methods, options, conversions, and limits.
 
 ## Model requirements
 

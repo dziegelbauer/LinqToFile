@@ -12,8 +12,8 @@
         <PackageProjectUrl>https://github.com/dziegelbauer/LinqToFile</PackageProjectUrl>
         <RepositoryUrl>https://github.com/dziegelbauer/LinqToFile.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
-        <PackageTags>linq;csv;tabular;streaming;nativeaot;source-generator</PackageTags>
-        <PackageReleaseNotes>Prerelease: CSV and synchronous XLSX reading, with shared-string memory budgets and disk spill, rich text, cached formulas, native dates/times, and resource limits. Async XLSX, factories, and non-seekable input remain future work. API changes remain possible.</PackageReleaseNotes>
+        <PackageTags>linq;csv;xlsx;tabular;streaming;nativeaot;source-generator</PackageTags>
+        <PackageReleaseNotes>Prerelease: sync/async CSV and XLSX queries, stream factories, non-seekable XLSX spooling, cancellation, shared-string budgets and disk spill, cached formulas, native dates/times, and resource limits. ZIP directory metadata remains synchronous. API changes remain possible.</PackageReleaseNotes>
     </PropertyGroup>
 
     <ItemGroup>

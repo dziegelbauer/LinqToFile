@@ -6,25 +6,25 @@ using System.Xml.Linq;
 namespace LinqToFile.Formats.Xlsx;
 
 // Only small package/workbook metadata is materialized. Worksheet cell XML is streamed.
-internal sealed class XlsxPackage : IDisposable
+internal sealed partial class XlsxPackage : IDisposable, IAsyncDisposable
 {
     private readonly ZipArchive archive;
     private readonly Dictionary<string, ZipArchiveEntry> parts = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, string> overrides = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, string> defaults = new(StringComparer.OrdinalIgnoreCase);
-    internal string WorksheetName { get; }
-    internal string WorksheetPart { get; }
-    internal string SpreadsheetNamespace { get; }
-    internal bool Date1904 { get; }
+    internal string WorksheetName { get; private set; } = null!;
+    internal string WorksheetPart { get; private set; } = null!;
+    internal string SpreadsheetNamespace { get; private set; } = null!;
+    internal bool Date1904 { get; private set; }
     internal SharedStringStore? SharedStrings { get; private set; }
-    internal XlsxResources Resources { get; }
+    internal XlsxResources Resources { get; private set; }
 
-    internal XlsxPackage(Stream source, XlsxOptions options)
+    internal XlsxPackage(Stream source, XlsxOptions options, XlsxResources? resources = null)
     {
         var view = new ArchiveViewStream(source);
         if (options.MaxWorkbookBytes is long maximum && view.Length > maximum)
             throw Error("The workbook-byte limit was exceeded.");
-        Resources = new(options);
+        Resources = resources ?? new(options);
         archive = new ZipArchive(view, ZipArchiveMode.Read, leaveOpen: false);
         try
         {

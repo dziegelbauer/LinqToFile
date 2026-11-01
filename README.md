@@ -1,7 +1,7 @@
 # LinqToFile
 
 LinqToFile reads tabular files as typed C# records. Standard LINQ operators filter and select the records.
-CSV is complete for the agreed initial scope. XLSX stage 2 supports synchronous reading with storage controls.
+CSV and XLSX support sync/async reading with generated mapping and resource controls.
 The runtime uses only the .NET Base Class Library (BCL). The minimum target is .NET 10.
 
 This repository contains the reader, typed mapper, and sync/async query API.
@@ -27,6 +27,7 @@ Scalar mapping: Ready; offset: -07:00:00
 Async CSV: 1 adult; 2 dictionary entries
 XLSX: Transitional and Strict; typed records: Ada
 XLSX cells: shared strings, formulas, temporal values, disk spill
+XLSX async: factories, non-seekable input, LINQ, materializers, disk spill
 ```
 
 The sample uses this model from a separate project:
@@ -80,9 +81,10 @@ The reader can also use nullable value types and a selected conversion culture.
 CSV options include delimiter, quote, BOM detection, trimming, blank-line handling, buffers, and length limits.
 Async materializers include lists, arrays, and dictionaries.
 Shared source and query code remains separate from the CSV adapter for future file formats.
-The XLSX reader supports synchronous paths and seekable streams with shared/inline text, rich text, numbers, booleans, dates, and cached formula results.
+The XLSX reader supports paths, supplied streams, and sync/async factories with shared/inline text, rich text, numbers, booleans, dates, and cached formula results.
 It has a shared-string memory budget, disk spill, and configurable resource limits.
-Async XLSX, factories, and non-seekable input remain planned for stage 3.
+Non-seekable XLSX input is copied to a temporary file before archive reading.
+Async queries use async part reads; ZIP directory loading and seeks remain synchronous.
 See the [XLSX guide](docs/xlsx.md) for conversion and ownership rules.
 
 ## Documentation
@@ -103,6 +105,7 @@ See the [XLSX guide](docs/xlsx.md) for conversion and ownership rules.
 - [Phase 6 validation](docs/validation-phase6.md)
 - [XLSX stage 1 validation](docs/validation-xlsx-stage1.md)
 - [XLSX stage 2 validation](docs/validation-xlsx-stage2.md)
+- [XLSX stage 3 validation](docs/validation-xlsx-stage3.md)
 - [Release preparation](docs/release.md)
 - [Documentation rules](docs/documentation.md)
 - [Future phases](docs/spec/plan.md)

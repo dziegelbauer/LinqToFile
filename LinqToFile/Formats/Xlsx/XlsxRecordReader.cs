@@ -6,7 +6,7 @@ using LinqToFile.Reading;
 
 namespace LinqToFile.Formats.Xlsx;
 
-internal sealed class XlsxRecordReader : IRecordReader
+internal sealed partial class XlsxRecordReader : IRecordReader
 {
     private readonly XlsxPackage package;
     private readonly XlsxOptions options;
@@ -21,7 +21,7 @@ internal sealed class XlsxRecordReader : IRecordReader
     private long recordNumber;
     public TabularRow Row { get; } = new(1024, null);
 
-    internal XlsxRecordReader(XlsxPackage package, XlsxOptions options)
+    internal XlsxRecordReader(XlsxPackage package, XlsxOptions options, bool initialize = true)
     {
         this.package = package;
         this.options = options;
@@ -29,6 +29,7 @@ internal sealed class XlsxRecordReader : IRecordReader
         Row.DateSystem = package.Date1904 ? NumericDateSystem.Excel1904 : NumericDateSystem.Excel1900;
         Row.WorksheetName = package.WorksheetName;
         Row.PartName = package.WorksheetPart;
+        if (!initialize) return;
         try
         {
             Preflight();
@@ -247,20 +248,29 @@ internal sealed class XlsxRecordReader : IRecordReader
                 else throw Error("The cell contains unsupported markup.", ordinal);
             }
         }
+        long? sharedIndex = ResolveSharedIndex(type, formula, valueFound, ordinal);
+        string? retained = sharedIndex is long index ? package.SharedStrings!.CopyTo(index, Row) : null;
+        return FinishCell(type, formula, ordinal, retained);
+    }
+
+    private long? ResolveSharedIndex(string? type, bool formula, bool valueFound, int ordinal)
+    {
         if (formula && (!valueFound || type != "str" && Row.CurrentFieldLength == 0))
             throw Error("A formula has no cached result.", ordinal);
+        if (type != "s" || Row.CurrentFieldLength == 0) return null;
+        if (!long.TryParse(Row.CurrentField.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out long index) || package.SharedStrings is null)
+            throw Error("A shared-string reference or table is invalid.", ordinal);
+        Row.ReplaceCurrentField([]);
+        return index;
+    }
+
+    private bool FinishCell(string? type, bool formula, int ordinal, string? retained)
+    {
         CellKind kind = CellKind.Text;
-        string? retained = null;
         if (Row.CurrentFieldLength != 0)
         {
             switch (type)
             {
-                case "s":
-                    if (!long.TryParse(Row.CurrentField.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out long index) || package.SharedStrings is null)
-                        throw Error("A shared-string reference or table is invalid.", ordinal);
-                    Row.ReplaceCurrentField([]);
-                    retained = package.SharedStrings.CopyTo(index, Row);
-                    break;
                 case "d":
                     if (!NativeTemporal.TryIso(Row.CurrentField, out _, validateOnly: true)) throw Error("A native ISO date cell is invalid.", ordinal);
                     kind = CellKind.IsoDate;
@@ -311,10 +321,32 @@ internal sealed class XlsxRecordReader : IRecordReader
         Row.RecordNumber, ordinal, ordinal is int index && index <= Row.Headers.Length ? Row.Headers[index - 1] : null,
         ordinal is int member && member <= Row.TargetMembers.Length ? Row.TargetMembers[member - 1] : null));
     public TabularFileException CreateFieldCountException(int expected) => Error("The record differs from the header range.");
-    public ValueTask<bool> ReadAsync(CancellationToken cancellationToken) =>
-        throw new NotSupportedException("Asynchronous XLSX enumeration is not supported until stage 3.");
+    public async ValueTask<bool> ReadAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        try { return await ReadCoreAsync(cancellationToken).ConfigureAwait(false); }
+        catch (TabularFileException error) { throw Row.WithLocation(error); }
+        catch (XmlException) { throw Error("The worksheet XML is malformed."); }
+        catch (InvalidDataException) { throw Error("The worksheet could not be decompressed."); }
+    }
     public void Dispose() { try { reader?.Dispose(); } finally { package.Dispose(); } }
-    public ValueTask DisposeAsync() { Dispose(); return default; }
+    public async ValueTask DisposeAsync()
+    {
+        try { reader?.Dispose(); }
+        finally { await package.DisposeAsync().ConfigureAwait(false); }
+    }
+
+    internal async ValueTask InitializeAsync(CancellationToken token)
+    {
+        try
+        {
+            await PreflightAsync(token).ConfigureAwait(false);
+            reader = await package.OpenWorksheetAsync(token).ConfigureAwait(false);
+        }
+        catch (TabularFileException error) { throw Row.WithLocation(error); }
+        catch (XmlException) { throw Error("The worksheet XML is malformed."); }
+        catch (InvalidDataException) { throw Error("The worksheet could not be decompressed."); }
+    }
 }
 
 internal sealed class XlsxRecordReaderFactory : IRecordReaderFactory<XlsxOptions>
@@ -325,7 +357,7 @@ internal sealed class XlsxRecordReaderFactory : IRecordReaderFactory<XlsxOptions
         XlsxPackage? package = null;
         try
         {
-            package = new(stream, options);
+            package = XlsxInput.Open(stream, options);
             return new XlsxRecordReader(package, options);
         }
         catch (InvalidDataException)
@@ -335,6 +367,25 @@ internal sealed class XlsxRecordReaderFactory : IRecordReaderFactory<XlsxOptions
         }
         catch { package?.Dispose(); throw; }
     }
-    public ValueTask<IRecordReader> OpenAsync(Stream stream, XlsxOptions options, CancellationToken cancellationToken) =>
-        throw new NotSupportedException("Asynchronous XLSX enumeration is not supported until stage 3.");
+    public async ValueTask<IRecordReader> OpenAsync(Stream stream, XlsxOptions options, CancellationToken cancellationToken)
+    {
+        XlsxPackage? package = null;
+        try
+        {
+            package = await XlsxInput.OpenAsync(stream, options, cancellationToken).ConfigureAwait(false);
+            var reader = new XlsxRecordReader(package, options, initialize: false);
+            await reader.InitializeAsync(cancellationToken).ConfigureAwait(false);
+            return reader;
+        }
+        catch (InvalidDataException)
+        {
+            if (package is not null) await package.DisposeAsync().ConfigureAwait(false);
+            throw new XlsxFormatException("The workbook is not a supported XLSX archive.");
+        }
+        catch
+        {
+            if (package is not null) await package.DisposeAsync().ConfigureAwait(false);
+            throw;
+        }
+    }
 }

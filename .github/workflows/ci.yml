@@ -64,6 +64,8 @@ jobs:
         run: ./eng/Verify-Package.ps1 -RuntimeIdentifier ${{ matrix.rid }}
       - name: Record performance measurements
         run: dotnet run --project benchmarks/LinqToFile.Benchmarks -c Release --no-build --no-restore -- --output artifacts/benchmarks.json
+      - name: Record XLSX performance measurements
+        run: dotnet run --project benchmarks/LinqToFile.Benchmarks -c Release --no-build --no-restore -- --xlsx --rows 50000 --iterations 5 --output artifacts/xlsx-benchmarks.json
       - uses: actions/upload-artifact@v7
         if: always()
         with:
@@ -71,4 +73,5 @@ jobs:
           path: |
             artifacts/tests
             artifacts/benchmarks.json
+            artifacts/xlsx-benchmarks.json
           if-no-files-found: warn

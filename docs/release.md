@@ -2,7 +2,7 @@
 
 ## Current artifact
 
-The current local package version is `0.1.0-alpha.8`.
+The current local package version is `0.1.0-alpha.9`.
 It is a prerelease artifact. No public NuGet release is made by the build.
 The API can change before a stable release.
 
@@ -40,11 +40,13 @@ Neither project references the runtime or generator source projects.
 
 The check compiles the model from the packaged README.
 It runs the README query, sync reads, async LINQ, dictionary materialization, and configured encoding.
+It also compiles XLSX models in the separate model assembly.
+XLSX checks cover both variants, cached formulas, temporal values, shared-string spill, async queries, and non-seekable input.
 It repeats the application run with Native AOT.
 Successful execution prints this message:
 
 ```text
-Package validation passed: LinqToFile 0.1.0-alpha.8 (osx-arm64)
+Package validation passed: LinqToFile 0.1.0-alpha.9 (osx-arm64)
 ```
 
 The script removes its temporary workspace after execution.
@@ -67,8 +69,9 @@ NuGet metadata follows the [MSBuild package reference](https://learn.microsoft.c
 ## Scope of the initial release
 
 CSV implements the agreed initial reader scope. Headers are required.
-The package also includes [synchronous XLSX reading](xlsx.md) with shared-string spill, cached formulas, native temporal conversions, and resource limits.
-Async XLSX, factories, and non-seekable input remain planned for stage 3.
+The package also includes [sync/async XLSX reading](xlsx.md) with shared-string spill, cached formulas, native temporal conversions, and resource limits.
+XLSX accepts paths, streams, and sync/async factories.
+Non-seekable XLSX input requires temporary storage. ZIP directory loading and seeks are synchronous.
 The reader supports strict parsing, generated property mapping, and sync/async streaming.
 It supports owned records and full list, array, or dictionary materialization.
 It does not provide a custom `IQueryable` provider, file writing, or change tracking.

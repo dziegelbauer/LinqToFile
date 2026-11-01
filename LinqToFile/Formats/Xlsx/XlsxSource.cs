@@ -7,7 +7,7 @@ using LinqToFile.Sources;
 
 namespace LinqToFile;
 
-/// <summary>An immutable, deferred XLSX source for synchronous seekable input.</summary>
+/// <summary>An immutable, deferred XLSX source with synchronous and asynchronous enumeration.</summary>
 public sealed class XlsxSource<T> : IEnumerable<T> where T : class, ITabularRecord<T>
 {
     private readonly StreamSource source;
@@ -74,6 +74,35 @@ public sealed class XlsxSource<T> : IEnumerable<T> where T : class, ITabularReco
     }
     public XlsxSource<T> WithHeaderTrimming(bool enabled = true) => new(source, options with { TrimHeaders = enabled });
     public IEnumerable<T> AsEnumerable() => this;
+    public IAsyncEnumerable<T> AsAsyncEnumerable() => TabularQuery<T, XlsxOptions>.ReadAsync(source, options, XlsxRecordReaderFactory.Instance);
     public IEnumerator<T> GetEnumerator() => TabularQuery<T, XlsxOptions>.Read(source, options, XlsxRecordReaderFactory.Instance).GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    // The async foreach pattern avoids exposing two competing sets of LINQ extension methods.
+    public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default) =>
+        AsAsyncEnumerable().GetAsyncEnumerator(cancellationToken);
+
+    public ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken = default) =>
+        AsAsyncEnumerable().ToListAsync(cancellationToken);
+
+    public ValueTask<T[]> ToArrayAsync(CancellationToken cancellationToken = default) =>
+        AsAsyncEnumerable().ToArrayAsync(cancellationToken);
+
+    public ValueTask<Dictionary<TKey, T>> ToDictionaryAsync<TKey>(Func<T, TKey> keySelector,
+        IEqualityComparer<TKey>? comparer = null, CancellationToken cancellationToken = default) where TKey : notnull
+    {
+        ArgumentNullException.ThrowIfNull(keySelector);
+        return AsyncMaterialization.ToDictionaryAsync(AsAsyncEnumerable(), keySelector, static row => row,
+            comparer, cancellationToken);
+    }
+
+    public ValueTask<Dictionary<TKey, TValue>> ToDictionaryAsync<TKey, TValue>(Func<T, TKey> keySelector,
+        Func<T, TValue> valueSelector, IEqualityComparer<TKey>? comparer = null, CancellationToken cancellationToken = default)
+        where TKey : notnull
+    {
+        ArgumentNullException.ThrowIfNull(keySelector);
+        ArgumentNullException.ThrowIfNull(valueSelector);
+        return AsyncMaterialization.ToDictionaryAsync(AsAsyncEnumerable(), keySelector, valueSelector,
+            comparer, cancellationToken);
+    }
 }

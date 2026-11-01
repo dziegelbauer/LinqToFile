@@ -21,5 +21,6 @@
     <None Include="../../samples/Models/WorkbookEntry.cs" Link="Examples/WorkbookEntry.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../samples/NativeAot/WorkbookSample.cs" Link="Examples/WorkbookSample.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../samples/NativeAot/WorkbookCellsSample.cs" Link="Examples/WorkbookCellsSample.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../samples/NativeAot/WorkbookAsyncSample.cs" Link="Examples/WorkbookAsyncSample.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

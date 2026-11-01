@@ -19,6 +19,18 @@ public static class TabularFile
         return new(new StreamSource(stream, leaveOpen), new XlsxOptions());
     }
 
+    public static XlsxSource<T> Xlsx<T>(Func<Stream> factory) where T : class, ITabularRecord<T>
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+        return new(new StreamSource(factory), new XlsxOptions());
+    }
+
+    public static XlsxSource<T> XlsxAsync<T>(Func<CancellationToken, ValueTask<Stream>> factory) where T : class, ITabularRecord<T>
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+        return new(new StreamSource(factory), new XlsxOptions());
+    }
+
     public static CsvSource<T> Csv<T>(string path) where T : class, ITabularRecord<T>
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);

@@ -8,7 +8,7 @@
 - Supplied streams start at their current position and default to leaveOpen=true.
 - All options derived from one supplied-stream source share one atomic enumeration allowance.
 - Claim on the first MoveNext/MoveNextAsync, including failed or cancelled attempts. Creating or disposing an unused enumerator does not claim.
-- Async-only factories use CsvAsync<T>; synchronous enumeration throws without invoking them.
+- Async-only factories use CsvAsync<T> or XlsxAsync<T>; synchronous enumeration throws without invoking them.
 - Cancellation is checked during async I/O and between records. Dispose owned sources on completion, failure, cancellation, or early exit.
 - ToListAsync, ToArrayAsync, and ToDictionaryAsync are required. Dictionary supports key/value selectors, comparer, cancellation, and duplicate-key errors.
 - Library-created errors omit raw values by default.
@@ -25,4 +25,4 @@
 - Reuse BCL async filtering/projection/list/array methods. A shared dictionary builder uses TryAdd and a generic ArgumentException message so duplicate keys do not disclose values.
 - User callbacks and explicitly called BCL operators retain their own exception behavior.
 - The internal reader boundary is tested with a synthetic non-CSV byte format. It is not a public provider API.
-- XLSX stage 1 extends TabularRow with optional native cell kinds and worksheet/part context, while preserving the CSV text-only path. Shared TextOptions now isolates encoding/BOM/buffer options from common TabularOptions. XLSX reuses StreamSource, schema binding, and TabularQuery for synchronous paths/seekable streams; stage 2 adds shared-string storage, resource limits, and exact native temporal conversions. Factories, async sources, and non-seekable input remain stage 3.
+- XLSX stage 1 extends TabularRow with optional native cell kinds and worksheet/part context, while preserving the CSV text-only path. Shared TextOptions now isolates encoding/BOM/buffer options from common TabularOptions. XLSX reuses StreamSource, schema binding, and TabularQuery for synchronous paths/seekable streams; stage 2 adds shared-string storage, resource limits, and exact native temporal conversions. Stage 3 now reuses the same ownership/query contracts for factories and async XLSX. XlsxInput spools non-seekable sources with bounded buffers into shared per-enumeration resources; temporary limits include spool plus shared strings/index. See xlsx-execution.md.

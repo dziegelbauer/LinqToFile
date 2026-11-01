@@ -72,6 +72,13 @@ Merge preflight reads the selected worksheet before record streaming begins.
 It does not retain the whole sheet or convert future row values.
 The [XLSX guide](xlsx.md) describes the current scope and limits.
 Stage 2 adds shared-string storage, cached formulas, rich text, native temporal conversion, and resource accounting.
+Stage 3 adds async XML/entry traversal and factories through the same source/query boundary.
+Sync and async traversal share cell conversion and resource accounting.
+The async traversal methods stay separate because XmlReader exposes distinct sync/async methods.
+Both paths must preserve the same structural and conversion rules.
+XlsxInput copies non-seekable sources into bounded-buffer temporary storage before archive access.
+The package owns spool and shared-string files together, so one temporary-byte budget covers them.
+The BCL still loads ZIP directory entries synchronously; part I/O uses async APIs in async queries.
 The shared-string store keeps text and references within its memory budget or moves both content and its fixed-width index to disk.
 The row can reuse immutable cached strings when trimming does not change them.
 Excel serial conversion is an explicit per-reader policy; other formats do not inherit it from numeric cell kinds alone.

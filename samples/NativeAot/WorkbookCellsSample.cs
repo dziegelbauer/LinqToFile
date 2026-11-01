@@ -26,7 +26,7 @@ internal static class WorkbookCellsSample
         Console.WriteLine("XLSX cells: shared strings, formulas, temporal values, disk spill");
     }
 
-    private static MemoryStream Create(bool strict)
+    internal static MemoryStream Create(bool strict)
     {
         var stream = WorkbookSample.Create(strict);
         XNamespace ns = strict ? "http://purl.oclc.org/ooxml/spreadsheetml/main" : "http://schemas.openxmlformats.org/spreadsheetml/2006/main";

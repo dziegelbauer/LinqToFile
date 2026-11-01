@@ -19,6 +19,7 @@ public sealed class TabularRow
     internal string? PartName { get; set; }
     internal int CurrentFieldLength => length - fieldStart;
     internal ReadOnlySpan<char> CurrentField => buffer.AsSpan(fieldStart, length - fieldStart);
+    internal ReadOnlyMemory<char> CurrentFieldMemory => buffer.AsMemory(fieldStart, length - fieldStart);
     internal Span<char> CurrentFieldStorage => buffer.AsSpan(fieldStart, length - fieldStart);
     internal void TruncateCurrentField(int count) => length = fieldStart + count;
     internal void Append(ReadOnlySpan<char> value) { foreach (char c in value) Append(c); }

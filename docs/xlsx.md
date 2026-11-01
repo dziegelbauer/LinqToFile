@@ -2,8 +2,8 @@
 
 ## Current scope
 
-XLSX stage 2 provides synchronous cell reading and storage controls.
-It supports synchronous reading from paths and seekable streams.
+The XLSX reader supports sync/async queries and storage controls.
+It accepts paths, supplied streams, sync factories, and async factories.
 It reads the agreed subset of Transitional and Strict workbooks.
 It does not require Excel or an additional runtime package.
 
@@ -14,8 +14,8 @@ Text cells use the existing supported text conversions and culture option.
 Rich-text runs become plain text. Visual formatting and phonetic annotations are ignored.
 Spreadsheet text escapes are decoded once, independently for each text run.
 
-Async XLSX queries, factories, and non-seekable input remain planned for stage 3.
-They are not available yet. Temporary storage and resource limits are available now.
+Non-seekable input is copied incrementally to a temporary file before archive reading.
+Headers are required. The reader uses standard LINQ and generated model mapping.
 
 ## Model and query
 
@@ -49,6 +49,39 @@ var records = TabularFile.Xlsx<WorkbookEntry>(stream)
 Pass a file path instead of the stream to open a workbook by path.
 The generated mapper uses the same annotations as CSV.
 
+## Async sources and queries
+
+Use `Xlsx<T>(Func<Stream>)` for a synchronous stream factory.
+Use `XlsxAsync<T>(Func<CancellationToken, ValueTask<Stream>>)` for an async-only factory.
+Each factory must return a fresh readable stream.
+
+The [async sample](../samples/NativeAot/WorkbookAsyncSample.cs) checks this path query:
+
+```csharp
+var entries = TabularFile.Xlsx<WorkbookEntry>(path);
+var activeEntries = await entries.AsAsyncEnumerable()
+    .Where(entry => entry.Active)
+    .ToArrayAsync();
+var byId = await entries.ToDictionaryAsync(entry => entry.Id);
+```
+
+The configured source supports direct `await foreach`.
+Use `AsAsyncEnumerable()` for BCL async LINQ operators.
+`ToListAsync`, `ToArrayAsync`, and both `ToDictionaryAsync` overloads accept cancellation.
+The [source guide](sources-and-async.md) gives the full signatures and ownership rules.
+
+Async execution uses the .NET 10 ZIP creation/entry APIs, async XML reads, and async spill-file I/O.
+The BCL still reads the ZIP central directory synchronously when entries are first accessed.
+Seeks, file creation, metadata properties, and XML-reader disposal also remain synchronous.
+There is no `Task.Run` wrapper or blocking wait on an async operation.
+A supplied stream must support the operations its selected query mode requires.
+An async-only factory rejects sync enumeration without calling the factory.
+
+Cancellation reaches archive reads, copying, shared-string processing, preflight, and buffered XML parsing.
+Owned sources and temporary files close on cancellation, failure, completion, or early exit.
+One synchronous metadata operation can finish before cancellation is observed.
+See the [.NET 10 ZIP implementation](https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.IO.Compression/src/System/IO/Compression/ZipArchive.cs) for the central-directory boundary.
+
 ## Options and ownership
 
 | Option | Behavior |
@@ -60,7 +93,7 @@ The generated mapper uses the same annotations as CSV.
 | `WithHeaderTrimming()` | Trim headers before matching |
 | `WithFieldTrimming()` | Trim field values before conversion |
 | `WithSharedStringMemoryBudget(bytes)` | Set the retained shared-string budget; default 8 MiB |
-| `WithTemporaryFiles(enabled)` | Permit or forbid disk spill; default true |
+| `WithTemporaryFiles(enabled)` | Permit or forbid disk spill and workbook copying; default true |
 | `WithTemporaryDirectory(path)` | Select the directory for generated temporary files |
 | `WithMaxWorkbookBytes(bytes)` | Limit archive bytes from the stream origin through its end |
 | `WithMaxDecompressedBytes(bytes)` | Limit all decompressed bytes read, including repeated reads |
@@ -72,7 +105,7 @@ The default is the first worksheet in workbook order, including hidden worksheet
 The default header is the first row with content.
 Empty cells and empty text do not count as content. Zero and false do.
 
-Paths open an independent stream for each enumeration.
+Paths and factories open an independent stream for each enumeration.
 Supplied streams permit one enumeration across all derived configurations.
 The stream starts at its current position and remains open by default.
 Set `leaveOpen: false` to transfer disposal responsibility to the library.
@@ -136,10 +169,11 @@ Spilled strings are copied into the active row buffer and returned as owned valu
 
 The memory budget is an accounting limit for retained shared-string storage, not a process-memory cap.
 Active row/text buffers, ZIP/workbook metadata, merge metadata, and caller-retained results are separate.
-The reader creates temporary files only when spill is needed and deletes them on disposal or failure.
-It does not create the configured directory. That directory must exist when spill occurs.
+The reader creates temporary files only for spill or non-seekable input.
+It deletes owned temporary files on disposal, failure, or cancellation.
+It does not create the configured directory. That directory must exist when temporary storage is needed.
 If temporary files are disabled, exceeding the memory budget throws instead of using unbounded RAM.
-A zero memory budget forces non-empty shared-string tables to disk.
+A zero memory budget sends any shared-string entries to disk, including empty strings.
 
 Maximum-size limits default to null, which means unlimited.
 Zero is valid. Negative arguments throw immediately.
@@ -149,6 +183,9 @@ It applies to headers, unmapped columns, and shared-string items during preproce
 Native boolean text counts its canonical true/false representation.
 Temporary bytes count live logical file lengths, not cumulative writes or filesystem block allocation.
 The disk index uses 12 bytes per string, in addition to two bytes per UTF-16 code unit.
+Non-seekable input adds its complete compressed workbook length to the same temporary-byte budget.
+The workbook-byte limit is checked while copying, before an oversized chunk is written.
+With temporary files disabled, non-seekable input fails before reading source bytes.
 
 The extended [sample model](../samples/Models/WorkbookCells.cs) includes all temporal target types.
 Its query forces disk storage to exercise spill and limits:
@@ -193,7 +230,8 @@ The sample checks both workbook variants and prints this line:
 ```text
 XLSX: Transitional and Strict; typed records: Ada
 XLSX cells: shared strings, formulas, temporal values, disk spill
+XLSX async: factories, non-seekable input, LINQ, materializers, disk spill
 ```
 
 The package-reference and Native AOT sample checks run the same code.
-The [XLSX plan](spec/xlsx-plan.md) describes the remaining stages.
+See [stage 3 validation](validation-xlsx-stage3.md) and [performance measurements](performance.md) for evidence and limits.

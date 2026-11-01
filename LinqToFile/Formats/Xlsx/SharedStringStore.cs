@@ -6,7 +6,7 @@ using LinqToFile.Infrastructure;
 namespace LinqToFile.Formats.Xlsx;
 
 // Memory table until its budget is reached; then both content and fixed-width index live on disk.
-internal sealed class SharedStringStore(XlsxOptions options, XlsxResources resources)
+internal sealed partial class SharedStringStore(XlsxOptions options, XlsxResources resources)
 {
     private List<string>? values;
     private FileStream? data;
@@ -41,22 +41,29 @@ internal sealed class SharedStringStore(XlsxOptions options, XlsxResources resou
         if (!ended) throw new XlsxFormatException("The shared-string table is incomplete.");
     }
 
+    private bool TryAddMemory(ReadOnlySpan<char> value)
+    {
+        if (data is not null) return false;
+        int capacity = values?.Capacity ?? 0;
+        if (values is null || values.Count == capacity) capacity = capacity == 0 ? 4 : checked(capacity * 2);
+        long cost = (22L + value.Length * 2L + 7) & ~7L;
+        if (textBytes + cost + 32L + 24L + (long)capacity * IntPtr.Size <= options.SharedStringMemoryBudget)
+        {
+            values ??= [];
+            values.EnsureCapacity(capacity);
+            values.Add(value.ToString());
+            textBytes += cost;
+            count++;
+            return true;
+        }
+        return false;
+    }
+
     private void Add(ReadOnlySpan<char> value)
     {
+        if (TryAddMemory(value)) return;
         if (data is null)
         {
-            int capacity = values?.Capacity ?? 0;
-            if (values is null || values.Count == capacity) capacity = capacity == 0 ? 4 : checked(capacity * 2);
-            long cost = (22L + value.Length * 2L + 7) & ~7L;
-            if (textBytes + cost + 32L + 24L + (long)capacity * IntPtr.Size <= options.SharedStringMemoryBudget)
-            {
-                values ??= [];
-                values.EnsureCapacity(capacity);
-                values.Add(value.ToString());
-                textBytes += cost;
-                count++;
-                return;
-            }
             data = resources.CreateTemporary();
             index = resources.CreateTemporary();
             if (values is not null)
@@ -74,9 +81,7 @@ internal sealed class SharedStringStore(XlsxOptions options, XlsxResources resou
         Span<byte> entry = stackalloc byte[12];
         BinaryPrimitives.WriteInt64LittleEndian(entry, data!.Length);
         BinaryPrimitives.WriteInt32LittleEndian(entry[8..], value.Length);
-        index!.Position = index.Length;
-        index.Write(entry);
-        data.Position = data.Length;
+        index!.Write(entry);
         data.Write(MemoryMarshal.AsBytes(value));
     }
 

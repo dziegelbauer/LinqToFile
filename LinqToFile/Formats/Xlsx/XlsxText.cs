@@ -4,7 +4,7 @@ using LinqToFile.Infrastructure;
 namespace LinqToFile.Formats.Xlsx;
 
 // Reuses the active cell buffer. Every text run is decoded independently, once.
-internal sealed class XlsxText(string ns, XlsxOptions options)
+internal sealed partial class XlsxText(string ns, XlsxOptions options)
 {
     private readonly char[] chunk = new char[1024];
 

@@ -12,14 +12,23 @@ internal static class XlsxXml
     internal const string ContentTypes = "http://schemas.openxmlformats.org/package/2006/content-types";
     internal const string Compatibility = "http://schemas.openxmlformats.org/markup-compatibility/2006";
 
-    internal static XmlReader Open(Stream stream) => XmlReader.Create(stream, new XmlReaderSettings
+    internal static XmlReader Open(Stream stream, bool async = false) => XmlReader.Create(stream, new XmlReaderSettings
     {
+        Async = async,
         CloseInput = true,
         DtdProcessing = DtdProcessing.Prohibit,
         XmlResolver = null,
         IgnoreComments = true,
         IgnoreProcessingInstructions = true
     });
+
+    internal static async ValueTask<bool> ReadAsync(XmlReader reader, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        bool result = await reader.ReadAsync().ConfigureAwait(false);
+        token.ThrowIfCancellationRequested();
+        return result;
+    }
 
     internal static void CheckRequiredMarkup(XmlReader reader)
     {

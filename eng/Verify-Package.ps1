@@ -55,6 +55,16 @@ try {
 </Project>
 "@ | Set-Content (Join-Path $models 'Models.csproj')
     ("namespace ConsumerModels;`n" + $examples[0].Groups[1].Value) | Set-Content (Join-Path $models 'Person.cs')
+    # Compile the XLSX models in the external model assembly with the packaged generator.
+    foreach ($name in @('WorkbookEntry', 'WorkbookCells')) {
+        $model = [System.IO.File]::ReadAllText((Join-Path $repository "samples/Models/$name.cs"))
+        ("using System;`n" + $model.Replace('namespace SampleModels;', 'namespace ConsumerModels;')) |
+            Set-Content (Join-Path $models "$name.cs")
+    }
+    foreach ($name in @('WorkbookSample', 'WorkbookCellsSample', 'WorkbookAsyncSample')) {
+        $sample = [System.IO.File]::ReadAllText((Join-Path $repository "samples/NativeAot/$name.cs"))
+        $sample.Replace('using SampleModels;', 'using ConsumerModels;') | Set-Content (Join-Path $app "$name.cs")
+    }
     @'
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><PublishAot>true</PublishAot></PropertyGroup>
@@ -82,7 +92,9 @@ File.WriteAllText("people.csv", "person_id,Name\n1,Ada\n2,Grace\n");
     $program += @'
 
 if (people.Count != 2 || people[0].Name != "Ada") throw new InvalidOperationException("README query failed.");
-Console.WriteLine("Clean package consumer passed: README, sync, async, encoding, and cross-assembly mapping.");
+WorkbookSample.Run();
+await WorkbookAsyncSample.RunAsync();
+Console.WriteLine("Clean package consumer passed: README, CSV/XLSX sync/async, non-seekable input, and cross-assembly mapping.");
 '@
     $program | Set-Content (Join-Path $app 'Program.cs')
     $escapedFeed = [System.Security.SecurityElement]::Escape($feed)

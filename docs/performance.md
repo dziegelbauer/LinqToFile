@@ -143,7 +143,62 @@ dotnet tool install dotnet-trace --version 10.0.750501 --tool-path artifacts/too
 See the [Microsoft diagnostic tool reference](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/dotnet-trace) for tool options.
 Trace files stay in the ignored artifacts directory.
 
-## Earlier measurements
+## XLSX stage 3 measurements
+
+Run the XLSX workload set with this command:
+
+```sh
+dotnet run --project benchmarks/LinqToFile.Benchmarks -c Release -- --xlsx --rows 50000 --iterations 5 --output artifacts/xlsx-benchmarks.json
+```
+
+XLSX defaults are 50,000 records and five measured scans.
+The CSV buffer option does not apply to this mode.
+Shared numeric/XML code warms for at least three seconds before the workload comparisons.
+Each workload then has at least five warmup scans and one second of warmup.
+Input generation is outside measurement. Checksums validate every scan.
+
+These two macOS arm64 processes used SDK 10.0.403 and runtime 10.0.14:
+
+| Workload | Median time, run 1 / run 2 | Allocated bytes per record, run 1 / run 2 |
+|---|---|---|
+| Native numbers, sync | 27.43 / 27.79 ms | 97.25 / 97.25 |
+| Native numbers, async | 40.17 / 43.72 ms | 111.80 / 111.83 |
+| Non-seekable numbers, async | 40.82 / 41.58 ms | 111.82 / 111.89 |
+| Inline strings, sync | 42.68 / 43.00 ms | 225.45 / 225.52 |
+| Repeated shared string, memory, sync | 29.82 / 30.02 ms | 121.75 / 121.81 |
+| Repeated shared string, disk, sync | 30.89 / 31.53 ms | 209.95 / 210.00 |
+| Unique shared strings, memory, sync | 47.11 / 48.49 ms | 230.80 / 230.80 |
+| Unique shared strings, 1 KiB budget, sync | 64.84 / 65.42 ms | 210.04 / 210.04 |
+
+These scans include archive opening, XML parsing, header binding, full merge preflight, and returned models.
+Numeric field conversion uses spans. Its allocation test permits model allocations but no per-field string allocation.
+XML attributes and row/cell coordinates still allocate; these counts are not mapper-only costs.
+Cached shared strings can be reused by returned records. Disk lookups allocate owned returned strings.
+The 8 MiB default remains unchanged. It is configurable and does not cap total process memory.
+
+The 500-record large-cell case used 16,384-character values.
+It allocated about 33,300 bytes per record synchronously and 35,800 bytes asynchronously.
+This includes an owned returned string. Active text buffers grow to the largest encountered value.
+
+At 50,000 records, numeric first-record startup took 11.78 / 11.87 ms.
+Unique shared strings forced to disk took 43.48 / 43.62 ms before the first record.
+At 200,000 records, these times were 48.59 ms and 176.08 ms.
+The reader scans the full selected worksheet for merge metadata before yielding a record.
+Shared-string preprocessing adds startup work even when the caller takes only one record.
+
+The heap probes collect at increasing record counts without retaining a result collection.
+At the final sample, unique-string spill used about 84 KiB above the process baseline at both workbook sizes.
+Its temporary files used 3,800,000 bytes for 50,000 strings and 15,200,000 bytes for 200,000 strings.
+Each string has 32 UTF-16 units plus a 12-byte index entry.
+The in-memory case used a 64 MiB budget and its sampled heap grew with string count.
+Heap deltas include process-wide collection noise and runtime state; they are not a precise storage-accounting measurement.
+ZIP directory/workbook metadata, merge declarations, active rows, and returned results are separate costs.
+
+The raw [measurement files](measurements/README.md) include every sample and the larger scan.
+Times are informational. OS caches, storage, JIT state, and input shape affect results.
+These measurements do not establish a throughput guarantee or a general sync/async ordering.
+
+## Earlier CSV measurements
 
 The older harness used five scans for warmup and five measured scans.
 It measured only the numeric file scan with a per-thread allocation counter.

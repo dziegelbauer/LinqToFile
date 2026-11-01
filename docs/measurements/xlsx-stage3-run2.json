@@ -1,0 +1,691 @@
+{
+  "SchemaVersion": 1,
+  "Runtime": ".NET 10.0.14",
+  "OS": "macOS 27.2.0",
+  "Architecture": "Arm64",
+  "Rows": 50000,
+  "Iterations": 5,
+  "WarmupMinimumScans": 5,
+  "WarmupMinimumSeconds": 1,
+  "AllocationCounter": "GC.GetTotalAllocatedBytes(precise: true); entire process",
+  "InitialNumericWarmupSeconds": 3,
+  "Results": [
+    {
+      "Name": "numeric-sync",
+      "Records": 50000,
+      "InputBytes": 562911,
+      "MedianMilliseconds": 27.7924,
+      "MedianAllocatedBytes": 4862544,
+      "Samples": [
+        {
+          "Milliseconds": 27.6572,
+          "AllocatedBytes": 4862544,
+          "Checksum": 1249975000
+        },
+        {
+          "Milliseconds": 27.8072,
+          "AllocatedBytes": 4858616,
+          "Checksum": 1249975000
+        },
+        {
+          "Milliseconds": 27.7924,
+          "AllocatedBytes": 4862544,
+          "Checksum": 1249975000
+        },
+        {
+          "Milliseconds": 27.3184,
+          "AllocatedBytes": 4862544,
+          "Checksum": 1249975000
+        },
+        {
+          "Milliseconds": 28.4691,
+          "AllocatedBytes": 4858616,
+          "Checksum": 1249975000
+        }
+      ]
+    },
+    {
+      "Name": "numeric-async",
+      "Records": 50000,
+      "InputBytes": 562911,
+      "MedianMilliseconds": 43.7228,
+      "MedianAllocatedBytes": 5591656,
+      "Samples": [
+        {
+          "Milliseconds": 45.1502,
+          "AllocatedBytes": 5594056,
+          "Checksum": 1249975000
+        },
+        {
+          "Milliseconds": 43.7228,
+          "AllocatedBytes": 5591624,
+          "Checksum": 1249975000
+        },
+        {
+          "Milliseconds": 45.0388,
+          "AllocatedBytes": 5589616,
+          "Checksum": 1249975000
+        },
+        {
+          "Milliseconds": 41.203,
+          "AllocatedBytes": 5593320,
+          "Checksum": 1249975000
+        },
+        {
+          "Milliseconds": 42.8533,
+          "AllocatedBytes": 5591656,
+          "Checksum": 1249975000
+        }
+      ]
+    },
+    {
+      "Name": "numeric-nonseekable-sync",
+      "Records": 50000,
+      "InputBytes": 562911,
+      "MedianMilliseconds": 27.6886,
+      "MedianAllocatedBytes": 4863456,
+      "Samples": [
+        {
+          "Milliseconds": 27.5312,
+          "AllocatedBytes": 4864192,
+          "Checksum": 1249975000
+        },
+        {
+          "Milliseconds": 27.1773,
+          "AllocatedBytes": 4863456,
+          "Checksum": 1249975000
+        },
+        {
+          "Milliseconds": 28.2108,
+          "AllocatedBytes": 4859528,
+          "Checksum": 1249975000
+        },
+        {
+          "Milliseconds": 28.1288,
+          "AllocatedBytes": 4863456,
+          "Checksum": 1249975000
+        },
+        {
+          "Milliseconds": 27.6886,
+          "AllocatedBytes": 4859528,
+          "Checksum": 1249975000
+        }
+      ]
+    },
+    {
+      "Name": "numeric-nonseekable-async",
+      "Records": 50000,
+      "InputBytes": 562911,
+      "MedianMilliseconds": 41.5751,
+      "MedianAllocatedBytes": 5594464,
+      "Samples": [
+        {
+          "Milliseconds": 41.5751,
+          "AllocatedBytes": 5594464,
+          "Checksum": 1249975000
+        },
+        {
+          "Milliseconds": 41.2994,
+          "AllocatedBytes": 5594544,
+          "Checksum": 1249975000
+        },
+        {
+          "Milliseconds": 41.3901,
+          "AllocatedBytes": 5590536,
+          "Checksum": 1249975000
+        },
+        {
+          "Milliseconds": 43.5204,
+          "AllocatedBytes": 5594464,
+          "Checksum": 1249975000
+        },
+        {
+          "Milliseconds": 41.7304,
+          "AllocatedBytes": 5594464,
+          "Checksum": 1249975000
+        }
+      ]
+    },
+    {
+      "Name": "inline-sync",
+      "Records": 50000,
+      "InputBytes": 589272,
+      "MedianMilliseconds": 42.9974,
+      "MedianAllocatedBytes": 11276048,
+      "Samples": [
+        {
+          "Milliseconds": 43.2022,
+          "AllocatedBytes": 11276048,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 42.9747,
+          "AllocatedBytes": 11276048,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 42.3497,
+          "AllocatedBytes": 11276784,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 43.1216,
+          "AllocatedBytes": 11276048,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 42.9974,
+          "AllocatedBytes": 11276048,
+          "Checksum": 1600000
+        }
+      ]
+    },
+    {
+      "Name": "inline-async",
+      "Records": 50000,
+      "InputBytes": 589272,
+      "MedianMilliseconds": 55.5897,
+      "MedianAllocatedBytes": 15641616,
+      "Samples": [
+        {
+          "Milliseconds": 56.5445,
+          "AllocatedBytes": 15641616,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 54.9965,
+          "AllocatedBytes": 15641456,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 55.7117,
+          "AllocatedBytes": 15641856,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 55.5294,
+          "AllocatedBytes": 15642192,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 55.5897,
+          "AllocatedBytes": 15641536,
+          "Checksum": 1600000
+        }
+      ]
+    },
+    {
+      "Name": "shared-cache-sync",
+      "Records": 50000,
+      "InputBytes": 374892,
+      "MedianMilliseconds": 30.0245,
+      "MedianAllocatedBytes": 6090632,
+      "Samples": [
+        {
+          "Milliseconds": 29.6252,
+          "AllocatedBytes": 6086704,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 30.1402,
+          "AllocatedBytes": 6090632,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 30.0146,
+          "AllocatedBytes": 6090632,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 30.1858,
+          "AllocatedBytes": 6111328,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 30.0245,
+          "AllocatedBytes": 6090632,
+          "Checksum": 1600000
+        }
+      ]
+    },
+    {
+      "Name": "shared-cache-async",
+      "Records": 50000,
+      "InputBytes": 374892,
+      "MedianMilliseconds": 43.84,
+      "MedianAllocatedBytes": 6819768,
+      "Samples": [
+        {
+          "Milliseconds": 43.8417,
+          "AllocatedBytes": 6819768,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 43.5268,
+          "AllocatedBytes": 6819768,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 43.6949,
+          "AllocatedBytes": 6815840,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 43.84,
+          "AllocatedBytes": 6819952,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 44.4071,
+          "AllocatedBytes": 6819768,
+          "Checksum": 1600000
+        }
+      ]
+    },
+    {
+      "Name": "shared-spill-sync",
+      "Records": 50000,
+      "InputBytes": 374892,
+      "MedianMilliseconds": 31.5254,
+      "MedianAllocatedBytes": 10500248,
+      "Samples": [
+        {
+          "Milliseconds": 31.5254,
+          "AllocatedBytes": 10500248,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 31.8819,
+          "AllocatedBytes": 10500248,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 31.7372,
+          "AllocatedBytes": 10500248,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 31.1196,
+          "AllocatedBytes": 10500248,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 31.5011,
+          "AllocatedBytes": 10500248,
+          "Checksum": 1600000
+        }
+      ]
+    },
+    {
+      "Name": "shared-spill-async",
+      "Records": 50000,
+      "InputBytes": 374892,
+      "MedianMilliseconds": 49.094,
+      "MedianAllocatedBytes": 11233584,
+      "Samples": [
+        {
+          "Milliseconds": 49.094,
+          "AllocatedBytes": 11233584,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 48.5445,
+          "AllocatedBytes": 11233360,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 49.2828,
+          "AllocatedBytes": 11233360,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 49.3194,
+          "AllocatedBytes": 11235128,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 49.0257,
+          "AllocatedBytes": 11233696,
+          "Checksum": 1600000
+        }
+      ]
+    },
+    {
+      "Name": "unique-cache-sync",
+      "Records": 50000,
+      "InputBytes": 779574,
+      "MedianMilliseconds": 48.4885,
+      "MedianAllocatedBytes": 11539856,
+      "Samples": [
+        {
+          "Milliseconds": 49.8079,
+          "AllocatedBytes": 11540592,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 48.7796,
+          "AllocatedBytes": 11539856,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 47.8247,
+          "AllocatedBytes": 11540816,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 48.4885,
+          "AllocatedBytes": 11539856,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 47.5506,
+          "AllocatedBytes": 11539856,
+          "Checksum": 1600000
+        }
+      ]
+    },
+    {
+      "Name": "unique-cache-async",
+      "Records": 50000,
+      "InputBytes": 779574,
+      "MedianMilliseconds": 62.6445,
+      "MedianAllocatedBytes": 16001632,
+      "Samples": [
+        {
+          "Milliseconds": 62.5608,
+          "AllocatedBytes": 16001624,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 63.6636,
+          "AllocatedBytes": 16003824,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 61.1861,
+          "AllocatedBytes": 16003088,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 62.6445,
+          "AllocatedBytes": 16001632,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 63.4202,
+          "AllocatedBytes": 16000992,
+          "Checksum": 1600000
+        }
+      ]
+    },
+    {
+      "Name": "unique-small-budget-sync",
+      "Records": 50000,
+      "InputBytes": 779574,
+      "MedianMilliseconds": 65.4178,
+      "MedianAllocatedBytes": 10501832,
+      "Samples": [
+        {
+          "Milliseconds": 64.8821,
+          "AllocatedBytes": 10501832,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 65.4178,
+          "AllocatedBytes": 10501832,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 66.1371,
+          "AllocatedBytes": 10501832,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 64.0782,
+          "AllocatedBytes": 10501832,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 67.3185,
+          "AllocatedBytes": 10501832,
+          "Checksum": 1600000
+        }
+      ]
+    },
+    {
+      "Name": "unique-small-budget-async",
+      "Records": 50000,
+      "InputBytes": 779574,
+      "MedianMilliseconds": 93.7871,
+      "MedianAllocatedBytes": 16045960,
+      "Samples": [
+        {
+          "Milliseconds": 93.1422,
+          "AllocatedBytes": 16045184,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 93.847,
+          "AllocatedBytes": 16045960,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 93.7871,
+          "AllocatedBytes": 16047120,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 93.3813,
+          "AllocatedBytes": 16044224,
+          "Checksum": 1600000
+        },
+        {
+          "Milliseconds": 93.9595,
+          "AllocatedBytes": 16046152,
+          "Checksum": 1600000
+        }
+      ]
+    },
+    {
+      "Name": "large-cell-sync",
+      "Records": 500,
+      "InputBytes": 79778,
+      "MedianMilliseconds": 46.4169,
+      "MedianAllocatedBytes": 16649584,
+      "Samples": [
+        {
+          "Milliseconds": 47.1291,
+          "AllocatedBytes": 16649584,
+          "Checksum": 8192000
+        },
+        {
+          "Milliseconds": 46.4655,
+          "AllocatedBytes": 16649584,
+          "Checksum": 8192000
+        },
+        {
+          "Milliseconds": 45.877,
+          "AllocatedBytes": 16649584,
+          "Checksum": 8192000
+        },
+        {
+          "Milliseconds": 46.4169,
+          "AllocatedBytes": 16650320,
+          "Checksum": 8192000
+        },
+        {
+          "Milliseconds": 46.2275,
+          "AllocatedBytes": 16649584,
+          "Checksum": 8192000
+        }
+      ]
+    },
+    {
+      "Name": "large-cell-async",
+      "Records": 500,
+      "InputBytes": 79778,
+      "MedianMilliseconds": 17.4018,
+      "MedianAllocatedBytes": 17903328,
+      "Samples": [
+        {
+          "Milliseconds": 17.8137,
+          "AllocatedBytes": 17903328,
+          "Checksum": 8192000
+        },
+        {
+          "Milliseconds": 17.183,
+          "AllocatedBytes": 17903168,
+          "Checksum": 8192000
+        },
+        {
+          "Milliseconds": 16.9856,
+          "AllocatedBytes": 17903248,
+          "Checksum": 8192000
+        },
+        {
+          "Milliseconds": 17.4018,
+          "AllocatedBytes": 17903888,
+          "Checksum": 8192000
+        },
+        {
+          "Milliseconds": 17.8499,
+          "AllocatedBytes": 17903408,
+          "Checksum": 8192000
+        }
+      ]
+    },
+    {
+      "Name": "preflight-first-record",
+      "Records": 1,
+      "InputBytes": 562911,
+      "MedianMilliseconds": 11.8677,
+      "MedianAllocatedBytes": 138688,
+      "Samples": [
+        {
+          "Milliseconds": 11.447,
+          "AllocatedBytes": 138688,
+          "Checksum": 0
+        },
+        {
+          "Milliseconds": 11.7978,
+          "AllocatedBytes": 138688,
+          "Checksum": 0
+        },
+        {
+          "Milliseconds": 11.8677,
+          "AllocatedBytes": 138688,
+          "Checksum": 0
+        },
+        {
+          "Milliseconds": 11.946,
+          "AllocatedBytes": 138688,
+          "Checksum": 0
+        },
+        {
+          "Milliseconds": 12.1165,
+          "AllocatedBytes": 138688,
+          "Checksum": 0
+        }
+      ]
+    },
+    {
+      "Name": "unique-spill-first-record",
+      "Records": 1,
+      "InputBytes": 779574,
+      "MedianMilliseconds": 43.6192,
+      "MedianAllocatedBytes": 177360,
+      "Samples": [
+        {
+          "Milliseconds": 43.8749,
+          "AllocatedBytes": 177360,
+          "Checksum": 32
+        },
+        {
+          "Milliseconds": 43.268,
+          "AllocatedBytes": 177360,
+          "Checksum": 32
+        },
+        {
+          "Milliseconds": 45.2592,
+          "AllocatedBytes": 177360,
+          "Checksum": 32
+        },
+        {
+          "Milliseconds": 43.4943,
+          "AllocatedBytes": 177360,
+          "Checksum": 32
+        },
+        {
+          "Milliseconds": 43.6192,
+          "AllocatedBytes": 177360,
+          "Checksum": 32
+        }
+      ]
+    }
+  ],
+  "StreamingHeap": [
+    {
+      "Name": "inline",
+      "Records": 1,
+      "LiveManagedBytesAboveBaseline": 196880,
+      "TemporaryLogicalBytes": 0,
+      "ElapsedMilliseconds": 17.932
+    },
+    {
+      "Name": "inline",
+      "Records": 5000,
+      "LiveManagedBytesAboveBaseline": 75464,
+      "TemporaryLogicalBytes": 0,
+      "ElapsedMilliseconds": 20.9247
+    },
+    {
+      "Name": "inline",
+      "Records": 50000,
+      "LiveManagedBytesAboveBaseline": 73344,
+      "TemporaryLogicalBytes": 0,
+      "ElapsedMilliseconds": 44.2635
+    },
+    {
+      "Name": "unique-cache",
+      "Records": 1,
+      "LiveManagedBytesAboveBaseline": 9683504,
+      "TemporaryLogicalBytes": 0,
+      "ElapsedMilliseconds": 27.005
+    },
+    {
+      "Name": "unique-cache",
+      "Records": 5000,
+      "LiveManagedBytesAboveBaseline": 10253800,
+      "TemporaryLogicalBytes": 0,
+      "ElapsedMilliseconds": 29.4288
+    },
+    {
+      "Name": "unique-cache",
+      "Records": 50000,
+      "LiveManagedBytesAboveBaseline": 9359568,
+      "TemporaryLogicalBytes": 0,
+      "ElapsedMilliseconds": 48.0962
+    },
+    {
+      "Name": "unique-spill",
+      "Records": 1,
+      "LiveManagedBytesAboveBaseline": 233760,
+      "TemporaryLogicalBytes": 3800000,
+      "ElapsedMilliseconds": 43.0513
+    },
+    {
+      "Name": "unique-spill",
+      "Records": 5000,
+      "LiveManagedBytesAboveBaseline": 83648,
+      "TemporaryLogicalBytes": 3800000,
+      "ElapsedMilliseconds": 45.3925
+    },
+    {
+      "Name": "unique-spill",
+      "Records": 50000,
+      "LiveManagedBytesAboveBaseline": 83760,
+      "TemporaryLogicalBytes": 3800000,
+      "ElapsedMilliseconds": 64.3223
+    }
+  ]
+}
