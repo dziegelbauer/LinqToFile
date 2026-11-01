@@ -2,7 +2,7 @@
 
 ## Confirmed
 - C# library for LINQ over tabular files, starting with CSV.
-- Next format: XLSX. Stage 2 adds shared strings, rich text, cached formulas, native temporal conversions, and resource limits to synchronous paths/seekable streams. Local validation passes; hosted CI is pending. Async sources, factories, and non-seekable input remain stage 3; see xlsx.md and xlsx-plan.md.
+- Next format: XLSX. Stage 2 adds shared strings, rich text, cached formulas, native temporal conversions, and resource limits to synchronous paths/seekable streams. Local validation passes; the user confirmed CI passed after commit 32ff4d2, completing stage 2. Async sources, factories, and non-seekable input remain stage 3; see xlsx.md and xlsx-plan.md.
 - Keep source lifetime, shared queries, schema binding, and mapping separate from individual format readers. CSV code lives under Formats/Csv; shared layers stay reusable for future tabular formats within the single runtime package.
 - Minimum target: .NET 10, compatible with later versions.
 - Support every platform supported by the target .NET runtime.

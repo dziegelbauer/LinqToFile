@@ -3,7 +3,8 @@
 ## Status
 
 Cell and storage implementation passes local checks on macOS arm64.
-Hosted Windows/Linux/macOS confirmation is pending for these changes.
+The user confirmed that CI passed after commit `32ff4d2`; stage 2 is complete.
+Hosted results are user-reported and were not independently retrieved.
 Async queries, factories, and non-seekable input remain stage 3 work.
 No public package release has been created.
 

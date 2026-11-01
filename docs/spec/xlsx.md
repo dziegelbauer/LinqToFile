@@ -1,7 +1,7 @@
 # XLSX reader planning
 
 ## Confirmed
-- XLSX stage 1 is implemented and locally validated (583 tests; project/package JIT and Native AOT checks). The user confirmed successful CI after commit 7b798b7; stage 1 is complete. Stage 2 is authorized and implemented, with final local validation in progress. The full approved behavior below spans all three stages; async sources, factories, and non-seekable input remain stage 3. See xlsx-plan.md and ../xlsx.md for current scope.
+- XLSX stage 1 is implemented and locally validated (583 tests; project/package JIT and Native AOT checks). The user confirmed successful CI after commit 7b798b7; stage 1 is complete. Stage 2 is complete: local validation passes with 688 tests and project/package JIT and Native AOT checks; the user confirmed CI passed after commit 32ff4d2. The full approved behavior below spans all three stages; async sources, factories, and non-seekable input remain stage 3. See xlsx-plan.md and ../xlsx.md for current scope.
 - Retain the project requirements: .NET 10+, BCL-only runtime, Native AOT, no runtime reflection, and minimized allocations.
 - Entry point: TabularFile.Xlsx<T>(), using existing generated mapping and annotations.
 - Select the first worksheet by default; WithWorksheet(name) selects one by name.
@@ -93,5 +93,5 @@
 - [BCL ZIP memory behavior](https://github.com/dotnet/docs/blob/main/docs/standard/io/zip-tar-best-practices.md)
 
 ## Implementation planning
-- [Approved stages and acceptance checks](xlsx-plan.md). Stage 2 is the current slice; stage 3 has not started. See [storage and conversion implementation](xlsx-storage.md) and [stage 2 validation](../validation-xlsx-stage2.md).
+- [Approved stages and acceptance checks](xlsx-plan.md). Stage 2 is complete; stage 3 has not started. See [storage and conversion implementation](xlsx-storage.md) and [stage 2 validation](../validation-xlsx-stage2.md).
 - Before implementation, verify .NET 10 async ZIP APIs, exact OOXML namespace/relationship/escape details, memory accounting, and coordinate-inference cases against primary references and focused probes. These are engineering checks, not permission to change approved behavior silently.
