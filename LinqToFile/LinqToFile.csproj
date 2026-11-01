@@ -9,12 +9,17 @@
         <Description>Reflection-free, streaming LINQ queries over tabular files.</Description>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageProjectUrl>https://github.com/dziegelbauer/LinqToFile</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/dziegelbauer/LinqToFile.git</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>linq;csv;tabular;streaming;nativeaot;source-generator</PackageTags>
+        <PackageReleaseNotes>Initial prerelease: typed CSV queries, sync and async streaming, generated mapping, and Native AOT support. API changes remain possible.</PackageReleaseNotes>
     </PropertyGroup>
 
     <ItemGroup>
         <ProjectReference Include="../LinqToFile.Generator/LinqToFile.Generator.csproj" ReferenceOutputAssembly="false" PrivateAssets="all" />
         <None Include="../LinqToFile.Generator/bin/$(Configuration)/netstandard2.0/LinqToFile.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" />
-        <None Include="../README.md" Pack="true" PackagePath="/" />
+        <None Include="../docs/package-readme.md" Pack="true" PackagePath="/README.md" />
         <None Include="../LICENSE" Pack="true" PackagePath="/" />
     </ItemGroup>
 

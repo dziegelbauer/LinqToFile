@@ -29,7 +29,7 @@ dotnet pack LinqToFile -c Release -o artifacts/feed
 2. Restore the sample with the package:
 
 ```sh
-dotnet restore samples/NativeAot -p:UseLocalPackage=true --source "$PWD/artifacts/feed" --source https://api.nuget.org/v3/index.json
+dotnet restore samples/NativeAot -p:UseLocalPackage=true --configfile .github/package-validation.nuget.config
 ```
 
 3. Run the sample with the package:
@@ -38,10 +38,11 @@ dotnet restore samples/NativeAot -p:UseLocalPackage=true --source "$PWD/artifact
 dotnet run --project samples/NativeAot -c Release -p:UseLocalPackage=true --no-restore
 ```
 
-For another project, add a package reference to `LinqToFile` version `0.1.0-alpha.4`.
+For another project, add a package reference to `LinqToFile` version `0.1.0-alpha.6`.
 Use the local feed during restore.
 A project that declares models must reference the package.
 The caller does not register mappers.
+The [release guide](release.md) describes the clean package-consumer check.
 
 ## Read records
 

@@ -31,6 +31,7 @@ Measure allocations and throughput for parsing and typed streaming; tune buffers
 Acceptance: reproducible benchmark baselines; representative numeric conversions avoid temporary field strings; large-file streaming memory does not grow with record count; platform and AOT checks pass.
 
 ## 6. Release preparation
+Status: local implementation validated; expanded hosted consumer check pending. Phase 5 completion was committed as 1f92d10. Alpha.6 metadata, a NuGet-facing README, an external two-project consumer check, and release documentation are prepared. The clean consumer passes JIT and Native AOT locally, including the exact packaged README examples. See [phase 6 validation](../validation-phase6.md). No public package publication or release creation is authorized by this phase.
 Validate NuGet consumption with generator included, Apache-2.0 license and package metadata, documentation/examples, and tabular-format boundaries.
 Acceptance: clean consumer and cross-project model samples work from the package; agreed license included; user/contributor documentation matches shipped behavior; deferred features are explicit.
 

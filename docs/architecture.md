@@ -117,7 +117,8 @@ Explicit BCL operators and user callbacks keep their own error behavior.
 
 The validation records give results and reproduction commands:
 [phase 1](validation-phase1.md), [phase 2](validation-phase2.md),
-[phase 3](validation-phase3.md), and [phase 4](validation-phase4.md).
+[phase 3](validation-phase3.md), [phase 4](validation-phase4.md),
+[phase 5](validation-phase5.md), and [phase 6](validation-phase6.md).
 
 1. Update the relevant specification when a decision changes.
 2. Add tests for new behavior.
@@ -128,3 +129,4 @@ The validation records give results and reproduction commands:
 
 The documentation uses [ASD-STE100 Issue 9](documentation.md).
 The release license is Apache-2.0.
+The [release guide](release.md) describes package inspection and the external consumer check.

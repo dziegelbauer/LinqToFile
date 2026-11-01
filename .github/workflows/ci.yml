@@ -60,6 +60,8 @@ jobs:
           $executable = if ($IsWindows) { './artifacts/package-aot/NativeAot.exe' } else { './artifacts/package-aot/NativeAot' }
           & $executable
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Validate clean package consumer
+        run: ./eng/Verify-Package.ps1 -RuntimeIdentifier ${{ matrix.rid }}
       - name: Record performance measurements
         run: dotnet run --project benchmarks/LinqToFile.Benchmarks -c Release --no-build --no-restore -- --output artifacts/benchmarks.json
       - uses: actions/upload-artifact@v7

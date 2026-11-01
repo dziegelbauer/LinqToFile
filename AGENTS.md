@@ -21,3 +21,4 @@ Read relevant topics before proposing contracts or changing code:
 - [Open questions](docs/spec/questions.md)
 - [Human documentation](docs/spec/documentation.md)
 - [Performance and CI](docs/spec/performance.md)
+- [Release preparation](docs/spec/release.md)
