@@ -24,12 +24,12 @@ dotnet run --project benchmarks/LinqToFile.Benchmarks -c Release
 The local baseline used macOS on arm64, SDK 10.0.403, and runtime 10.0.14.
 The Release builds reported these results:
 
-| Measurement | Phase 1 | Phase 2 | Phase 3 |
-|---|---|---|---|
-| Records | 100,000 | 100,000 | 100,000 |
-| Median elapsed time | 15.83 ms | 16.18 ms | 17.50 ms |
-| Allocated bytes | 2,410,568 | 2,418,944 | 2,418,992 |
-| Allocated bytes per record | 24.11 | 24.19 | 24.19 |
+| Measurement | Phase 1 | Phase 2 | Phase 3 | Phase 4 |
+|---|---|---|---|---|
+| Records | 100,000 | 100,000 | 100,000 | 100,000 |
+| Median elapsed time | 15.83 ms | 16.18 ms | 17.50 ms | 20.30 ms |
+| Allocated bytes | 2,410,568 | 2,418,944 | 2,418,992 | 2,419,072 |
+| Allocated bytes per record | 24.11 | 24.19 | 24.19 | 24.19 |
 
 These values describe one local run for each phase.
 Other machines and later runs can give different results.
@@ -37,6 +37,9 @@ The phase 2 scan uses 8,376 additional bytes for its fixed enumeration setup.
 It includes the decoded-character input buffer and BOM prefix replay.
 The measurements do not establish a change in throughput.
 Phase 3 adds 48 bytes of fixed setup in this workload for mapping diagnostics and culture state.
+Phase 4 adds 80 bytes of fixed setup for the shared reader pipeline.
+Its local timing is higher than the earlier samples.
+Phase 5 will measure repeated runs and profile the parser and format-reader boundary.
 
 The parser reuses its character and field-range arrays within each enumeration.
 Integer conversion does not make a temporary field string.

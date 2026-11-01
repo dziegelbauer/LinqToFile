@@ -4,6 +4,7 @@
 - Entry point shape: TabularFile.Csv<T>(), using a user-supplied class.
 - Require a [TabularRecord] model marker for reliable source-generator discovery, including usage through generic helpers. Per-column annotations remain optional.
 - Mapped classes must be partial. The generator adds a static ITabularRecord<T> mapping contract, avoiding runtime registration and reflection. Nested model containing types must also be partial so generated declarations can reach the model.
+- Generated RecordMapper<T> consumes the format-neutral TabularRow contract. Format parsing and source lifetime are separate shared layers; see sources.md.
 - Initial models are public, non-abstract, non-generic classes, including public nested classes. Generic and non-public model classes are deferred; nested model accessibility must be effective through its containing types.
 - Define an annotation to supply a column header.
 - Support public setters and init-only setters.

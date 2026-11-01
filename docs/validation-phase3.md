@@ -1,5 +1,8 @@
 # Phase 3 validation
 
+This historical record describes phase 3 at commit `2560217`.
+The [phase 4 record](validation-phase4.md) describes the current source and async query checks.
+
 ## Scope
 
 Phase 2 is commit `cf12b87`.

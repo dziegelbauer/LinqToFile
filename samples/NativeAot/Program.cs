@@ -1,6 +1,7 @@
 using LinqToFile;
 using SampleModels;
 using System.Globalization;
+using System.Text;
 
 // Read a separately compiled model through its generated static mapping contract.
 var path = Path.GetTempFileName();
@@ -53,6 +54,27 @@ try
         .Single();
     if (price.Value != 12.50m)
         throw new InvalidOperationException("The localized conversion result is incorrect.");
+
+    const string peopleCsv = "person_id,full_name,Age,Balance\n1,Ada,36,12.50\n2,Grace,17,\n";
+    File.WriteAllText(path, peopleCsv);
+    var asyncAdults = await TabularFile.Csv<Person>(path)
+        .AsAsyncEnumerable()
+        .Where(person => person.Age >= 18)
+        .Select(person => person.Name)
+        .ToListAsync();
+    var asyncSource = TabularFile.CsvAsync<Person>(async token =>
+    {
+        await Task.Yield();
+        token.ThrowIfCancellationRequested();
+        return new MemoryStream(Encoding.UTF8.GetBytes(peopleCsv));
+    });
+    var dictionary = await asyncSource.ToDictionaryAsync(person => person.Id, person => person.Name);
+    await using var supplied = new MemoryStream(Encoding.UTF8.GetBytes(peopleCsv));
+    var suppliedRows = await TabularFile.Csv<Person>(supplied).ToArrayAsync();
+    if (asyncAdults.Count != 1 || asyncAdults[0] != "Ada" || dictionary[2] != "Grace" ||
+        suppliedRows.Length != 2 || !supplied.CanRead)
+        throw new InvalidOperationException("The async query result is incorrect.");
+    Console.WriteLine($"Async CSV: {asyncAdults.Count} adult; {dictionary.Count} dictionary entries");
 }
 finally
 {

@@ -4,7 +4,7 @@ using System.Numerics;
 namespace LinqToFile.Infrastructure;
 
 /// <summary>Temporary parser storage used only by generated mappers. Do not retain this object.</summary>
-public sealed class CsvRecord
+public sealed class TabularRow
 {
     private char[] buffer;
     private Range[] fields = new Range[16];
@@ -21,7 +21,7 @@ public sealed class CsvRecord
     internal string?[] TargetMembers { get; set; } = [];
     internal CultureInfo Culture { get; set; } = CultureInfo.InvariantCulture;
 
-    internal CsvRecord(int initialCapacity, int? maxRecordLength)
+    internal TabularRow(int initialCapacity, int? maxRecordLength)
     {
         capacityLimit = Math.Min(maxRecordLength ?? Array.MaxLength, Array.MaxLength);
         buffer = new char[Math.Min(initialCapacity, capacityLimit)];
@@ -58,6 +58,7 @@ public sealed class CsvRecord
     }
 
     public string ReadString(int ordinal, string member) => GetField(ordinal).ToString();
+    public bool IsEmpty(int ordinal) => GetField(ordinal).IsEmpty;
 
     public T ReadNumber<T>(int ordinal, string member, NumberStyles styles) where T : struct, INumberBase<T>
     {

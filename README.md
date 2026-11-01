@@ -3,7 +3,8 @@
 LinqToFile reads CSV files as typed C# records. Standard LINQ operators filter and select the records.
 The runtime uses only the .NET Base Class Library (BCL). The minimum target is .NET 10.
 
-This repository contains the phase 3 CSV reader and typed mapper. The API can change before a stable release.
+This repository contains the phase 4 reader, typed mapper, and sync/async query API.
+The API can change before a stable release.
 The package includes a source generator. The generator makes the mapper during compilation.
 The runtime does not use reflection.
 
@@ -21,6 +22,7 @@ The sample prints this result:
 Adults: 1; first: Ada
 Configured CSV: Ada;'Lovelace'
 Scalar mapping: Ready; offset: -07:00:00
+Async CSV: 1 adult; 2 dictionary entries
 ```
 
 The sample uses this model from a separate project:
@@ -65,25 +67,29 @@ person_id,full_name,Age,Balance
 
 ## Current scope
 
-The library reads file paths through synchronous queries.
-Each enumeration opens a new file and closes it after use.
+The library reads paths, supplied streams, and stream factories through sync or async queries.
+Each path or factory enumeration opens an independent stream.
+Supplied streams permit one enumeration and remain open by default.
 Field types include fixed-width numbers, strings, characters, booleans, GUIDs, enums, and date/time values.
 The reader can also use nullable value types and a selected conversion culture.
 
 CSV options include delimiter, quote, BOM detection, trimming, blank-line handling, buffers, and length limits.
-Async queries and public stream inputs are planned.
+Async materializers include lists, arrays, and dictionaries.
+Shared source and query code remains separate from the CSV adapter for future file formats.
 
 ## Documentation
 
 - [Get started](docs/getting-started.md)
 - [Mapping and API reference](docs/reference.md)
 - [Value conversions](docs/conversions.md)
+- [Sources and async queries](docs/sources-and-async.md)
 - [CSV rules and errors](docs/csv-and-errors.md)
 - [Architecture and contribution](docs/architecture.md)
 - [Performance measurements](docs/performance.md)
 - [Phase 1 validation](docs/validation-phase1.md)
 - [Phase 2 validation](docs/validation-phase2.md)
 - [Phase 3 validation](docs/validation-phase3.md)
+- [Phase 4 validation](docs/validation-phase4.md)
 - [Documentation rules](docs/documentation.md)
 - [Future phases](docs/spec/plan.md)
 

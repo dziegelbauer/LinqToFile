@@ -38,7 +38,7 @@ dotnet restore samples/NativeAot -p:UseLocalPackage=true --source "$PWD/artifact
 dotnet run --project samples/NativeAot -c Release -p:UseLocalPackage=true --no-restore
 ```
 
-For another project, add a package reference to `LinqToFile` version `0.1.0-alpha.3`.
+For another project, add a package reference to `LinqToFile` version `0.1.0-alpha.4`.
 Use the local feed during restore.
 A project that declares models must reference the package.
 The caller does not register mappers.
@@ -72,8 +72,8 @@ For another platform, use its runtime identifier and executable name.
 The sample uses a model from a separate assembly.
 The generated static interface supplies its mapper without runtime discovery.
 
-## Planned capabilities
+## Stream and async queries
 
-Async enumeration and async collection methods are planned for phase 4.
-Stream inputs, ownership options, and cancellation are also planned.
-These capabilities are not available in the current API.
+The reader accepts supplied streams, synchronous stream factories, and async factories.
+It supports async enumeration, cancellation, lists, arrays, and dictionaries.
+The [source guide](sources-and-async.md) gives the lifetime rules and query examples.

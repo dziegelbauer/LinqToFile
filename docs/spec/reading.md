@@ -48,6 +48,7 @@
 - Caller-provided streams expose an explicit leaveOpen ownership option, defaulting to true. Setting it to false transfers disposal responsibility to the library.
 - Initial async materialization API includes ToListAsync, ToArrayAsync, and ToDictionaryAsync, alongside async streaming. Use .NET 10 BCL async LINQ operators for filtering and projection.
 - ToDictionaryAsync supports a key selector, optional value selector (otherwise the mapped record is the value), optional key comparer, and cancellation token. Duplicate keys throw, following standard LINQ behavior.
+- Library ToDictionaryAsync duplicate-key errors preserve ArgumentException but omit the key. Its shared builder uses TryAdd rather than the BCL duplicate-key message. User callbacks and explicit BCL operations retain their own errors.
 
 ## Future
 - Headerless input.
@@ -59,5 +60,5 @@
 - No whole-file buffering for ordinary streaming. Unlimited field/record size defaults mean parser memory is not capped independently of record size.
 
 ## Unresolved
-- Exact async API signatures and reuse of BCL materialization operators.
-- Remaining CSV dialect restrictions and diagnostic conventions.
+- Broader performance and platform checks remain in phase 5.
+- Per-column recovery and opt-in raw diagnostic values remain future goals.

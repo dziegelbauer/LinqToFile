@@ -2,6 +2,7 @@
 
 ## Confirmed
 - C# library for LINQ over tabular files, starting with CSV.
+- Keep source lifetime, shared queries, schema binding, and mapping separate from individual format readers. CSV code lives under Formats/Csv; shared layers stay reusable for future tabular formats within the single runtime package.
 - Minimum target: .NET 10, compatible with later versions.
 - Support every platform supported by the target .NET runtime.
 - Production library dependencies: BCL only.

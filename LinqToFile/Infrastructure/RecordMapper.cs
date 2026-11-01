@@ -5,5 +5,5 @@ public abstract class RecordMapper<T> where T : class
 {
     public abstract ReadOnlySpan<string> Columns { get; }
     public abstract ReadOnlySpan<string> Members { get; }
-    public abstract T Read(CsvRecord record, ReadOnlySpan<int> ordinals);
+    public abstract T Read(TabularRow record, ReadOnlySpan<int> ordinals);
 }

@@ -42,6 +42,9 @@ Public fields are not mapped.
 | Method | Effect |
 |---|---|
 | `TabularFile.Csv<T>(path)` | Makes a deferred file source |
+| `TabularFile.Csv<T>(stream, leaveOpen)` | Uses a supplied stream once |
+| `TabularFile.Csv<T>(factory)` | Opens a fresh stream for each enumeration |
+| `TabularFile.CsvAsync<T>(factory)` | Opens streams through an async factory |
 | `WithEncoding(encoding)` | Returns a new source with a copy of the encoding |
 | `WithCulture(culture)` | Returns a new source with a read-only copy of the conversion culture |
 | `WithHeaderComparison(comparer)` | Returns a new source with the selected header comparison |
@@ -55,6 +58,10 @@ Public fields are not mapped.
 | `WithMaxFieldLength(length)` | Limits unescaped field length before trimming |
 | `WithMaxRecordLength(length)` | Limits decoded source record length |
 | `AsEnumerable()` | Returns the source as `IEnumerable<T>` |
+| `AsAsyncEnumerable()` | Returns an `IAsyncEnumerable<T>` for async LINQ |
+| `ToListAsync(token)` | Materializes a list |
+| `ToArrayAsync(token)` | Materializes an array |
+| `ToDictionaryAsync(...)` | Materializes selected keys and optional selected values |
 
 The supported comparers are `StringComparer.Ordinal` and `StringComparer.OrdinalIgnoreCase`.
 The default is `StringComparer.Ordinal`.
@@ -67,6 +74,7 @@ Boolean options default to true when the caller omits the argument.
 Length limits accept null to remove a limit.
 All options return a new source.
 The [CSV guide](csv-and-errors.md) gives the defaults and counting rules.
+The [source guide](sources-and-async.md) gives ownership, cancellation, and async signatures.
 
 The generator adds `ITabularRecord<T>` to each marked class.
 A generic helper must have the constraint `where T : class, ITabularRecord<T>`.

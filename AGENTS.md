@@ -17,5 +17,6 @@ Read relevant topics before proposing contracts or changing code:
 - [Phased plan and acceptance criteria](docs/spec/plan.md)
 - [Mapping](docs/spec/mapping.md)
 - [Reading and errors](docs/spec/reading.md)
+- [Sources and query execution](docs/spec/sources.md)
 - [Open questions](docs/spec/questions.md)
 - [Human documentation](docs/spec/documentation.md)

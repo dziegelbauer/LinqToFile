@@ -21,6 +21,7 @@ Implement annotations, inheritance diagnostics, header comparison/validation, su
 Acceptance: compile-time diagnostics and runtime errors match mapping.md; no runtime reflection; retained records survive buffer reuse; conversion errors omit raw values.
 
 ## 4. Async queries and source lifetime
+Status: complete. Phase 3 was committed as 2560217. Shared Sources/Reading/Queries layers and TabularRow mapping support the CSV adapter; sync/async parsing shares one state machine. All 483 tests pass, with zero Release build warnings/errors. Project-reference and alpha.4 package Native AOT samples run on macOS arm64. Sources, ownership, cancellation, materializers, and format independence are documented and tested. See [phase 4 validation](../validation-phase4.md). Timing and broader platform validation remain phase 5.
 Complete source overloads, immutable configuration, independent path/factory enumerations, single-use supplied streams, async factories, cancellation, ownership, and async materialization.
 Acceptance: sync/async parity; ToListAsync, ToArrayAsync, ToDictionaryAsync behavior; no blocking async-only enumeration; cleanup on completion, failure, cancellation, and early exit; race-safe single-use source claiming. Reuse BCL operators where suitable.
 

@@ -152,5 +152,5 @@ I/O and decoder failures keep their standard .NET exception types.
 ## Later phases
 
 The [conversion guide](conversions.md) gives the supported types and culture rules.
-Public stream sources, async enumeration, and cancellation belong to phase 4.
+The [source guide](sources-and-async.md) gives stream, async, and cancellation behavior.
 Per-column recovery and optional raw values in errors remain future goals.

@@ -169,12 +169,12 @@ public sealed class RecordGenerator : IIncrementalGenerator
         source.Append("public override global::System.ReadOnlySpan<string> Members => ")
             .AppendLine(sharedNames ? "names;" : "members;");
         source.Append("public override ").Append(modelName)
-            .AppendLine(" Read(global::LinqToFile.Infrastructure.CsvRecord row, global::System.ReadOnlySpan<int> ordinals) =>");
+            .AppendLine(" Read(global::LinqToFile.Infrastructure.TabularRow row, global::System.ReadOnlySpan<int> ordinals) =>");
         source.Append("new ").Append(modelName).AppendLine(" {");
         for (int i = 0; i < properties.Count; i++)
         {
             source.Append("@").Append(properties[i].Name).Append(" = ");
-            if (nullable[i]) source.Append("row.GetField(ordinals[").Append(i).Append("]).IsEmpty ? null : ");
+            if (nullable[i]) source.Append("row.IsEmpty(ordinals[").Append(i).Append("]) ? null : ");
             source.Append(readers[i]).AppendLine(",");
         }
         source.AppendLine("};");
@@ -261,7 +261,7 @@ public sealed class RecordGenerator : IIncrementalGenerator
         string suffix = index.ToString();
         bool flags = type.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == "System.FlagsAttribute");
         source.Append("private static ").Append(name).Append(" ReadEnum_").Append(suffix)
-            .AppendLine("(global::LinqToFile.Infrastructure.CsvRecord row, int ordinal, string member) {");
+            .AppendLine("(global::LinqToFile.Infrastructure.TabularRow row, int ordinal, string member) {");
         source.AppendLine("var text = row.GetField(ordinal).Trim();");
         if (flags)
         {

@@ -1,4 +1,5 @@
 using System.Text;
+using LinqToFile.Tests.Support;
 using Xunit;
 
 namespace LinqToFile.Tests;
@@ -34,6 +35,55 @@ public sealed class CsvBoundaryTests
         Assert.Equal(new[] { "\r\nz", "" }, rows[2]);
         Assert.Equal(new[] { "", "" }, rows[3]);
         Assert.Equal(new[] { "end", "last" }, rows[4]);
+    }
+
+    [Theory]
+    [MemberData(nameof(BoundaryCases))]
+    public async Task AsyncParserMatchesSyncAcrossTinyReadBoundaries(string encodingName, bool bom, int bufferSize, int chunk)
+    {
+        var encoding = Encoding.GetEncoding(encodingName, EncoderFallback.ExceptionFallback, DecoderFallback.ExceptionFallback);
+        const string csv = "\r\nA,B\r\n\"雪😀,x\",\"a\"\"b\"\r\n\"\r\nz\",\r\n\"\",\"\"\r\nend,last";
+        byte[] bytes = [.. bom ? encoding.GetPreamble() : [], .. encoding.GetBytes(csv)];
+        var options = new CsvOptions { Encoding = bom ? new UTF8Encoding(false, true) : encoding, BufferSize = bufferSize };
+        using var sync = new ChunkedReadStream(bytes, chunk);
+        var expected = ReadAll(sync, options);
+        await using var stream = new ProbeStream(bytes, chunk, asyncOnly: true, yieldReads: true);
+        using var reader = await EncodedTextReader.OpenAsync(stream, options, default, leaveOpen: true);
+        var parser = new CsvParser(reader, options);
+        var actual = new List<string[]>();
+        while (await parser.ReadAsync(default))
+        {
+            var fields = new string[parser.Record.Count];
+            for (int i = 0; i < fields.Length; i++) fields[i] = parser.Record.GetField(i).ToString();
+            actual.Add(fields);
+        }
+        Assert.Equal(expected.Count, actual.Count);
+        for (int i = 0; i < expected.Count; i++) Assert.Equal(expected[i], actual[i]);
+        Assert.Equal(0, stream.SyncReads);
+    }
+
+    [Theory]
+    [InlineData("Text\n\"a\r\nb\"secret")]
+    [InlineData("Text\n\"unterminated")]
+    [InlineData("Text\nx,y")]
+    [InlineData("Text\n\"  too-long  \"")]
+    public async Task AsyncAndSyncErrorsHaveEquivalentLocationsAndTypes(string csv)
+    {
+        byte[] bytes = Encoding.UTF8.GetBytes(csv);
+        using var sync = new ProbeStream(bytes, 1);
+        var expected = Assert.ThrowsAny<TabularFileException>(() =>
+            TabularFile.Csv<TextRow>(sync).WithBufferSize(1).WithMaxFieldLength(10).ToArray());
+        await using var stream = new ProbeStream(bytes, 1, asyncOnly: true, yieldReads: true);
+        var actual = await Assert.ThrowsAnyAsync<TabularFileException>(() =>
+            TabularFile.Csv<TextRow>(stream).WithBufferSize(1).WithMaxFieldLength(10).ToArrayAsync().AsTask());
+        Assert.Equal(expected.GetType(), actual.GetType());
+        Assert.Equal(expected.RecordNumber, actual.RecordNumber);
+        Assert.Equal(expected.LineNumber, actual.LineNumber);
+        Assert.Equal(expected.FailureLineNumber, actual.FailureLineNumber);
+        Assert.Equal(expected.ColumnIndex, actual.ColumnIndex);
+        Assert.Equal(expected.ColumnHeader, actual.ColumnHeader);
+        Assert.Equal(expected.TargetMember, actual.TargetMember);
+        Assert.Equal(0, stream.SyncReads);
     }
 
     [Theory]
@@ -127,7 +177,7 @@ public sealed class CsvBoundaryTests
     public void InternalReaderHonorsStreamOwnership(bool leaveOpen)
     {
         var stream = new ChunkedReadStream("A\nx"u8.ToArray(), 1);
-        using (var reader = CsvTextReader.Open(stream, new CsvOptions(), leaveOpen))
+        using (var reader = EncodedTextReader.Open(stream, new CsvOptions(), leaveOpen))
             Assert.Equal("A\nx", reader.ReadToEnd());
         Assert.Equal(!leaveOpen, stream.IsDisposed);
         stream.Dispose();
@@ -206,7 +256,7 @@ public sealed class CsvBoundaryTests
 
     private static List<string[]> ReadAll(Stream stream, CsvOptions options)
     {
-        using var reader = CsvTextReader.Open(stream, options, leaveOpen: true);
+        using var reader = EncodedTextReader.Open(stream, options, leaveOpen: true);
         var parser = new CsvParser(reader, options);
         var rows = new List<string[]>();
         while (parser.Read())

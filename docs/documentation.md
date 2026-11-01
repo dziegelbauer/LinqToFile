@@ -40,6 +40,7 @@ Agent specifications are planning records rather than the user guide.
 The README model and query match the executable sample.
 The configured query in the CSV guide also matches the sample.
 The scalar query in the conversion guide matches the sample.
+The async and dictionary queries in the source guide match the sample.
 The sample checks its result and returns a nonzero exit code on failure.
 The test suite compiles generic helpers and checks the generated mapping contract.
 The package check uses the same sample with a local package reference.
