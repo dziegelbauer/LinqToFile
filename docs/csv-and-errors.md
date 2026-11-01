@@ -149,8 +149,7 @@ A width error identifies the first missing or extra column.
 Errors do not include raw field values or parser exception details.
 I/O and decoder failures keep their standard .NET exception types.
 
-## Later phases
+## Related guides
 
 The [conversion guide](conversions.md) gives the supported types and culture rules.
 The [source guide](sources-and-async.md) gives stream, async, and cancellation behavior.
-Per-column recovery and optional raw values in errors remain future goals.

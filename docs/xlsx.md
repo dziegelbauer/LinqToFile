@@ -1,10 +1,10 @@
 # Read XLSX workbooks
 
-## Current scope
+## Supported workbooks
 
 The XLSX reader supports sync/async queries and storage controls.
 It accepts paths, supplied streams, sync factories, and async factories.
-It reads the agreed subset of Transitional and Strict workbooks.
+It reads Transitional and Strict XLSX workbooks under the rules in this guide.
 It does not require Excel or an additional runtime package.
 
 Supported cells contain shared/inline text, rich text, numbers, booleans, native ISO dates, or empty values.
@@ -70,17 +70,14 @@ Use `AsAsyncEnumerable()` for BCL async LINQ operators.
 `ToListAsync`, `ToArrayAsync`, and both `ToDictionaryAsync` overloads accept cancellation.
 The [source guide](sources-and-async.md) gives the full signatures and ownership rules.
 
-Async execution uses the .NET 10 ZIP creation/entry APIs, async XML reads, and async spill-file I/O.
-The BCL still reads the ZIP central directory synchronously when entries are first accessed.
-Seeks, file creation, metadata properties, and XML-reader disposal also remain synchronous.
-There is no `Task.Run` wrapper or blocking wait on an async operation.
+Async queries use async reads for workbook parts and temporary storage.
+ZIP directory loading, seeks, and file creation remain synchronous.
 A supplied stream must support the operations its selected query mode requires.
 An async-only factory rejects sync enumeration without calling the factory.
 
 Cancellation reaches archive reads, copying, shared-string processing, preflight, and buffered XML parsing.
 Owned sources and temporary files close on cancellation, failure, completion, or early exit.
 One synchronous metadata operation can finish before cancellation is observed.
-See the [.NET 10 ZIP implementation](https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.IO.Compression/src/System/IO/Compression/ZipArchive.cs) for the central-directory boundary.
 
 ## Options and ownership
 
@@ -221,17 +218,3 @@ The reader prohibits DTDs and external XML resolution.
 It rejects external relationships needed to read the selected workbook and worksheet.
 It does not fetch external data, calculate formulas, or execute macros.
 Legacy, binary, macro-enabled, and encrypted workbook formats are outside this scope.
-
-## Verify the sample
-
-Run `dotnet run --project samples/NativeAot -c Release` from the repository root.
-The sample checks both workbook variants and prints this line:
-
-```text
-XLSX: Transitional and Strict; typed records: Ada
-XLSX cells: shared strings, formulas, temporal values, disk spill
-XLSX async: factories, non-seekable input, LINQ, materializers, disk spill
-```
-
-The package-reference and Native AOT sample checks run the same code.
-See [stage 3 validation](validation-xlsx-stage3.md) and [performance measurements](performance.md) for evidence and limits.

@@ -1,7 +1,7 @@
 # Value conversions
 
 These rules describe CSV text conversion.
-XLSX text cells reuse these conversions; native XLSX cells have additional type rules and stage limits.
+XLSX text cells reuse these conversions; native XLSX cells have additional type rules.
 See the [XLSX guide](xlsx.md) before mapping native cells.
 
 ## Supported types
@@ -19,8 +19,7 @@ The reader maps these types and their nullable value forms:
 | Enumeration | Enum types, including flags |
 | Date and time | `DateTime`, `DateTimeOffset`, `DateOnly`, `TimeOnly`, `TimeSpan` |
 
-Platform-sized `nint` and `nuint` are deferred.
-Custom converters and exact-format annotations are also deferred.
+Platform-sized `nint` and `nuint` properties, custom converters, and exact-format annotations are not supported.
 Unsupported property types cause compiler diagnostic `LTF003`.
 
 ## Culture
@@ -112,7 +111,6 @@ It does not use runtime enum discovery.
 
 Temporal parsing uses the selected culture and the BCL parsers.
 Omitted date components follow BCL defaults.
-Exact-format annotations are planned for a future release.
 
 `DateTime` fields reject inputs with an explicit time-zone offset.
 Offset-free values keep `DateTimeKind.Unspecified` and their input clock time.

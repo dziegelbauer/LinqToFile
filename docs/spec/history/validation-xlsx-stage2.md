@@ -37,7 +37,7 @@ Three unmodified files come from the Open XML SDK test corpus.
 Their application metadata identifies Microsoft Excel.
 They check a shared-string header, a formula header, numeric data, and ignored conditional formatting.
 These are limited compatibility cases, not evidence that every workbook feature is supported.
-The [fixture record](../tests/LinqToFile.Tests/Fixtures/Xlsx/README.md) contains the pinned upstream commit, paths, checksums, and MIT license attribution.
+The [fixture record](../../../tests/LinqToFile.Tests/Fixtures/Xlsx/README.md) contains the pinned upstream commit, paths, checksums, and MIT license attribution.
 The runtime does not depend on the Open XML SDK.
 
 ## Memory and resource review
@@ -87,4 +87,4 @@ The extended sample prints this line after the previous sample results:
 XLSX cells: shared strings, formulas, temporal values, disk spill
 ```
 
-See the [XLSX guide](xlsx.md) for API, conversion, and limit rules.
+See the [XLSX guide](../../xlsx.md) for API, conversion, and limit rules.

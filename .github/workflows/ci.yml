@@ -1,4 +1,4 @@
-name: Build and validate
+name: Build, validate, and publish
 
 'on':
   push:
@@ -9,7 +9,23 @@ permissions:
   contents: read
 
 jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set prerelease version
+        id: version
+        shell: pwsh
+        run: |
+          $version = ./eng/Get-CiVersion.ps1 -RunNumber $env:GITHUB_RUN_NUMBER
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "Package version: $version" >> $env:GITHUB_STEP_SUMMARY
+
   validate:
+    needs: prepare
     strategy:
       fail-fast: false
       matrix:
@@ -26,6 +42,7 @@ jobs:
       run:
         shell: pwsh
     env:
+      LinqToFileVersion: ${{ needs.prepare.outputs.version }}
       DOTNET_CLI_TELEMETRY_OPTOUT: '1'
       DOTNET_NOLOGO: '1'
     steps:
@@ -66,12 +83,63 @@ jobs:
         run: dotnet run --project benchmarks/LinqToFile.Benchmarks -c Release --no-build --no-restore -- --output artifacts/benchmarks.json
       - name: Record XLSX performance measurements
         run: dotnet run --project benchmarks/LinqToFile.Benchmarks -c Release --no-build --no-restore -- --xlsx --rows 50000 --iterations 5 --output artifacts/xlsx-benchmarks.json
+      - name: Retain validated NuGet package
+        if: matrix.rid == 'linux-x64'
+        uses: actions/upload-artifact@v7
+        with:
+          name: nuget-package
+          overwrite: true
+          path: artifacts/feed/LinqToFile.${{ needs.prepare.outputs.version }}.nupkg
+          if-no-files-found: error
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: validation-${{ matrix.rid }}
+          overwrite: true
           path: |
             artifacts/tests
             artifacts/benchmarks.json
             artifacts/xlsx-benchmarks.json
           if-no-files-found: warn
+
+  publish:
+    needs: [prepare, validate]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'dziegelbauer/LinqToFile'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: nuget
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/download-artifact@v8
+        with:
+          name: nuget-package
+          path: artifacts/publish
+      - name: Check publishing configuration
+        shell: pwsh
+        env:
+          NUGET_USER: ${{ vars.NUGET_USER }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_USER)) {
+            throw 'Set the NUGET_USER variable to the nuget.org profile name in the nuget environment.'
+          }
+      - name: Authenticate with nuget.org
+        uses: NuGet/login@v1
+        id: nuget-login
+        with:
+          user: ${{ vars.NUGET_USER }}
+      - name: Publish validated prerelease
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+          PACKAGE_VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          $package = "artifacts/publish/LinqToFile.$env:PACKAGE_VERSION.nupkg"
+          if (-not (Test-Path -LiteralPath $package)) { throw 'The validated package is missing.' }
+          dotnet nuget push $package --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY --skip-duplicate
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "Published LinqToFile $env:PACKAGE_VERSION to nuget.org." >> $env:GITHUB_STEP_SUMMARY

@@ -8,9 +8,9 @@
 ## XLSX stage 3
 - Added an XLSX benchmark mode for numeric, inline/repeated/unique string, large-cell, disk-spill, non-seekable, and first-record workloads. Heap probes and logical temporary lengths are separate from process-wide allocation counts.
 - Warm shared numeric/XML paths for at least three seconds before workload comparisons, then at least five scans and one second per case. Initial shorter warmup showed tiering effects; final raw reports use the corrected method.
-- Two independent 50,000-row processes and one 200,000-row process are recorded under docs/measurements. Keep the configurable 8 MiB default; no measured basis for changing it.
+- Two independent 50,000-row processes and one 200,000-row process are recorded under docs/spec/history/measurements. Keep the configurable 8 MiB default; no measured basis for changing it.
 - CI uploads XLSX timing data without a time gate. Clean package consumption now compiles XLSX models externally and runs both variants, async/factories, non-seekable input, spill, and temporal mappings under JIT and AOT.
-- Local checks pass; stage 3 hosted CI is pending.
+- Local checks pass. The user confirmed CI passed after commit 339dc55; stage 3 is complete. Hosted results are user-reported, not independently retrieved.
 
 ## Phase 5 implementation
 - BCL harness separates parser-only, generated numeric mapping, sync/async numeric files, owned strings with quoted Unicode/multiline input, 4096-character fields, and async list/dictionary materialization.

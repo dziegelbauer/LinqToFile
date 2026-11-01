@@ -80,4 +80,4 @@ The XLSX sample prints this result after the existing CSV results:
 XLSX: Transitional and Strict; typed records: Ada
 ```
 
-See the [XLSX guide](xlsx.md) for the current API and limitations.
+See the [XLSX guide](../../xlsx.md) for the current API and limitations.

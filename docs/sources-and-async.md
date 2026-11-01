@@ -113,17 +113,3 @@ A factory is not called when the token is already cancelled before acquisition.
 
 The token can enter through `GetAsyncEnumerator(token)`, `WithCancellation(token)`, or an async materializer.
 `WithCancellation` applies to the result of `AsAsyncEnumerable()`.
-
-## Other file formats
-
-Source acquisition, ownership, schema binding, and query execution are shared.
-CSV syntax remains in `Formats/Csv`.
-Generated mappers use the format-neutral `TabularRow` contract.
-
-A synthetic byte-format test uses the same source, binding, and mapping code.
-It does not use the CSV parser.
-This internal reader boundary can support another format without a new ownership implementation.
-
-The row stores cell text with optional native cell kinds for XLSX.
-XLSX reuses the source, schema, and query boundary for a second real format.
-A public provider API remains a separate design decision.

@@ -5,6 +5,9 @@
 - Use ASD-STE100 (Simplified Technical English); the user's earlier STS-100 reference was corrected.
 - The user approved Issue 9 (January 2025) as the reference.
 - Treat documentation as a top-level project requirement.
+- Human documentation contains only current information needed to use the library; omit phase/stage history, commit IDs, implementation chronology, and validation logs.
+- docs/README.md indexes task-based usage guides. docs/roadmap.md lists only unimplemented future plans; do not mix completed work into that roadmap.
+- Keep agent requirements in docs/spec, maintenance instructions in docs/spec/maintenance, and historical validation/measurement evidence in docs/spec/history. Update their relative links when moving files.
 
 ## Confirmed coverage
 - README and getting started.
@@ -13,7 +16,7 @@
 - Sync/async queries, materialization, cancellation, and source ownership.
 - Native AOT setup and supported model restrictions.
 - Performance guidance and measured allocation behavior.
-- Contributor architecture and design decisions.
+- Contributor architecture and maintenance instructions are separate internal references, not part of the user guide.
 - Documentation updates and verification of runnable examples are completion criteria for every implementation slice.
 
 ## Verification

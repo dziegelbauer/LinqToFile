@@ -74,4 +74,4 @@ Its supported value types are string, int, decimal, bool, and Guid, with nullabl
 The source has encoding and header-comparison options.
 
 Additional conversions, stream sources, async APIs, and full CSV configuration remain planned work.
-The [phased plan](spec/plan.md) gives the next acceptance criteria.
+The [phased plan](../plan.md) gives the next acceptance criteria.

@@ -70,7 +70,7 @@ The XLSX reader uses ZIP and XML types from the BCL.
 It loads package/workbook metadata and streams worksheet cells into reusable row buffers.
 Merge preflight reads the selected worksheet before record streaming begins.
 It does not retain the whole sheet or convert future row values.
-The [XLSX guide](xlsx.md) describes the current scope and limits.
+The [XLSX guide](../../xlsx.md) describes the current scope and limits.
 Stage 2 adds shared-string storage, cached formulas, rich text, native temporal conversion, and resource accounting.
 Stage 3 adds async XML/entry traversal and factories through the same source/query boundary.
 Sync and async traversal share cell conversion and resource accounting.
@@ -139,9 +139,9 @@ Explicit BCL operators and user callbacks keep their own error behavior.
 ## Contribution checks
 
 The validation records give results and reproduction commands:
-[phase 1](validation-phase1.md), [phase 2](validation-phase2.md),
-[phase 3](validation-phase3.md), [phase 4](validation-phase4.md),
-[phase 5](validation-phase5.md), and [phase 6](validation-phase6.md).
+[phase 1](../history/validation-phase1.md), [phase 2](../history/validation-phase2.md),
+[phase 3](../history/validation-phase3.md), [phase 4](../history/validation-phase4.md),
+[phase 5](../history/validation-phase5.md), and [phase 6](../history/validation-phase6.md).
 
 1. Update the relevant specification when a decision changes.
 2. Add tests for new behavior.

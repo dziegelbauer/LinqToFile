@@ -42,7 +42,7 @@ The release guide lists the deferred features.
 
 ## Reproduction
 
-Use the commands in the [release guide](release.md).
+Use the commands in the [release guide](../maintenance/release.md).
 The local environment used SDK 10.0.403 and runtime 10.0.14.
 The Release solution build passes with zero warnings and errors.
 All 485 unit tests pass after the documentation update.

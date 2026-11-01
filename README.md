@@ -1,36 +1,18 @@
 # LinqToFile
 
-LinqToFile reads tabular files as typed C# records. Standard LINQ operators filter and select the records.
-CSV and XLSX support sync/async reading with generated mapping and resource controls.
-The runtime uses only the .NET Base Class Library (BCL). The minimum target is .NET 10.
+Read CSV and XLSX files as typed C# objects with standard LINQ.
+Use sync or async queries to stream records or create lists, arrays, and dictionaries.
 
-This repository contains the reader, typed mapper, and sync/async query API.
-The GitHub Actions workflow validates Windows, Linux, and macOS.
-The API can change before a stable release.
-The package includes a source generator. The generator makes the mapper during compilation.
-The runtime does not use reflection.
+The library targets .NET 10 and later.
+The runtime uses only the .NET Base Class Library (BCL), with no runtime reflection.
+The package includes a source generator and supports Native AOT.
 
-## Run the sample
+This is a prerelease library. The API can change before a stable release.
 
-From the repository root, run this command:
+## Read a CSV file
 
-```sh
-dotnet run --project samples/NativeAot -c Release
-```
-
-The sample prints this result:
-
-```text
-Adults: 1; first: Ada
-Configured CSV: Ada;'Lovelace'
-Scalar mapping: Ready; offset: -07:00:00
-Async CSV: 1 adult; 2 dictionary entries
-XLSX: Transitional and Strict; typed records: Ada
-XLSX cells: shared strings, formulas, temporal values, disk spill
-XLSX async: factories, non-seekable input, LINQ, materializers, disk spill
-```
-
-The sample uses this model from a separate project:
+[Install the package](docs/getting-started.md), then declare a public partial model.
+Each project that declares models must reference the package.
 
 ```csharp
 using LinqToFile;
@@ -70,45 +52,21 @@ person_id,full_name,Age,Balance
 2,Grace,17,
 ```
 
-## Current scope
-
-The library reads paths, supplied streams, and stream factories through sync or async queries.
-Each path or factory enumeration opens an independent stream.
-Supplied streams permit one enumeration and remain open by default.
-Field types include fixed-width numbers, strings, characters, booleans, GUIDs, enums, and date/time values.
-The reader can also use nullable value types and a selected conversion culture.
-
-CSV options include delimiter, quote, BOM detection, trimming, blank-line handling, buffers, and length limits.
-Async materializers include lists, arrays, and dictionaries.
-Shared source and query code remains separate from the CSV adapter for future file formats.
-The XLSX reader supports paths, supplied streams, and sync/async factories with shared/inline text, rich text, numbers, booleans, dates, and cached formula results.
-It has a shared-string memory budget, disk spill, and configurable resource limits.
-Non-seekable XLSX input is copied to a temporary file before archive reading.
-Async queries use async part reads; ZIP directory loading and seeks remain synchronous.
-See the [XLSX guide](docs/xlsx.md) for conversion and ownership rules.
+Use `TabularFile.Xlsx<T>()` to read a workbook with the same model annotations.
+See the [XLSX guide](docs/xlsx.md) for worksheet selection, cell conversions, and resource limits.
 
 ## Documentation
 
+Start with the [user guide](docs/README.md).
+
 - [Get started](docs/getting-started.md)
 - [Mapping and API reference](docs/reference.md)
-- [Value conversions](docs/conversions.md)
-- [Sources and async queries](docs/sources-and-async.md)
 - [CSV rules and errors](docs/csv-and-errors.md)
-- [XLSX reader](docs/xlsx.md)
-- [Architecture and contribution](docs/architecture.md)
-- [Performance measurements](docs/performance.md)
-- [Phase 1 validation](docs/validation-phase1.md)
-- [Phase 2 validation](docs/validation-phase2.md)
-- [Phase 3 validation](docs/validation-phase3.md)
-- [Phase 4 validation](docs/validation-phase4.md)
-- [Phase 5 validation](docs/validation-phase5.md)
-- [Phase 6 validation](docs/validation-phase6.md)
-- [XLSX stage 1 validation](docs/validation-xlsx-stage1.md)
-- [XLSX stage 2 validation](docs/validation-xlsx-stage2.md)
-- [XLSX stage 3 validation](docs/validation-xlsx-stage3.md)
-- [Release preparation](docs/release.md)
-- [Documentation rules](docs/documentation.md)
-- [Future phases](docs/spec/plan.md)
+- [XLSX workbooks](docs/xlsx.md)
+- [Value conversions](docs/conversions.md)
+- [Sources, async queries, and cancellation](docs/sources-and-async.md)
+- [Performance and memory](docs/performance.md)
+- [Roadmap](docs/roadmap.md)
 
 ## License
 

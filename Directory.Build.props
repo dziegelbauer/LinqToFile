@@ -8,5 +8,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Deterministic>true</Deterministic>
     <Version>0.1.0-alpha.9</Version>
+    <Version Condition="'$(LinqToFileVersion)' != ''">$(LinqToFileVersion)</Version>
   </PropertyGroup>
 </Project>

@@ -1,6 +1,7 @@
 param(
     [Parameter(Mandatory = $true)][string] $RuntimeIdentifier,
     [string] $PackageDirectory = 'artifacts/feed',
+    [string] $PackageVersion = $env:LinqToFileVersion,
     [switch] $KeepWorkspace
 )
 $ErrorActionPreference = 'Stop'
@@ -8,7 +9,9 @@ Set-StrictMode -Version Latest
 $repository = Split-Path $PSScriptRoot -Parent
 $feed = (Resolve-Path $PackageDirectory).Path
 [xml] $build = Get-Content (Join-Path $repository 'Directory.Build.props') -Raw
-$version = [string] $build.Project.PropertyGroup.Version
+$version = if ([string]::IsNullOrWhiteSpace($PackageVersion)) {
+    [string] $build.Project.PropertyGroup.Version[0]
+} else { $PackageVersion }
 $package = Join-Path $feed "LinqToFile.$version.nupkg"
 
 function Invoke-Dotnet {

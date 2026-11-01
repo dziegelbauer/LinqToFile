@@ -2,8 +2,8 @@
 
 ## Authorization and status
 - Stage 2 CI success was user-reported for 32ff4d2 and recorded in eaf4c18.
-- The user authorized stage 3 with "commit and proceed". Stage 3 is implemented and locally validated; hosted checks remain pending. Do not call the complete feature validated on all CI platforms until the user confirms those results.
-- No package publication or GitHub release is authorized. See ../validation-xlsx-stage3.md.
+- The user authorized stage 3 with "commit and proceed". Stage 3 is complete: local validation passes and the user confirmed CI passed after commit 339dc55. Hosted results are user-reported, not independently retrieved.
+- Prototype NuGet publication after successful main CI is authorized; see release.md and maintenance/publishing.md. GitHub release creation remains a separate decision. XLSX validation evidence is in history/validation-xlsx-stage3.md.
 
 ## Sources and resources
 - XlsxSource mirrors CSV's IEnumerable plus async-foreach pattern, explicit AsAsyncEnumerable, and common list/array/dictionary materializers. XlsxAsync is an async-only factory entry point.
