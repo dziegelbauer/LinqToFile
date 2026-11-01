@@ -5,15 +5,24 @@ namespace LinqToFile.Infrastructure;
 /// <summary>Temporary parser storage used only by generated mappers. Do not retain this object.</summary>
 public sealed class CsvRecord
 {
-    private char[] buffer = new char[1024];
+    private char[] buffer;
     private Range[] fields = new Range[16];
     private int length;
     private int fieldStart;
+    private readonly int capacityLimit;
+    internal int CurrentFieldLength => length - fieldStart;
+    internal bool TrimFields { get; set; }
     internal int Count { get; private set; }
     internal long RecordNumber { get; set; }
     internal long LineNumber { get; set; }
     internal long FailureLineNumber { get; set; }
     internal string[] Headers { get; set; } = [];
+
+    internal CsvRecord(int initialCapacity, int? maxRecordLength)
+    {
+        capacityLimit = Math.Min(maxRecordLength ?? Array.MaxLength, Array.MaxLength);
+        buffer = new char[Math.Min(initialCapacity, capacityLimit)];
+    }
 
     internal void Reset()
     {
@@ -22,7 +31,12 @@ public sealed class CsvRecord
 
     internal void Append(char value)
     {
-        if (length == buffer.Length) Array.Resize(ref buffer, checked(buffer.Length * 2));
+        if (length == buffer.Length)
+        {
+            int capacity = (int)Math.Min(Math.Max(1L, (long)buffer.Length * 2), capacityLimit);
+            if (capacity <= length) throw new InvalidOperationException("The record exceeds the supported buffer capacity.");
+            Array.Resize(ref buffer, capacity);
+        }
         buffer[length++] = value;
     }
 
@@ -36,7 +50,8 @@ public sealed class CsvRecord
     public ReadOnlySpan<char> GetField(int ordinal)
     {
         if ((uint)ordinal >= (uint)Count) throw new ArgumentOutOfRangeException(nameof(ordinal));
-        return buffer.AsSpan()[fields[ordinal]];
+        var value = buffer.AsSpan()[fields[ordinal]];
+        return TrimFields ? value.Trim() : value;
     }
 
     public string ReadString(int ordinal, string member) => GetField(ordinal).ToString();

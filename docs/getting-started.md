@@ -38,7 +38,7 @@ dotnet restore samples/NativeAot -p:UseLocalPackage=true --source "$PWD/artifact
 dotnet run --project samples/NativeAot -c Release -p:UseLocalPackage=true --no-restore
 ```
 
-For another project, add a package reference to `LinqToFile` version `0.1.0-alpha.1`.
+For another project, add a package reference to `LinqToFile` version `0.1.0-alpha.2`.
 Use the local feed during restore.
 A project that declares models must reference the package.
 The caller does not register mappers.

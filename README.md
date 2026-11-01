@@ -3,7 +3,7 @@
 LinqToFile reads CSV files as typed C# records. Standard LINQ operators filter and select the records.
 The runtime uses only the .NET Base Class Library (BCL). The minimum target is .NET 10.
 
-This repository contains the phase 1 foundation. The API can change before a stable release.
+This repository contains the phase 2 CSV reader. The API can change before a stable release.
 The package includes a source generator. The generator makes the mapper during compilation.
 The runtime does not use reflection.
 
@@ -19,6 +19,7 @@ The sample prints this result:
 
 ```text
 Adults: 1; first: Ada
+Configured CSV: Ada;'Lovelace'
 ```
 
 The sample uses this model from a separate project:
@@ -63,13 +64,13 @@ person_id,full_name,Age,Balance
 
 ## Current scope
 
-Phase 1 reads file paths through synchronous queries.
+The library reads file paths through synchronous queries.
 Each enumeration opens a new file and closes it after use.
 The current field types are `string`, `int`, `decimal`, `bool`, and `Guid`.
 The reader can also use nullable value types.
 
-Async queries, stream inputs, more conversions, and additional CSV options are planned.
-These features are not available in phase 1.
+CSV options include delimiter, quote, BOM detection, trimming, blank-line handling, buffers, and length limits.
+Async queries, stream inputs, and more conversions are planned.
 
 ## Documentation
 
@@ -79,6 +80,7 @@ These features are not available in phase 1.
 - [Architecture and contribution](docs/architecture.md)
 - [Performance measurements](docs/performance.md)
 - [Phase 1 validation](docs/validation-phase1.md)
+- [Phase 2 validation](docs/validation-phase2.md)
 - [Documentation rules](docs/documentation.md)
 - [Future phases](docs/spec/plan.md)
 

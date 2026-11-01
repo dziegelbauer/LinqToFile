@@ -5,13 +5,15 @@ namespace LinqToFile.Tests;
 
 public sealed class DocumentationTests
 {
-    [Fact]
-    public void ReadmeCSharpExamplesMatchTheRunnableSample()
+    [Theory]
+    [InlineData("README.md", 2)]
+    [InlineData("csv-and-errors.md", 1)]
+    public void CSharpExamplesMatchTheRunnableSample(string file, int expectedCount)
     {
         var directory = Path.Combine(AppContext.BaseDirectory, "Examples");
-        var readme = File.ReadAllText(Path.Combine(directory, "README.md"));
+        var readme = File.ReadAllText(Path.Combine(directory, file));
         var examples = Regex.Matches(readme, "```csharp\\r?\\n(.*?)```", RegexOptions.Singleline);
-        Assert.Equal(2, examples.Count);
+        Assert.Equal(expectedCount, examples.Count);
         var sources = new[] { "Person.txt", "Program.txt" }
             .Select(name => Normalize(File.ReadAllText(Path.Combine(directory, name)))).ToArray();
         foreach (Match example in examples)

@@ -24,8 +24,8 @@ public class TabularFileException : Exception
 
 public sealed class CsvFormatException : TabularFileException
 {
-    internal CsvFormatException(string message, long record, long line, long failureLine, int? column = null)
-        : base(message, record, line, failureLine, column) { }
+    internal CsvFormatException(string message, long record, long line, long failureLine, int? column = null, string? header = null)
+        : base(message, record, line, failureLine, column, header) { }
 }
 
 public sealed class TabularSchemaException : TabularFileException

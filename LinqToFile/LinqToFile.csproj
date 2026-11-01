@@ -6,7 +6,6 @@
         <Nullable>enable</Nullable>
         <IsAotCompatible>true</IsAotCompatible>
         <PackageId>LinqToFile</PackageId>
-        <Version>0.1.0-alpha.1</Version>
         <Description>Reflection-free, streaming LINQ queries over tabular files.</Description>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <PackageReadmeFile>README.md</PackageReadmeFile>

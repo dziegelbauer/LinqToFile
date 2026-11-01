@@ -11,6 +11,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="../../README.md" Link="Examples/README.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../docs/csv-and-errors.md" Link="Examples/csv-and-errors.md" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../samples/Models/Person.cs" Link="Examples/Person.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../samples/NativeAot/Program.cs" Link="Examples/Program.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

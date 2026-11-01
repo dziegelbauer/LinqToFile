@@ -2,12 +2,21 @@ using LinqToFile.Infrastructure;
 
 namespace LinqToFile;
 
-// One record and one StreamReader buffer per enumeration. No strings for numeric fields.
-internal sealed class CsvParser(TextReader reader)
+internal sealed class CsvParser
 {
-    internal CsvRecord Record { get; } = new();
+    private readonly BufferedCharReader reader;
+    private readonly CsvOptions options;
+    internal CsvRecord Record { get; }
     private long line = 1;
     private long recordNumber;
+    private long sourceLength;
+
+    internal CsvParser(TextReader reader, CsvOptions options)
+    {
+        this.reader = new(reader, options.BufferSize);
+        this.options = options;
+        Record = new(Math.Min(options.BufferSize, 1024), options.MaxRecordLength);
+    }
 
     internal bool Read()
     {
@@ -16,6 +25,7 @@ internal sealed class CsvParser(TextReader reader)
             Record.Reset();
             Record.LineNumber = line;
             Record.RecordNumber = recordNumber + 1;
+            sourceLength = 0;
             var state = State.Start;
             var hasInput = false;
             while (true)
@@ -34,13 +44,19 @@ internal sealed class CsvParser(TextReader reader)
                 var c = (char)next;
                 if (state == State.Quoted)
                 {
-                    if (c == '"') state = State.Closed;
+                    CountSourceCharacter();
+                    if (c == options.Quote) state = State.Closed;
                     else
                     {
-                        Record.Append(c);
+                        Append(c);
                         if (c == '\r')
                         {
-                            if (reader.Peek() == '\n') Record.Append((char)reader.Read());
+                            if (reader.Peek() == '\n')
+                            {
+                                reader.Read();
+                                CountSourceCharacter();
+                                Append('\n');
+                            }
                             line++;
                         }
                         else if (c == '\n') line++;
@@ -51,26 +67,29 @@ internal sealed class CsvParser(TextReader reader)
                 if (c is '\r' or '\n')
                 {
                     Record.FailureLineNumber = line;
+                    if (!hasInput && !options.SkipBlankLines)
+                        throw Error("A blank physical line is not permitted.");
                     if (c == '\r' && reader.Peek() == '\n') reader.Read();
                     line++;
-                    if (!hasInput) break; // Skip an entirely blank physical line.
+                    if (!hasInput) break;
                     Record.EndField();
                     recordNumber++;
                     return true;
                 }
 
+                CountSourceCharacter();
                 hasInput = true;
-                if (c == ',')
+                if (c == options.Delimiter)
                 {
                     Record.EndField();
                     state = State.Start;
                 }
-                else if (c == '"')
+                else if (c == options.Quote)
                 {
                     if (state == State.Start) state = State.Quoted;
                     else if (state == State.Closed)
                     {
-                        Record.Append('"');
+                        Append(options.Quote);
                         state = State.Quoted;
                     }
                     else throw Error("A quote was found inside an unquoted field.");
@@ -78,15 +97,33 @@ internal sealed class CsvParser(TextReader reader)
                 else
                 {
                     if (state == State.Closed) throw Error("Unexpected text after a closing quote.");
-                    Record.Append(c);
+                    Append(c);
                     state = State.Unquoted;
                 }
             }
         }
     }
 
-    private CsvFormatException Error(string message) =>
-        new(message, Record.RecordNumber, Record.LineNumber, line, Record.Count + 1);
+    private void CountSourceCharacter()
+    {
+        sourceLength++;
+        if (options.MaxRecordLength is int maximum && sourceLength > maximum)
+            throw Error("The record exceeds the configured maximum length.");
+    }
+
+    private void Append(char value)
+    {
+        if (options.MaxFieldLength is int maximum && Record.CurrentFieldLength >= maximum)
+            throw Error("The field exceeds the configured maximum length.");
+        Record.Append(value);
+    }
+
+    private CsvFormatException Error(string message)
+    {
+        int ordinal = Record.Count;
+        string? header = ordinal < Record.Headers.Length ? Record.Headers[ordinal] : null;
+        return new(message, Record.RecordNumber, Record.LineNumber, line, ordinal + 1, header);
+    }
 
     private enum State { Start, Unquoted, Quoted, Closed }
 }

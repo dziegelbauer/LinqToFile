@@ -5,6 +5,6 @@
     <ProjectReference Include="../../LinqToFile.Generator/LinqToFile.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
   <ItemGroup Condition="'$(UseLocalPackage)' == 'true'">
-    <PackageReference Include="LinqToFile" Version="0.1.0-alpha.1" />
+    <PackageReference Include="LinqToFile" Version="$(Version)" />
   </ItemGroup>
 </Project>

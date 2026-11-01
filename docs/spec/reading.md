@@ -14,6 +14,7 @@
 - First release includes synchronous and asynchronous record streaming, with cancellation for async reads.
 - Skip entirely blank physical lines outside quoted fields by default; provide an option to reject them. Lines with delimiters or quoted empty fields remain records.
 - Default encoding is strict UTF-8: invalid byte sequences throw. BOM detection is enabled by default and configurable; recognized BOMs override the configured encoding when detection is enabled.
+- When BOM detection is disabled, never switch encoding. Still remove the configured encoding's own matching BOM, including UTF encodings configured not to emit a preamble.
 - Default delimiter is comma and default quote character is double quote; both are configurable.
 - Comment lines are unsupported initially; characters such as # are ordinary field data.
 - Delimiter and quote are distinct single UTF-16 characters; reject CR, LF, NUL, and surrogate characters for either option. Tab is permitted as a delimiter.
@@ -32,7 +33,9 @@
 - Parser buffer size is configurable. Grow buffers only as required by active fields/records; parser memory scales with the largest active record rather than the entire file.
 - Buffer defaults, pooling strategy, and other internal performance tuning are implementation decisions guided by benchmarks, subject to public configuration and ownership contracts.
 - Optional maximum field and record sizes throw when exceeded; both default to unlimited.
+- Phase 2 APIs use nullable int lengths: null removes a limit, zero permits zero-length content, and negative values are rejected immediately. Limits apply to headers and unmapped columns as well as mapped values.
 - Field limits count decoded UTF-16 code units in the unescaped field before trimming. Record limits count decoded source UTF-16 code units, including delimiters, quotes, and embedded newlines, excluding the record-ending newline.
+- WithBufferSize sets the decoded-character input buffer length (default 4096), independently of field/record length. Size must be positive. Internal encoding buffers remain separate.
 - Validate schema/header mappings before yielding any data records, including for header-only files. Missing mapped columns and duplicate headers still throw when there are no data rows.
 - Cancellation throws OperationCanceledException. Dispose library-owned streams on cancellation, completion, failure, and early termination; caller-owned streams remain open by default.
 - Check cancellation between records as well as during async reads, including while processing already-buffered input.

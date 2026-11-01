@@ -5,7 +5,7 @@
 A mapped model must be a public, partial, non-abstract class.
 The class and its containing types must be non-generic.
 Containing types must also be public and partial.
-Phase 1 does not support C# record declarations.
+C# record declarations are not available yet.
 
 The model must have a public parameterless constructor.
 Properties can have a public setter or a public init accessor.
@@ -41,12 +41,25 @@ Public fields are not mapped.
 | `TabularFile.Csv<T>(path)` | Makes a deferred file source |
 | `WithEncoding(encoding)` | Returns a new source with a copy of the encoding |
 | `WithHeaderComparison(comparer)` | Returns a new source with the selected header comparison |
+| `WithDelimiter(character)` | Sets the field delimiter |
+| `WithQuote(character)` | Sets the quote character |
+| `WithBomDetection(enabled)` | Controls BOM-based encoding selection |
+| `WithFieldTrimming(enabled)` | Controls whitespace removal from field values |
+| `WithHeaderTrimming(enabled)` | Controls whitespace removal from header names |
+| `WithBlankLineSkipping(enabled)` | Skips or rejects entirely blank physical lines |
+| `WithBufferSize(size)` | Sets the decoded-character input buffer size |
+| `WithMaxFieldLength(length)` | Limits unescaped field length before trimming |
+| `WithMaxRecordLength(length)` | Limits decoded source record length |
 | `AsEnumerable()` | Returns the source as `IEnumerable<T>` |
 
 The supported comparers are `StringComparer.Ordinal` and `StringComparer.OrdinalIgnoreCase`.
 The default is `StringComparer.Ordinal`.
 Options do not change the original source.
 Options apply before standard LINQ operators.
+Boolean options default to true when the caller omits the argument.
+Length limits accept null to remove a limit.
+All options return a new source.
+The [CSV guide](csv-and-errors.md) gives the defaults and counting rules.
 
 The generator adds `ITabularRecord<T>` to each marked class.
 A generic helper must have the constraint `where T : class, ITabularRecord<T>`.

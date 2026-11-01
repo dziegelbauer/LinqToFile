@@ -11,6 +11,7 @@ Establish runtime, generator, tests, benchmarks, and sample projects. Implement 
 Acceptance: a marked class with public parameterless construction, setters/init and required properties works through Csv<T>(); synchronous filtering/materialization works; an AOT sample publishes and runs; one-package generator integration is exercised. Clearly document temporarily unsupported features rather than implying full specification coverage.
 
 ## 2. Complete CSV reading
+Status: complete. Phase 1 was committed as 9f8d8f5. Phase 2 adds immutable CSV options, non-seeking BOM replay, separate trimming, field/record limits, and decoded input buffering. All 220 tests pass; the Release build has no warnings/errors. Project-reference and alpha.2 package AOT samples run on macOS arm64. See [phase 2 validation](../validation-phase2.md) for evidence and phase boundaries. Public stream/async sources remain phase 4.
 Implement configured encoding/BOM behavior, dialect, strict quoting, newline/blank-line handling, trimming, size limits, and structured diagnostics.
 Acceptance: specification cases pass across tiny buffers, split encoding sequences, multiline fields, malformed input, non-seekable sources, and header-only files. Parser memory grows with active record size rather than file size.
 

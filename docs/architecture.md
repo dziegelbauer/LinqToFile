@@ -48,12 +48,19 @@ It reads and checks the header before it returns a data record.
 It binds property columns to file ordinals once per enumeration.
 Standard LINQ controls later query operations.
 
-## Phase 1 limits
+## CSV input and phase limits
 
-The parser is a synchronous foundation.
-It uses buffered `StreamReader` input with character-by-character parser steps.
-Buffer controls and field limits are not available yet.
+The parser is synchronous.
+It uses a decoded-character buffer above the `StreamReader`.
+The caller can set the buffer size and field or record limits.
+The parser checks raw record lengths and unescaped field lengths before it adds more content.
+Whitespace removal changes field views after parsing.
 Later performance work can change this implementation without a change to record ownership.
+
+The byte reader inspects at most four prefix bytes for BOM detection.
+It replays the prefix without a seek.
+Tests exercise this internal reader with non-seekable streams and single-byte reads.
+Public stream sources remain planned for phase 4.
 
 The format boundary is not a public extension API yet.
 A later tabular reader can reuse the generated mapping contract.
@@ -62,6 +69,7 @@ A second format must test that design before the project adds a provider API.
 ## Contribution checks
 
 The [phase 1 validation record](validation-phase1.md) gives the initial results and reproduction commands.
+The [phase 2 validation record](validation-phase2.md) gives the CSV reader checks.
 
 1. Update the relevant specification when a decision changes.
 2. Add tests for new behavior.

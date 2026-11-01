@@ -1,5 +1,8 @@
 # Phase 1 validation
 
+This historical record describes phase 1 at commit `9f8d8f5`.
+The [phase 2 record](validation-phase2.md) describes the current CSV reader.
+
 ## Environment
 
 The checks ran on Apple Silicon macOS.
