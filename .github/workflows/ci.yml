@@ -51,8 +51,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Pack local feed
         run: dotnet pack LinqToFile -c Release --no-build --no-restore -o artifacts/feed
+      - name: Restore package consumer
+        run: dotnet restore samples/NativeAot -r ${{ matrix.rid }} -p:UseLocalPackage=true -p:TreatWarningsAsErrors=true -p:RestorePackagesPath="$PWD/artifacts/package-cache" --configfile .github/package-validation.nuget.config
       - name: Publish package consumer with Native AOT
-        run: dotnet publish samples/NativeAot -c Release -r ${{ matrix.rid }} -p:UseLocalPackage=true -p:TreatWarningsAsErrors=true -p:RestorePackagesPath="$PWD/artifacts/package-cache" --source "$PWD/artifacts/feed" --source https://api.nuget.org/v3/index.json -o artifacts/package-aot
+        run: dotnet publish samples/NativeAot -c Release -r ${{ matrix.rid }} --no-restore -p:UseLocalPackage=true -p:TreatWarningsAsErrors=true -p:RestorePackagesPath="$PWD/artifacts/package-cache" -o artifacts/package-aot
       - name: Run package consumer
         run: |
           $executable = if ($IsWindows) { './artifacts/package-aot/NativeAot.exe' } else { './artifacts/package-aot/NativeAot' }

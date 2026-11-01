@@ -3,7 +3,8 @@
 ## Status
 
 Local checks pass on macOS arm64.
-The GitHub Actions workflow is ready for the first repository push.
+The repository is published on GitHub.
+The first reported Windows failure occurred during package-consumer restore.
 Phase 5 remains open until the hosted platform jobs pass.
 
 ## Local results
@@ -14,7 +15,7 @@ Phase 5 remains open until the hosted platform jobs pass.
 - Project-reference and alpha.5 package Native AOT samples publish and run.
 - Repeated benchmarks cover parsing, mapping, sync/async streaming, strings, large fields, and collections.
 - Buffer trials cover 512, 4096, and 16384 decoded characters.
-- The CI file passes a local YAML syntax check. Hosted Actions behavior is not yet verified.
+- The CI file passes a local YAML syntax check. The Windows correction awaits hosted confirmation.
 
 The local SDK was 10.0.403. The runtime was 10.0.14.
 See [performance measurements](performance.md) for raw samples and measurement limits.
@@ -28,12 +29,19 @@ It does not publish a package or create a release.
 | Runner | Runtime identifier | Hosted result |
 |---|---|---|
 | Ubuntu 24.04 | linux-x64 | Pending |
-| Windows 2025 | win-x64 | Pending |
+| Windows 2025 | win-x64 | Package-consumer restore failed; correction awaits rerun |
 | macOS 15 | osx-arm64 | Pending |
 
 Each job builds the solution and runs all tests.
 It runs the JIT sample and publishes and runs the Native AOT sample.
 It repeats Native AOT validation with a fresh local package cache.
+The package consumer uses an explicit restore with a dedicated NuGet configuration file.
+The next publish uses `--no-restore` with the same cache path.
+This avoids passing feed URLs through `dotnet publish --source`.
+The Windows log reported NU1301 with `https:\api.nuget.org\v3\index.json` inside a local project path.
+The corrected restore and publish commands pass under PowerShell on macOS arm64 with a fresh package cache.
+The resulting Native AOT sample prints the expected output.
+This local check does not replace the Windows rerun.
 This checks that the package supplies the generator to the separate model project.
 Test reports and benchmark JSON are uploaded as job artifacts.
 Benchmark timing is informational. There is no machine-specific time limit for a scan.
@@ -50,7 +58,8 @@ dotnet test tests/LinqToFile.Tests -c Release --no-build --no-restore --nologo
 dotnet publish samples/NativeAot -c Release -r osx-arm64 -p:TreatWarningsAsErrors=true -o artifacts/phase5-aot
 ./artifacts/phase5-aot/NativeAot
 dotnet pack LinqToFile -c Release --no-build --no-restore -o artifacts/feed
-dotnet publish samples/NativeAot -c Release -r osx-arm64 -p:UseLocalPackage=true -p:TreatWarningsAsErrors=true -p:RestorePackagesPath="$PWD/artifacts/phase5-package-cache" --source "$PWD/artifacts/feed" --source https://api.nuget.org/v3/index.json -o artifacts/phase5-package-aot
+dotnet restore samples/NativeAot -r osx-arm64 -p:UseLocalPackage=true -p:TreatWarningsAsErrors=true -p:RestorePackagesPath="$PWD/artifacts/phase5-package-cache" --configfile .github/package-validation.nuget.config
+dotnet publish samples/NativeAot -c Release -r osx-arm64 --no-restore -p:UseLocalPackage=true -p:TreatWarningsAsErrors=true -p:RestorePackagesPath="$PWD/artifacts/phase5-package-cache" -o artifacts/phase5-package-aot
 ./artifacts/phase5-package-aot/NativeAot
 ```
 
