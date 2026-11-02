@@ -3,6 +3,9 @@ using SampleModels;
 using System.Globalization;
 using System.Text;
 
+await CsvWritingSample.RunAsync();
+await QuickStartSample.RunAsync();
+
 // Read a separately compiled model through its generated static mapping contract.
 var path = Path.GetTempFileName();
 try

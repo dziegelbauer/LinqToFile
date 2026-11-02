@@ -39,4 +39,13 @@ Acceptance: clean consumer and cross-project model samples work from the package
 Behavior and [implementation stages](xlsx-plan.md) are approved. Stage 1 is implemented and locally validated with 583 passing tests and project/package Native AOT samples; the user confirmed successful CI after commit 7b798b7, completing stage 1. Stage 2 is authorized and implemented; local validation passes: 688 tests, warning-free Release build, project/package JIT and Native AOT, and clean package consumption; the user confirmed CI passed after commit 32ff4d2, completing stage 2. Stage 3 is authorized and locally validated with 719 tests, project/package JIT and Native AOT, clean consumption, and recorded performance workloads. The user confirmed CI passed after commit 339dc55, completing stage 3; see [stage 3 validation](history/validation-xlsx-stage3.md). See [stage 2 validation](history/validation-xlsx-stage2.md). The approved XLSX subset is implemented; all three stages are complete. See [XLSX planning](xlsx.md) and [stage 1 validation](history/validation-xlsx-stage1.md).
 
 ## Future objectives
-Other tabular formats; headerless files; per-column error policies; configurable missing columns; opt-in raw error values; custom converters/null tokens/exact date formats; broader model shapes and fields; custom IQueryable if justified. Writing and change tracking are outside initial scope.
+Other tabular formats; headerless files; per-column error policies; configurable missing columns; opt-in raw error values; custom converters/null tokens/exact date formats; broader model shapes and fields; custom IQueryable if justified. Change tracking remains outside current scope.
+
+## Next capability: CSV writing
+
+The user has confirmed creation, append, and positional insertion contracts in [writing.md](writing.md).
+The [writing implementation plan](writing-plan.md) has four stages: serialization/path API/creation; append and quick append; positional insertion; performance and release validation.
+Stage 1 is complete locally: 781 tests, warning-free Release build, project/package Native AOT, and clean JIT/Native AOT consumption on macOS arm64. Hosted platform validation remains pending CI. See [stage 1 validation](history/validation-writing-stage1.md).
+Stage 2 is also complete locally: 898 tests, warning-free Release build, project/package Native AOT, and clean JIT/Native AOT consumption on macOS arm64. See [stage 2 validation](history/validation-writing-stage2.md). Hosted checks remain pending CI.
+Stage 3 is complete locally: 1,024 tests, warning-free Release build, project/package Native AOT, and clean JIT/Native AOT consumption on macOS arm64. See [stage 3 validation](history/validation-writing-stage3.md). Hosted checks remain pending CI.
+Stage 4 remains. Keep behavior not yet implemented on the public roadmap.

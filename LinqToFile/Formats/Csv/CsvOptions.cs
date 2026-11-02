@@ -9,6 +9,9 @@ internal sealed record CsvOptions : TextOptions
     internal bool SkipBlankLines { get; init; } = true;
     internal int? MaxFieldLength { get; init; }
     internal int? MaxRecordLength { get; init; }
+    internal bool InPlaceWrites { get; init; }
+    internal LineEnding? NewLine { get; init; }
+    internal bool ValidateAppend { get; init; } = true;
 
     internal static void ValidateCharacter(char value, string parameter)
     {

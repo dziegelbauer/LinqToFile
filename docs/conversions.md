@@ -110,6 +110,8 @@ It does not use runtime enum discovery.
 ## Date and time
 
 Temporal parsing uses the selected culture and the BCL parsers.
+The reader first recognizes the invariant round-trip formats used by [CSV creation](csv-writing.md).
+This rule preserves dates and full tick precision under non-Gregorian cultures.
 Omitted date components follow BCL defaults.
 
 `DateTime` fields reject inputs with an explicit time-zone offset.

@@ -31,10 +31,10 @@ public static class TabularFile
         return new(new StreamSource(factory), new XlsxOptions());
     }
 
-    public static CsvSource<T> Csv<T>(string path) where T : class, ITabularRecord<T>
+    public static CsvFile<T> Csv<T>(string path) where T : class, ITabularRecord<T>
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        return new(new StreamSource(path), new CsvOptions());
+        return new(path, new CsvOptions());
     }
 
     public static CsvSource<T> Csv<T>(Stream stream, bool leaveOpen = true) where T : class, ITabularRecord<T>

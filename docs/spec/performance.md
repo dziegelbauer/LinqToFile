@@ -5,6 +5,11 @@
 - Runtime remains BCL-only. Benchmark and diagnostic tools are development-only.
 - Performance tuning must follow evidence; buffer/pooling choices need no further user decision initially.
 
+## CSV writing stage 4
+- The writing harness isolates formatting, input enumeration, validation, byte-offset scans, copying, rotation, and end-to-end operations. Its 93-case matrix includes both mutation modes and execution styles plus single-call/range comparisons. Timings are informational.
+- Five local reports cover baseline/tuning, one-million-row scale, tiny read buffers, retained heap/temporary snapshots, and short batches. The UTF-8 ASCII byte-position path improves measured scan time without changing fallback/offset semantics. Keep current buffer sizes and movement blocks; no further pooling changes are justified.
+- Numeric formatting allocates no per-row storage for a reused model; old-row scan and new-row allocation guards pass. Async I/O allocations are reported separately from retained heap. See [stage 4 validation](history/validation-writing-stage4.md) for scope, raw reports, caveats, and hosted acceptance.
+
 ## XLSX stage 3
 - Added an XLSX benchmark mode for numeric, inline/repeated/unique string, large-cell, disk-spill, non-seekable, and first-record workloads. Heap probes and logical temporary lengths are separate from process-wide allocation counts.
 - Warm shared numeric/XML paths for at least three seconds before workload comparisons, then at least five scans and one second per case. Initial shorter warmup showed tiering effects; final raw reports use the corrected method.

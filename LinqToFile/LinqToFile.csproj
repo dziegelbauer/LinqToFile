@@ -6,20 +6,20 @@
         <Nullable>enable</Nullable>
         <IsAotCompatible>true</IsAotCompatible>
         <PackageId>LinqToFile</PackageId>
-        <Description>Reflection-free, streaming LINQ queries over tabular files.</Description>
+        <Description>Query CSV and XLSX files with typed C# models and standard LINQ. Create, append, and insert CSV rows with sync/async APIs. BCL-only runtime, source-generated mapping, and Native AOT support on .NET 10+.</Description>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageProjectUrl>https://github.com/dziegelbauer/LinqToFile</PackageProjectUrl>
         <RepositoryUrl>https://github.com/dziegelbauer/LinqToFile.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>linq;csv;xlsx;tabular;streaming;nativeaot;source-generator</PackageTags>
-        <PackageReleaseNotes>Prerelease: sync/async CSV and XLSX queries, stream factories, non-seekable XLSX spooling, cancellation, shared-string budgets and disk spill, cached formulas, native dates/times, and resource limits. ZIP directory metadata remains synchronous. API changes remain possible.</PackageReleaseNotes>
+        <PackageReleaseNotes>Prerelease: sync/async CSV creation, append, and positional insertion with generated serialization, temporary-file replacement or bounded-memory in-place writes, plus CSV and XLSX queries. Insert uses long logical row indexes and full validation. Quick append is optional. Existing-file writes support UTF-8/16/32 and stateless single-byte encodings. API changes remain possible.</PackageReleaseNotes>
     </PropertyGroup>
 
     <ItemGroup>
         <ProjectReference Include="../LinqToFile.Generator/LinqToFile.Generator.csproj" ReferenceOutputAssembly="false" PrivateAssets="all" />
         <None Include="../LinqToFile.Generator/bin/$(Configuration)/netstandard2.0/LinqToFile.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" />
-        <None Include="../docs/package-readme.md" Pack="true" PackagePath="/README.md" />
+        <None Include="../README.md" Pack="true" PackagePath="/README.md" />
         <None Include="../LICENSE" Pack="true" PackagePath="/" />
     </ItemGroup>
 

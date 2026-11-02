@@ -6,6 +6,11 @@ using LinqToFile;
 using LinqToFile.Formats.Csv;
 
 // Run this process alone. Process-wide counters include allocations on async continuations.
+if (args.Contains("--writing", StringComparer.Ordinal))
+{
+    await WritingBenchmarks.RunAsync(args);
+    return;
+}
 if (args.Contains("--xlsx", StringComparer.Ordinal))
 {
     await WorkbookBenchmarks.RunAsync(args);

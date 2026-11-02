@@ -33,7 +33,7 @@ Add the package to each project that declares mapped models.
 For an application project, use this command with your local feed path:
 
 ```sh
-dotnet add MyApp/MyApp.csproj package LinqToFile --version 0.1.0-alpha.9 --source /absolute/path/to/LinqToFile/artifacts/feed
+dotnet add MyApp/MyApp.csproj package LinqToFile --version 0.1.0-alpha.13 --source /absolute/path/to/LinqToFile/artifacts/feed
 ```
 
 Replace the project path and feed path with your own paths.
@@ -96,4 +96,4 @@ From the repository root, run:
 dotnet run --project samples/NativeAot -c Release
 ```
 
-The sample reads CSV and XLSX files with models from a separate assembly.
+The sample runs CSV/XLSX queries and CSV creation, append, and insertion with models from a separate assembly.

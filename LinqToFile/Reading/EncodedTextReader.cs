@@ -4,25 +4,32 @@ namespace LinqToFile.Reading;
 
 internal static class EncodedTextReader
 {
-    internal static StreamReader Open(Stream stream, TextOptions options, bool leaveOpen = false)
+    internal static StreamReader Open(Stream stream, TextOptions options, bool leaveOpen = false, bool preciseReads = false)
     {
         var prefix = new byte[4];
         int count = stream.ReadAtLeast(prefix.AsSpan(), prefix.Length, throwOnEndOfStream: false);
-        return Create(stream, prefix, count, options, leaveOpen);
+        return Create(stream, prefix, count, options, leaveOpen, preciseReads);
     }
 
     internal static async ValueTask<StreamReader> OpenAsync(Stream stream, TextOptions options,
-        CancellationToken cancellationToken, bool leaveOpen = false)
+        CancellationToken cancellationToken, bool leaveOpen = false, bool preciseReads = false)
     {
         var prefix = new byte[4];
         int count = await stream.ReadAtLeastAsync(prefix.AsMemory(), prefix.Length,
             throwOnEndOfStream: false, cancellationToken).ConfigureAwait(false);
-        return Create(stream, prefix, count, options, leaveOpen);
+        return Create(stream, prefix, count, options, leaveOpen, preciseReads);
     }
 
-    private static StreamReader Create(Stream stream, byte[] prefix, int count, TextOptions options, bool leaveOpen)
+    private static StreamReader Create(Stream stream, byte[] prefix, int count, TextOptions options, bool leaveOpen, bool preciseReads)
     {
-        var bytes = prefix.AsSpan(0, count);
+        var encoding = SelectEncoding(prefix.AsSpan(0, count), options, out int skip);
+        var replay = new PrefixStream(stream, prefix, skip, count, leaveOpen, preciseReads);
+        try { return new StreamReader(replay, encoding, detectEncodingFromByteOrderMarks: false); }
+        catch { replay.Dispose(); throw; }
+    }
+
+    internal static Encoding SelectEncoding(ReadOnlySpan<byte> bytes, TextOptions options, out int skip)
+    {
         Encoding? detected = bytes switch
         {
             [0x00, 0x00, 0xFE, 0xFF, ..] => new UTF32Encoding(true, true),
@@ -33,22 +40,21 @@ internal static class EncodedTextReader
             _ => null
         };
         var encoding = options.Encoding;
-        int skip = 0;
+        skip = 0;
         if (options.DetectBom && detected is not null)
         {
             encoding = (Encoding)detected.Clone();
             encoding.DecoderFallback = options.Encoding.DecoderFallback;
+            encoding.EncoderFallback = options.Encoding.EncoderFallback;
         }
         else if (!options.DetectBom && detected?.CodePage == encoding.CodePage && encoding.GetPreamble().Length == 0)
         {
             skip = detected switch { UTF32Encoding => 4, UTF8Encoding => 3, _ => 2 };
         }
-        var replay = new PrefixStream(stream, prefix, skip, count, leaveOpen);
-        try { return new StreamReader(replay, encoding, detectEncodingFromByteOrderMarks: false); }
-        catch { replay.Dispose(); throw; }
+        return encoding;
     }
 
-    private sealed class PrefixStream(Stream inner, byte[] prefix, int position, int count, bool leaveOpen) : Stream
+    private sealed class PrefixStream(Stream inner, byte[] prefix, int position, int count, bool leaveOpen, bool preciseReads) : Stream
     {
         private int offset = position;
         private bool disposed;
@@ -62,6 +68,7 @@ internal static class EncodedTextReader
         {
             ObjectDisposedException.ThrowIf(disposed, this);
             if (buffer.IsEmpty) return 0;
+            if (preciseReads) buffer = buffer[..1];
             int copied = CopyPrefix(buffer);
             return copied != 0 ? copied : inner.Read(buffer);
         }
@@ -70,6 +77,7 @@ internal static class EncodedTextReader
             ObjectDisposedException.ThrowIf(disposed, this);
             cancellationToken.ThrowIfCancellationRequested();
             if (buffer.IsEmpty) return new(0);
+            if (preciseReads) buffer = buffer[..1];
             int copied = CopyPrefix(buffer.Span);
             return copied != 0 ? new(copied) : inner.ReadAsync(buffer, cancellationToken);
         }

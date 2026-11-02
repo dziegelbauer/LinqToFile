@@ -2,13 +2,14 @@
 
 ## Current artifact
 
-The current local package version is `0.1.0-alpha.9`.
+The current local package version is `0.1.0-alpha.13`.
 It is the local prerelease base version.
 Successful main CI runs append a unique run suffix and publish a prototype prerelease to nuget.org.
 See [publishing setup](publishing.md) for the one-time account configuration and feature-branch workflow.
 The API can change before a stable release.
 
 The package contains the runtime, source generator, README, and Apache-2.0 license.
+The package README is the root README, with absolute documentation links. The consumer check verifies exact equality and runs its model plus four API examples.
 The runtime targets .NET 10 and has no NuGet dependencies.
 The generator runs during compilation. Applications do not register mappers.
 Each project that declares models must reference the package.
@@ -43,12 +44,14 @@ Neither project references the runtime or generator source projects.
 The check compiles the model from the packaged README.
 It runs the README query, sync reads, async LINQ, dictionary materialization, and configured encoding.
 It also compiles XLSX models in the separate model assembly.
+It compiles scalar writer models with the packaged generator, then runs CSV creation in both modes with sync and async input.
+It also runs append/insertion and every introductory CSV/XLSX example under JIT and Native AOT.
 XLSX checks cover both variants, cached formulas, temporal values, shared-string spill, async queries, and non-seekable input.
 It repeats the application run with Native AOT.
 Successful execution prints this message:
 
 ```text
-Package validation passed: LinqToFile 0.1.0-alpha.9 (osx-arm64)
+Package validation passed: LinqToFile 0.1.0-alpha.13 (osx-arm64)
 ```
 
 The script removes its temporary workspace after execution.
@@ -76,7 +79,10 @@ XLSX accepts paths, streams, and sync/async factories.
 Non-seekable XLSX input requires temporary storage. ZIP directory loading and seeks are synchronous.
 The reader supports strict parsing, generated property mapping, and sync/async streaming.
 It supports owned records and full list, array, or dictionary materialization.
-It does not provide a custom `IQueryable` provider, file writing, or change tracking.
+CSV path sources support explicit creation, including typed initial rows, with both temporary publication and direct creation.
+CSV append supports full validation, quick append, both mutation modes, and synchronous/asynchronous input ranges.
+CSV insertion uses long logical row indexes, full existing-file validation, both mutation modes, and sync/async ranges.
+It does not provide a custom `IQueryable` provider or change tracking.
 
 Other formats, headerless files, custom converters, and more model shapes remain future objectives.
 Per-column error recovery, configurable missing columns, and opt-in raw diagnostic values are also future objectives.

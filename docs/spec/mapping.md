@@ -8,6 +8,7 @@
 - Initial models are public, non-abstract, non-generic classes, including public nested classes. Generic and non-public model classes are deferred; nested model accessibility must be effective through its containing types.
 - Define an annotation to supply a column header.
 - Support public setters and init-only setters.
+- Writing additionally requires getters accessible from the generated mapper. Preserve reading for setter-only/inaccessible-getter models; reject their writes, including headers-only creation, before creating a file. Public getters work across assemblies; same-assembly internal access is supported.
 - Require a public parameterless constructor initially.
 - Header matching defaults to ordinal, case-sensitive comparison and is configurable.
 - Initial supported header comparisons: StringComparer.Ordinal and StringComparer.OrdinalIgnoreCase only.

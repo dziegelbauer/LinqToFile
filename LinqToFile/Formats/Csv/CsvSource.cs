@@ -9,68 +9,70 @@ using LinqToFile.Sources;
 namespace LinqToFile;
 
 /// <summary>An immutable, deferred CSV source. Supplied streams share a single enumeration allowance.</summary>
-public sealed class CsvSource<T> : IEnumerable<T> where T : class, ITabularRecord<T>
+public class CsvSource<T> : IEnumerable<T> where T : class, ITabularRecord<T>
 {
     private readonly StreamSource source;
     private readonly CsvOptions options;
+    internal CsvOptions Options => options;
+    internal virtual CsvSource<T> Configure(CsvOptions value) => new(source, value);
 
     internal CsvSource(StreamSource source, CsvOptions options) { this.source = source; this.options = options; }
 
-    public CsvSource<T> WithEncoding(Encoding value)
+    public virtual CsvSource<T> WithEncoding(Encoding value)
     {
         ArgumentNullException.ThrowIfNull(value);
-        return new(source, options with { Encoding = (Encoding)value.Clone() });
+        return Configure(options with { Encoding = (Encoding)value.Clone() });
     }
 
-    public CsvSource<T> WithHeaderComparison(StringComparer value)
+    public virtual CsvSource<T> WithHeaderComparison(StringComparer value)
     {
         if (!ReferenceEquals(value, StringComparer.Ordinal) && !ReferenceEquals(value, StringComparer.OrdinalIgnoreCase))
             throw new ArgumentException("Use StringComparer.Ordinal or StringComparer.OrdinalIgnoreCase.", nameof(value));
         SchemaBinding<T>.ValidateMapping(value);
-        return new(source, options with { HeaderComparison = value });
+        return Configure(options with { HeaderComparison = value });
     }
 
-    public CsvSource<T> WithCulture(CultureInfo value)
+    public virtual CsvSource<T> WithCulture(CultureInfo value)
     {
         ArgumentNullException.ThrowIfNull(value);
-        return new(source, options with { Culture = CultureInfo.ReadOnly((CultureInfo)value.Clone()) });
+        return Configure(options with { Culture = CultureInfo.ReadOnly((CultureInfo)value.Clone()) });
     }
 
-    public CsvSource<T> WithDelimiter(char value)
+    public virtual CsvSource<T> WithDelimiter(char value)
     {
         CsvOptions.ValidateCharacter(value, nameof(value));
         if (value == options.Quote) throw new ArgumentException("Delimiter and quote characters must differ.", nameof(value));
-        return new(source, options with { Delimiter = value });
+        return Configure(options with { Delimiter = value });
     }
 
-    public CsvSource<T> WithQuote(char value)
+    public virtual CsvSource<T> WithQuote(char value)
     {
         CsvOptions.ValidateCharacter(value, nameof(value));
         if (value == options.Delimiter) throw new ArgumentException("Quote and delimiter characters must differ.", nameof(value));
-        return new(source, options with { Quote = value });
+        return Configure(options with { Quote = value });
     }
 
-    public CsvSource<T> WithBomDetection(bool enabled = true) => new(source, options with { DetectBom = enabled });
-    public CsvSource<T> WithFieldTrimming(bool enabled = true) => new(source, options with { TrimFields = enabled });
-    public CsvSource<T> WithHeaderTrimming(bool enabled = true) => new(source, options with { TrimHeaders = enabled });
-    public CsvSource<T> WithBlankLineSkipping(bool enabled = true) => new(source, options with { SkipBlankLines = enabled });
+    public virtual CsvSource<T> WithBomDetection(bool enabled = true) => Configure(options with { DetectBom = enabled });
+    public virtual CsvSource<T> WithFieldTrimming(bool enabled = true) => Configure(options with { TrimFields = enabled });
+    public virtual CsvSource<T> WithHeaderTrimming(bool enabled = true) => Configure(options with { TrimHeaders = enabled });
+    public virtual CsvSource<T> WithBlankLineSkipping(bool enabled = true) => Configure(options with { SkipBlankLines = enabled });
 
-    public CsvSource<T> WithBufferSize(int size)
+    public virtual CsvSource<T> WithBufferSize(int size)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(size);
-        return new(source, options with { BufferSize = size });
+        return Configure(options with { BufferSize = size });
     }
 
-    public CsvSource<T> WithMaxFieldLength(int? length)
+    public virtual CsvSource<T> WithMaxFieldLength(int? length)
     {
         if (length < 0) throw new ArgumentOutOfRangeException(nameof(length));
-        return new(source, options with { MaxFieldLength = length });
+        return Configure(options with { MaxFieldLength = length });
     }
 
-    public CsvSource<T> WithMaxRecordLength(int? length)
+    public virtual CsvSource<T> WithMaxRecordLength(int? length)
     {
         if (length < 0) throw new ArgumentOutOfRangeException(nameof(length));
-        return new(source, options with { MaxRecordLength = length });
+        return Configure(options with { MaxRecordLength = length });
     }
 
     public IEnumerable<T> AsEnumerable() => this;

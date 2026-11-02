@@ -23,6 +23,8 @@
 - Identify and consult the authoritative edition before claiming conformance; do not invent standard rules.
 - Keep API examples aligned with implementation and identify planned APIs as proposals.
 - Review documentation alongside implementation changes.
+- After all CSV-writing stages, review the main README and NuGet package information as introductions: explain why to use the library, its capabilities, installation, quick examples, and links to detailed guides. This final review is an explicit user requirement.
+- The introductory review is implemented: one root README now serves GitHub and NuGet, with absolute documentation links. Package validation requires exact equality and executes all five C# blocks externally; QuickStartSample and drift checks cover repository examples. Do not reintroduce a separate package introduction that can drift.
 
 ## Unresolved
 - Specialized STE review tooling and release certification, if any. The official Issue 9 PDF was consulted for writing rules and dictionary usage during phase 1. Human documentation uses short sentences, active voice, and a technical glossary. Runnable README snippets are checked against the sample by a test. No certification is claimed.
