@@ -14,6 +14,7 @@ Prefer Rider MCP for suitable project, file, analysis, build, and test operation
 
 Do all future work on feature branches and merge through pull requests into main. Successful main CI runs publish prototype prerelease packages to nuget.org; branch and pull-request runs validate only. See docs/spec/release.md for versioning and publishing setup.
 All merges to main require human approval. Open pull requests for review; never merge them or enable automatic merging yourself.
+Finish work with a clean Git worktree: commit all repository changes, including agent/spec notes, and verify git status before handing work back. Keep separate topics in separate commits; never discard user changes to obtain a clean status.
 
 Keep this index small. Maintain the topic files as decisions change. Separate confirmed requirements from proposals and future objectives; assistant suggestions are not user decisions.
 
