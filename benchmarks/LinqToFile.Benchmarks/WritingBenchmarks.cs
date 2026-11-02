@@ -132,11 +132,11 @@ internal static class WritingBenchmarks
                         DeleteTarget, () => asynchronous ? file.CreateAsync(AsyncRows(newRow, count)) : new(file.Create(Rows(newRow, count))),
                         count, () => Verify(0, count, 0));
                     await Measure(name + "-append-" + mode + "-" + execution, count, oldCount, oldLength, (long)newBytes.Length * count,
-                        Reset, () => asynchronous ? file.AppendRangeAsync(AsyncRows(newRow, count)) : new(file.AppendRange(Rows(newRow, count))),
+                        AppendReset(), () => asynchronous ? file.AppendRangeAsync(AsyncRows(newRow, count)) : new(file.AppendRange(Rows(newRow, count))),
                         count, () => Verify(oldCount, count, 0));
                     var quick = file.WithAppendValidation(false);
                     await Measure(name + "-quick-append-" + mode + "-" + execution, count, oldCount, oldLength, (long)newBytes.Length * count,
-                        Reset, () => asynchronous ? quick.AppendRangeAsync(AsyncRows(newRow, count)) : new(quick.AppendRange(Rows(newRow, count))),
+                        AppendReset(), () => asynchronous ? quick.AppendRangeAsync(AsyncRows(newRow, count)) : new(quick.AppendRange(Rows(newRow, count))),
                         count, () => Verify(oldCount, count, 0));
                     await Measure(name + "-insert-" + mode + "-" + execution, count, oldCount, oldLength, (long)newBytes.Length * count,
                         Reset, () => asynchronous ? file.InsertRangeAsync(middle, AsyncRows(newRow, count)) : new(file.InsertRange(middle, Rows(newRow, count))),
@@ -145,7 +145,7 @@ internal static class WritingBenchmarks
                 int shortCount = Math.Min(count, 100);
                 var shortFile = TabularFile.Csv<T>(target).WithInPlaceWrites().WithAppendValidation(false);
                 await Measure(name + "-short-single-" + execution, shortCount, oldCount, oldLength, (long)newBytes.Length * shortCount,
-                    Reset, async () =>
+                    AppendReset(), async () =>
                     {
                         long written = 0;
                         for (int i = 0; i < shortCount; i++)
@@ -153,7 +153,7 @@ internal static class WritingBenchmarks
                         return written;
                     }, shortCount, () => Verify(oldCount, shortCount, 0));
                 await Measure(name + "-short-range-" + execution, shortCount, oldCount, oldLength, (long)newBytes.Length * shortCount,
-                    Reset, () => asynchronous ? shortFile.AppendRangeAsync(AsyncRows(newRow, shortCount)) : new(shortFile.AppendRange(Rows(newRow, shortCount))),
+                    AppendReset(), () => asynchronous ? shortFile.AppendRangeAsync(AsyncRows(newRow, shortCount)) : new(shortFile.AppendRange(Rows(newRow, shortCount))),
                     shortCount, () => Verify(oldCount, shortCount, 0));
             }
             if (filter is null)
@@ -194,6 +194,21 @@ internal static class WritingBenchmarks
             }
 
             void Reset() => File.Copy(template, target, overwrite: true);
+            Action AppendReset()
+            {
+                bool initial = true;
+                return () =>
+                {
+                    if (initial) { Reset(); initial = false; }
+                    else
+                    {
+                        // Append preserves the old prefix. Restore that verified fixture by
+                        // truncating added bytes instead of copying megabytes per warmup.
+                        using var stream = new FileStream(target, FileMode.Open, FileAccess.Write);
+                        stream.SetLength(oldLength);
+                    }
+                };
+            }
             void DeleteTarget() => File.Delete(target);
             void Verify(int before, int added, int after)
             {
@@ -222,8 +237,9 @@ internal static class WritingBenchmarks
                 reset(); long start = Stopwatch.GetTimestamp(); long actual = await action();
                 workSeconds += Stopwatch.GetElapsedTime(start).TotalSeconds;
                 if (actual != expected) throw new InvalidOperationException("Warmup result failed: " + name);
-                verify(); warmups++;
+                warmups++;
             } while (warmups < 5 || workSeconds < 1);
+            verify();
             var samples = new List<object>(); var times = new List<double>(); var allocations = new List<long>();
             for (int i = 0; i < iterations; i++)
             {

@@ -1,7 +1,7 @@
 # CSV writing stage 4 validation
 
 Date: 2026-11-02. Branch: feature/row-writing-plan.
-Local checks are complete; hosted matrix verification is pending the feature-branch push.
+Local checks and hosted Windows/Linux/macOS verification are complete for commit 2214df5 in [run 41468149136](https://github.com/dziegelbauer/LinqToFile/actions/runs/41468149136).
 Do not merge: the user requires human approval for every merge to main.
 
 ## Measurements and tuning
@@ -13,6 +13,7 @@ input and I/O, both write modes, and 100 single-row calls versus one range. New 
 library costs. Resetting fixtures and exact output-byte verification are outside timed/allocation intervals.
 
 Every case warms for at least five scans and one accumulated second of measured work, then records five samples.
+Each warmup checks the operation result; byte verification follows warmup and every measured sample.
 Numeric formatting receives an initial three-second warmup. Process-wide precise allocation counters include
 async continuations. Run one benchmark process at a time, outside a debugger. Timing is informational, not a CI gate.
 
@@ -43,6 +44,7 @@ Raw independent process reports:
 - [Scale run](measurements/writing-stage4-scale-macos-arm64.json): 81 cases, 50,000 new and 1,000,000 old numeric rows.
 - [Single calls versus ranges](measurements/writing-stage4-batches-macos-arm64.json): 12 cases.
 - [One-character read buffers](measurements/writing-stage4-tiny-macos-arm64.json): 6 scan cases.
+- [Final short-batch harness check](measurements/writing-stage4-final-batches-macos-arm64.json): 12 cases after reducing fixture overhead.
 
 The final harness adds the 12 short-batch comparisons to its default matrix (93 cases).
 It also reports expected peak staged-result bytes separately from observed temporary-file snapshots.
@@ -101,7 +103,14 @@ memory, range batching, and write-mode costs without implementation history. Fut
 
 CI now records the 93-case writing report and retains it with each platform's validation artifacts.
 All Windows/Linux/macOS jobs still gate main-only NuGet publication; feature branches and pull requests validate only.
-The feature branch will be committed/pushed for matrix execution, then a pull request opened for human review.
-Record actual run URLs/results after completion. Do not claim hosted success before it occurs or merge the PR.
+The feature branch was committed/pushed as 2214df5. [Run 41468149136](https://github.com/dziegelbauer/LinqToFile/actions/runs/41468149136) passed prepare and all three validation jobs; publication was correctly skipped.
+All three jobs passed 1,025 tests, project/package Native AOT, clean package consumption, and the 93-case writing report.
+Retrieved platform reports show numeric formatting at zero allocation; direct numeric insertion uses 193,384 B on Linux/macOS and 193,392 B on Windows in this corpus.
+
+The first Linux writing run took about eleven minutes because cheap actions repeatedly paid untimed full fixture copying and verification.
+The final harness verifies bytes after warmup and every measured sample, retains the same five-scan/one-work-second warmup,
+and resets append-only fixtures by truncating the unchanged prefix after their first copy. This affects excluded setup/verification;
+it does not remove checks from measured samples or alter runtime library code. A completed 12-case final batch check verifies the change locally.
+Final documentation/benchmark follow-up receives ordinary feature/PR checks. The pull request requires human review and merge.
 
 Keep the pre-existing docs/spec/release.md publication-verification note outside the writing commit.

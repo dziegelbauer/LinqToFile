@@ -80,7 +80,7 @@
 ## Engineering checks and remaining work
 - Stage 2 probe found an encoding contract question. A valid ISO-2022-JP CSV ending in Japanese shift state reads correctly, but appending a fresh encoder's newline/row causes strict decoding failure. A final ASCII-reset sequence is optional in existing input. The ignored BCL probe lives in artifacts/append-probes; it uses CodePagesEncodingProvider explicitly in the probe only. The runtime library has not registered a provider or changed encoding support.
 - Confirmed by the user: initially permit append for UTF-8/16/32 and stateless single-byte encodings; reject stateful/unsupported encodings before mutation while preserving their existing reading/creation support. Do not scan the whole file in quick mode or claim generic encoder continuation is safe.
-- See [implementation plan](writing-plan.md) for sequencing and acceptance checks. Stages 1–3 are implemented; performance/release validation remains stage 4.
+- See [implementation plan](writing-plan.md) for sequencing and acceptance checks. All four stages are complete, with cross-platform results recorded in [stage 4 validation](history/validation-writing-stage4.md). Subsequent changes follow the ordinary PR checks and human-approval policy.
 - Verify byte-preserving record boundaries for supported encodings, including BOMs, multibyte sequences, CRLF, and EOF. Investigate stateful/custom encoding constraints before promising support or narrowing the agreed WithEncoding behavior.
 - Verify the bounded-memory, single-enumeration in-place insertion algorithm and cancellation cutoff. Do not solve unknown input size with whole-input buffering or a hidden temporary file.
 - Probe same-directory replacement/non-overwriting publication across the platform matrix; document permissions, metadata, links/aliases, open readers, and unsupported filesystem behavior accurately.
@@ -90,6 +90,6 @@
 - Buffer sizes, pooling, path-registry lifetime, and cleanup mechanics are engineering choices guided by measurements. Stop and ask if a probe exposes a required public behavior change.
 
 ## Scope boundaries
-- Stages 1–3 implement CSV path creation, append, and insertion. Stage 4 remains.
+- All four stages are complete for CSV path creation, append, and insertion. All merges to main require human approval.
 - Updates, deletes, general entity tracking, and transactional behavior require separate decisions.
 - Keep unimplemented work on the public roadmap; publish usage documentation only when behavior exists.

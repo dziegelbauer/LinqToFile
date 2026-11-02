@@ -9,6 +9,7 @@
 - The writing harness isolates formatting, input enumeration, validation, byte-offset scans, copying, rotation, and end-to-end operations. Its 93-case matrix includes both mutation modes and execution styles plus single-call/range comparisons. Timings are informational.
 - Five local reports cover baseline/tuning, one-million-row scale, tiny read buffers, retained heap/temporary snapshots, and short batches. The UTF-8 ASCII byte-position path improves measured scan time without changing fallback/offset semantics. Keep current buffer sizes and movement blocks; no further pooling changes are justified.
 - Numeric formatting allocates no per-row storage for a reused model; old-row scan and new-row allocation guards pass. Async I/O allocations are reported separately from retained heap. See [stage 4 validation](history/validation-writing-stage4.md) for scope, raw reports, caveats, and hosted acceptance.
+- Hosted run 41468149136 at 2214df5 passed all three platform jobs, including the 93 writing cases. Final benchmark setup truncates append-only fixtures after the initial copy and verifies bytes after warmup/every measured sample to avoid untimed reset work dominating CI wall time.
 
 ## XLSX stage 3
 - Added an XLSX benchmark mode for numeric, inline/repeated/unique string, large-cell, disk-spill, non-seekable, and first-record workloads. Heap probes and logical temporary lengths are separate from process-wide allocation counts.

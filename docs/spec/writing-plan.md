@@ -1,9 +1,9 @@
 # CSV writing implementation plan
 
-Status: stages 1–3 are complete locally for the confirmed contracts in [writing.md](writing.md).
-All 1,024 tests and project/package/clean-consumer JIT and Native AOT checks pass on macOS arm64.
-Hosted Windows/Linux/macOS checks remain pending CI. See [stage 1 validation](history/validation-writing-stage1.md), [stage 2 validation](history/validation-writing-stage2.md), and [stage 3 validation](history/validation-writing-stage3.md).
-Stage 4 remains. Work remains on feature/row-writing-plan.
+Status: all four stages are complete for the confirmed contracts in [writing.md](writing.md).
+All 1,025 tests, project/package Native AOT, clean consumers, and the 93-case writing matrix pass on Windows x64, Linux x64, and macOS arm64 in [run 41468149136](https://github.com/dziegelbauer/LinqToFile/actions/runs/41468149136) for commit 2214df5.
+See [stage 1](history/validation-writing-stage1.md), [stage 2](history/validation-writing-stage2.md), [stage 3](history/validation-writing-stage3.md), and [stage 4 validation](history/validation-writing-stage4.md).
+The feature branch is committed/pushed; final documentation/benchmark-harness follow-up receives the normal PR checks. Main merges remain human-approved only.
 Keep unrelated publication-verification notes separate when committing implementation work.
 
 ## 1. Serialization, path API, and creation
@@ -52,7 +52,7 @@ Extend the cross-assembly and package samples to exercise both insertion modes.
 
 ## 4. Performance and release validation
 
-Stage 4 is authorized and in progress. After completion, the user requires committing/pushing the feature branch and opening a pull request to main. All merges require human approval; the agent must not merge or enable automatic merging.
+Stage 4 is complete. The user requires a pull request to main after committing/pushing. All merges require human approval; the agent must not merge or enable automatic merging.
 
 Measure creation, validated/quick append, and positional insertion with both mutation modes and sync/async execution.
 Separate new-row formatting allocation, input enumeration, existing-file scan/copy costs, suffix movement, retained buffers, and temporary disk use.
