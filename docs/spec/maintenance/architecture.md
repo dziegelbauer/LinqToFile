@@ -28,8 +28,18 @@ The single consumer package includes the generator without runtime package depen
 | `Mapping` | Model attributes and the static mapping interface |
 | `Infrastructure` | Generated mapper contract and reusable `TabularRow` |
 | `Errors` | Shared exception types |
+| `Writing` | Shared scalar encoding and process-local write guards |
 
 The public entry point remains `TabularFile`.
+CSV path sources return `CsvFile<T>`, a `CsvSource<T>` subclass with covariant fluent options, creation, append, and insertion.
+Insertion adds original-byte offsets through PositionedTextReader while retaining the shared CSV parser and schema binder.
+Temporary insertion copies prefix/new rows/suffix; in-place insertion appends the new block and rotates it before the suffix with bounded buffers.
+IWriteFileSystem is an internal physical-I/O seam for deterministic mutation fault tests, not a public provider API.
+Append shares schema/parser validation, binds generated fields in existing header order, and copies old bytes without conversion in temporary mode.
+The shared writing layer provides input cursors, cancellation forwarding, staged-file permissions, encoding, and process-local guards.
+Stream/factory sources remain read-only. The generated `WriteField` contract formats one scalar into reusable `TabularValue` storage.
+CSV escaping and record limits belong to `Formats/Csv`; encoding and process-local mutation guards belong to `Writing`.
+Older or hand-authored mappers retain read compatibility through default virtual write members, but require regeneration or explicit implementation for writing.
 Public CSV and XLSX source and exception namespaces remain `LinqToFile`.
 Folders separate responsibilities without a separate package for each layer.
 

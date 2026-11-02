@@ -178,6 +178,7 @@ public sealed class RecordGenerator : IIncrementalGenerator
             source.Append(readers[i]).AppendLine(",");
         }
         source.AppendLine("};");
+        EmitWriter(source, model, modelName, properties, nullable, enums);
         foreach (var item in enums) EmitEnum(source, item.Key, item.Value);
         source.AppendLine("} }");
 
@@ -209,6 +210,79 @@ public sealed class RecordGenerator : IIncrementalGenerator
         for (var current = derived.OverriddenProperty; current != null; current = current.OverriddenProperty)
             if (SymbolEqualityComparer.Default.Equals(current, ancestor)) return true;
         return false;
+    }
+
+    private static bool CanReadProperty(IPropertySymbol property, INamedTypeSymbol model)
+    {
+        var getter = property.GetMethod;
+        return getter != null && (getter.DeclaredAccessibility == Accessibility.Public ||
+            (SymbolEqualityComparer.Default.Equals(getter.ContainingAssembly, model.ContainingAssembly) &&
+             (getter.DeclaredAccessibility == Accessibility.Internal || getter.DeclaredAccessibility == Accessibility.ProtectedOrInternal)));
+    }
+
+    private static void EmitWriter(StringBuilder source, INamedTypeSymbol model, string modelName,
+        List<IPropertySymbol> properties, List<bool> nullable, List<KeyValuePair<int, INamedTypeSymbol>> enums)
+    {
+        int unreadable = properties.FindIndex(p => !CanReadProperty(p, model));
+        source.Append("public override bool CanWrite => ").Append(unreadable < 0 ? "true" : "false").AppendLine(";");
+        source.Append("public override int UnreadableMemberIndex => ").Append(unreadable).AppendLine(";");
+        source.Append("public override void WriteField(").Append(modelName)
+            .AppendLine(" record, int ordinal, global::LinqToFile.Infrastructure.TabularValue value) {");
+        source.AppendLine("switch (ordinal) {");
+        for (int i = 0; i < properties.Count; i++)
+        {
+            source.Append("case ").Append(i).AppendLine(": {");
+            if (!CanReadProperty(properties[i], model))
+            {
+                source.AppendLine("throw new global::System.NotSupportedException(); }");
+                continue;
+            }
+            source.Append("var field = record.@").Append(properties[i].Name).AppendLine(";");
+            if (nullable[i]) source.AppendLine("if (!field.HasValue) { value.SetText(null); return; }");
+            string field = nullable[i] ? "field.Value" : "field";
+            ITypeSymbol type = nullable[i] ? ((INamedTypeSymbol)properties[i].Type).TypeArguments[0] : properties[i].Type;
+            if (type.TypeKind == TypeKind.Enum)
+                source.Append("WriteEnum_").Append(i).Append("(").Append(field).AppendLine(", value);");
+            else if (type.SpecialType == SpecialType.System_String)
+                source.Append("value.SetText(").Append(field).AppendLine(");");
+            else
+            {
+                bool number = ReadExpression(type, i, "")!.Contains("ReadNumber<") || type.SpecialType == SpecialType.System_Decimal;
+                bool floating = type.SpecialType == SpecialType.System_Single || type.SpecialType == SpecialType.System_Double || type.ToDisplayString() == "System.Half";
+                source.Append(number ? "value.SetNumber(" : "value.Set(").Append(field);
+                if (floating) source.Append(", \"R\"");
+                source.AppendLine(");");
+            }
+            source.AppendLine("return; }");
+        }
+        source.AppendLine("default: throw new global::System.ArgumentOutOfRangeException(nameof(ordinal)); } }");
+        foreach (var item in enums)
+        {
+            string name = item.Value.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            var fields = item.Value.GetMembers().OfType<IFieldSymbol>().Where(f => f.HasConstantValue)
+                .OrderBy(f => f.Name, StringComparer.Ordinal).ToArray();
+            bool flags = item.Value.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == "System.FlagsAttribute");
+            source.Append("private static void WriteEnum_").Append(item.Key).Append("(").Append(name)
+                .AppendLine(" field, global::LinqToFile.Infrastructure.TabularValue value) {");
+            foreach (var f in fields)
+                source.Append("if (field == ").Append(EnumConstant(name, f))
+                    .Append(") { value.SetText(").Append(Literal(f.Name)).AppendLine("); return; }");
+            if (flags)
+            {
+                source.Append(name).AppendLine(" covered = default;");
+                foreach (var f in fields)
+                {
+                    string constant = EnumConstant(name, f);
+                    source.Append("if (").Append(constant).Append(" != 0 && (field & ").Append(constant).Append(") == ")
+                        .Append(constant).Append(" && (covered | ").Append(constant).AppendLine(") != covered) {");
+                    source.AppendLine("if (covered != 0) value.AppendText(\", \");");
+                    source.Append("value.AppendText(").Append(Literal(f.Name)).AppendLine(");");
+                    source.Append("covered |= ").Append(constant).AppendLine("; }");
+                }
+                source.AppendLine("if (covered != 0 && covered == field) return;");
+            }
+            source.AppendLine("throw new global::System.FormatException(); }");
+        }
     }
 
     private static string? ReadExpression(ITypeSymbol type, int index, string member)
@@ -299,6 +373,9 @@ public sealed class RecordGenerator : IIncrementalGenerator
         source.AppendLine("value = default; return false;");
         source.AppendLine("}");
     }
+
+    private static string EnumConstant(string type, IFieldSymbol field) =>
+        "unchecked((" + type + ")(" + Convert.ToString(field.ConstantValue, CultureInfo.InvariantCulture) + "))";
 
     private static string Literal(string value) => SymbolDisplay.FormatLiteral(value, true);
 }

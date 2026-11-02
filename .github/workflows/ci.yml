@@ -83,6 +83,8 @@ jobs:
         run: dotnet run --project benchmarks/LinqToFile.Benchmarks -c Release --no-build --no-restore -- --output artifacts/benchmarks.json
       - name: Record XLSX performance measurements
         run: dotnet run --project benchmarks/LinqToFile.Benchmarks -c Release --no-build --no-restore -- --xlsx --rows 50000 --iterations 5 --output artifacts/xlsx-benchmarks.json
+      - name: Record CSV writing performance measurements
+        run: dotnet run --project benchmarks/LinqToFile.Benchmarks -c Release --no-build --no-restore -- --writing --rows 10000 --existing-rows 100000 --iterations 5 --output artifacts/writing-benchmarks.json
       - name: Retain validated NuGet package
         if: matrix.rid == 'linux-x64'
         uses: actions/upload-artifact@v7
@@ -100,6 +102,7 @@ jobs:
             artifacts/tests
             artifacts/benchmarks.json
             artifacts/xlsx-benchmarks.json
+            artifacts/writing-benchmarks.json
           if-no-files-found: warn
 
   publish:

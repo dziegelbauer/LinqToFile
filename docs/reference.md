@@ -12,6 +12,8 @@ C# record declarations are not supported.
 
 The model must have a public parameterless constructor.
 Properties can have a public setter or a public init accessor.
+CSV writing also requires an accessible getter on each mapped property.
+See [CSV writing](csv-writing.md) for write methods, options, and error rules.
 The generator assigns required properties in an object initializer.
 An ignored required property or a required field causes a compiler error.
 
@@ -44,7 +46,7 @@ Public fields are not mapped.
 
 | Method | Effect |
 |---|---|
-| `TabularFile.Csv<T>(path)` | Makes a deferred file source |
+| `TabularFile.Csv<T>(path)` | Returns a `CsvFile<T>` for deferred reading, creation, append, and insertion |
 | `TabularFile.Csv<T>(stream, leaveOpen)` | Uses a supplied stream once |
 | `TabularFile.Csv<T>(factory)` | Opens a fresh stream for each enumeration |
 | `TabularFile.CsvAsync<T>(factory)` | Opens streams through an async factory |

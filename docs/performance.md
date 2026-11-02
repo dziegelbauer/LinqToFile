@@ -31,6 +31,36 @@ Both limits are unlimited by default.
 They apply before trimming and include unmapped columns.
 See the [CSV guide](csv-and-errors.md) for counting rules.
 
+## CSV writing costs
+
+Creation and range writes consume input once.
+Use range methods for a batch of rows so the rows share validation, file setup, and buffers.
+Repeated single-row calls repeat that preparation.
+The library retains active formatting, encoding, and I/O buffers rather than all input rows.
+Large fields can grow the active record buffer.
+Your input sequence can retain its own data separately.
+
+Default append and insertion prepare a complete result in a temporary file beside the destination.
+Allow space for that result while the original remains present.
+Append validates old syntax and widths, then copies the original bytes.
+Insertion also locates the selected logical record and copies the prefix and suffix.
+
+`WithInPlaceWrites()` avoids the complete temporary copy.
+In-place insertion still needs space for the added rows and moves the suffix with bounded buffers.
+It can perform substantial I/O when the suffix is large.
+Input or I/O failures can leave partial changes.
+
+`WithAppendValidation(false)` skips old-data validation for append only.
+In default write mode, quick append still copies the whole original file.
+Combine it with in-place writes to avoid both the full scan and copy.
+Insertion always performs full validation.
+
+Numeric and scalar formatting uses reusable storage.
+Async I/O and your input iterator can still allocate operation objects.
+Async methods support application responsiveness and cancellation before mutation; they do not promise greater throughput.
+Measure with your data and storage before selecting a write mode.
+See [CSV writing](csv-writing.md) for failure, cancellation, and encoding rules.
+
 ## XLSX startup
 
 XLSX reading has setup work before the first record is returned:

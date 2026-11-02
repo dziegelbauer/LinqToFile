@@ -10,6 +10,11 @@ Priority and design can change.
 - Read headerless CSV files.
 - Extend workbook support to legacy `.xls`, binary `.xlsb`, and encrypted workbooks.
 
+## Writing
+
+- Extend writing to XLSX workbooks.
+- Support writable streams and stream factories as write destinations.
+
 ## Conversion and error handling
 
 - Add custom converters and per-column converter annotations.

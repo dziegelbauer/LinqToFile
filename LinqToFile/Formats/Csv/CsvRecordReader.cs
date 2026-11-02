@@ -3,10 +3,15 @@ using LinqToFile.Reading;
 
 namespace LinqToFile.Formats.Csv;
 
-internal sealed class CsvRecordReader(StreamReader reader, CsvOptions options) : IRecordReader
+internal sealed class CsvRecordReader(TextReader reader, CsvOptions options, System.Text.Encoding? encoding = null) : IRecordReader
 {
     private readonly CsvParser parser = new(reader, options);
     public TabularRow Row => parser.Record;
+    internal System.Text.Encoding Encoding => reader is StreamReader streamReader ? streamReader.CurrentEncoding : encoding!;
+    internal long RecordByteOffset => parser.RecordByteOffset;
+    internal bool EndsWithTerminator => parser.EndsWithTerminator;
+    internal LineEnding? ReadRecordEnding() => parser.ReadRecordEnding();
+    internal ValueTask<LineEnding?> ReadRecordEndingAsync(CancellationToken token) => parser.ReadRecordEndingAsync(token);
     public bool Read() => parser.Read();
     public ValueTask<bool> ReadAsync(CancellationToken cancellationToken) => parser.ReadAsync(cancellationToken);
 

@@ -8,7 +8,7 @@
 - Support every platform supported by the target .NET runtime.
 - Production library dependencies: BCL only.
 - Distribute one consumer NuGet package containing the BCL-only runtime and build-time source generator; no separate generator installation or manual registration is required.
-- Initial library is read-only. File writing and change tracking are outside first-release scope.
+- CSV path sources support creation, append, and positional insertion with long logical indexes, synchronous/asynchronous ranges, validated/quick append, and both temporary-file and bounded-memory in-place modes. Insertion always fully validates existing syntax and widths. See writing.md and writing-plan.md. Change tracking, updates, and deletes remain outside the approved scope.
 - Release license: Apache License 2.0 (SPDX identifier Apache-2.0).
 - Source-generator tooling may use compiler dependencies separately from the runtime library.
 - Development-only tests and benchmarks may use external packages.

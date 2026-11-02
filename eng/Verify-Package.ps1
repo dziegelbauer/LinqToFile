@@ -40,7 +40,8 @@ try {
     $reader = [System.IO.StreamReader]::new($archive.GetEntry('README.md').Open())
     try { $readme = $reader.ReadToEnd() } finally { $reader.Dispose() }
     $examples = [regex]::Matches($readme, '(?s)```csharp\r?\n(.*?)```')
-    if ($examples.Count -ne 2) { throw 'Expected a model and query example in the package README.' }
+    if ($examples.Count -ne 5) { throw 'Expected a model and four runnable API examples in the package README.' }
+    if ($readme -cne [System.IO.File]::ReadAllText((Join-Path $repository 'README.md'))) { throw 'The package README differs from the main introduction.' }
 } finally { $archive.Dispose() }
 
 # Use an external directory and a fresh cache: no repository build imports or cached package.
@@ -57,14 +58,14 @@ try {
   <ItemGroup><PackageReference Include="LinqToFile" Version="$version" /></ItemGroup>
 </Project>
 "@ | Set-Content (Join-Path $models 'Models.csproj')
-    ("namespace ConsumerModels;`n" + $examples[0].Groups[1].Value) | Set-Content (Join-Path $models 'Person.cs')
+    $examples[0].Groups[1].Value.Replace('namespace SampleModels;', 'namespace ConsumerModels;') | Set-Content (Join-Path $models 'Person.cs')
     # Compile the XLSX models in the external model assembly with the packaged generator.
-    foreach ($name in @('WorkbookEntry', 'WorkbookCells')) {
+    foreach ($name in @('WorkbookEntry', 'WorkbookCells', 'ScalarRecord')) {
         $model = [System.IO.File]::ReadAllText((Join-Path $repository "samples/Models/$name.cs"))
         ("using System;`n" + $model.Replace('namespace SampleModels;', 'namespace ConsumerModels;')) |
             Set-Content (Join-Path $models "$name.cs")
     }
-    foreach ($name in @('WorkbookSample', 'WorkbookCellsSample', 'WorkbookAsyncSample')) {
+    foreach ($name in @('WorkbookSample', 'WorkbookCellsSample', 'WorkbookAsyncSample', 'CsvWritingSample', 'QuickStartSample')) {
         $sample = [System.IO.File]::ReadAllText((Join-Path $repository "samples/NativeAot/$name.cs"))
         $sample.Replace('using SampleModels;', 'using ConsumerModels;') | Set-Content (Join-Path $app "$name.cs")
     }
@@ -78,7 +79,7 @@ try {
 using System.Text;
 using ConsumerModels;
 using LinqToFile;
-byte[] bytes = Encoding.Unicode.GetBytes("person_id,Name\n42,Ada\n7,Grace\n");
+byte[] bytes = Encoding.Unicode.GetBytes("person_id,full_name,Age,Balance\n42,Ada,36,12.50\n7,Grace,17,\n");
 var source = TabularFile.Csv<Person>(() => new MemoryStream(bytes)).WithEncoding(Encoding.Unicode);
 var rows = source.ToArray();
 if (rows.Length != 2 || rows.Sum(row => row.Id) != 49 || rows[0].Name != "Ada")
@@ -89,14 +90,21 @@ if (dictionary.Count != 2 || dictionary[7].Name != "Grace")
 int count = 0;
 await foreach (var row in source.AsAsyncEnumerable().Where(row => row.Id > 10)) count++;
 if (count != 1) throw new InvalidOperationException("Async LINQ consumer failed.");
-File.WriteAllText("people.csv", "person_id,Name\n1,Ada\n2,Grace\n");
+string path = "people.csv", outputPath = "new-people.csv", workbookPath = "people.xlsx";
+File.WriteAllText(path, "person_id,full_name,Age,Balance\n1,Ada,36,12.50\n2,Grace,17,\n");
+File.Delete(outputPath);
+QuickStartSample.CreateWorkbook(workbookPath);
 '@
-    $program += "`n" + $examples[1].Groups[1].Value
+    foreach ($example in @($examples | Select-Object -Skip 1)) { $program += "`n" + $example.Groups[1].Value }
     $program += @'
 
-if (people.Count != 2 || people[0].Name != "Ada") throw new InvalidOperationException("README query failed.");
+if (adults.Count != 1 || adults[0].Name != "Ada" || peopleById.Count != 2 ||
+    !file.Select(person => person.Id).SequenceEqual(new[] { 1, 3, 2 }) ||
+    workbookAdults.Count != 1 || workbookAdults[0].Name != "Ada")
+    throw new InvalidOperationException("README examples failed.");
 WorkbookSample.Run();
 await WorkbookAsyncSample.RunAsync();
+await CsvWritingSample.RunAsync();
 Console.WriteLine("Clean package consumer passed: README, CSV/XLSX sync/async, non-seekable input, and cross-assembly mapping.");
 '@
     $program | Set-Content (Join-Path $app 'Program.cs')

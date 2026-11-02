@@ -84,6 +84,73 @@ public sealed class GeneratorTests
         Assert.Contains(output.GetDiagnostics(), d => d.Id == "CS0311");
     }
 
+    [Theory]
+    [InlineData("public int Value { set {} }", false)]
+    [InlineData("public int Value { private get; set; }", false)]
+    [InlineData("public int Value { internal get; set; }", true)]
+    [InlineData("public int Value { get; init; }", true)]
+    public void PreservesReadModelsAndGeneratesOnlyAccessibleGetters(string property, bool writable)
+    {
+        var (result, output) = Generate("using LinqToFile; [TabularRecord] public partial class Model { " + property + " }");
+        Assert.Empty(result.Diagnostics);
+        Assert.DoesNotContain(output.GetDiagnostics(), d => d.Severity == DiagnosticSeverity.Error);
+        string code = Assert.Single(result.GeneratedTrees).GetText().ToString();
+        Assert.Contains("CanWrite => " + (writable ? "true" : "false"), code);
+        Assert.Equal(writable, code.Contains("record.@Value", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void PathFluentOptionsPreserveWriteTypeAndGenericReadHelpers()
+    {
+        var (result, output) = Generate("""
+            using LinqToFile;
+            using System;
+            using System.Text;
+            using System.Globalization;
+            [TabularRecord] public partial class Model { public int Value { get; init; } }
+            public static class Query {
+                public static CsvSource<T> Read<T>(string path) where T : class, ITabularRecord<T> => TabularFile.Csv<T>(path);
+                public static CsvFile<Model> Configure(string path) => TabularFile.Csv<Model>(path)
+                    .WithEncoding(Encoding.UTF8).WithCulture(CultureInfo.InvariantCulture)
+                    .WithHeaderComparison(StringComparer.OrdinalIgnoreCase).WithDelimiter(';').WithQuote('\'')
+                    .WithFieldTrimming().WithHeaderTrimming().WithBlankLineSkipping().WithBomDetection()
+                    .WithBufferSize(3).WithMaxFieldLength(100).WithMaxRecordLength(200)
+                    .WithNewLine(LineEnding.CrLf).WithInPlaceWrites().WithAppendValidation(false);
+            }
+            """);
+        Assert.Empty(result.Diagnostics);
+        Assert.DoesNotContain(output.GetDiagnostics(), d => d.Severity == DiagnosticSeverity.Error);
+    }
+
+    [Theory]
+    [InlineData("TabularFile.Csv<Model>(stream)")]
+    [InlineData("TabularFile.Csv<Model>(() => stream)")]
+    [InlineData("TabularFile.CsvAsync<Model>(_ => System.Threading.Tasks.ValueTask.FromResult(stream))")]
+    public void StreamSourcesCannotCompileCreationCalls(string source)
+    {
+        var (_, output) = Generate("using LinqToFile; using System.IO; [TabularRecord] public partial class Model { public int Value { get; init; } } " +
+            "public static class Query { public static void Write(Stream stream) => " + source + ".WithBufferSize(3).Create(); }");
+        Assert.Contains(output.GetDiagnostics(), d => d.Severity == DiagnosticSeverity.Error &&
+            (d.Id == "CS1061" || d.Id == "CS1501") && d.GetMessage().Contains("Create", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EnumWritersDoNotReferenceObsoleteConstantsOrUseRuntimeEnumFormatting()
+    {
+        var (result, output) = Generate("""
+            using LinqToFile;
+            using System;
+            [Flags] public enum Choice : long { [Obsolete("old", true)] Old = -1, New = 1 }
+            [TabularRecord] public partial class Model { public Choice Value { get; init; } }
+            """);
+        Assert.Empty(result.Diagnostics);
+        Assert.DoesNotContain(output.GetDiagnostics(), d => d.Severity == DiagnosticSeverity.Error);
+        var code = Assert.Single(result.GeneratedTrees).GetText().ToString();
+        Assert.DoesNotContain("Enum.", code);
+        Assert.DoesNotContain(".ToString(", code);
+        Assert.DoesNotContain("Choice.@Old", code);
+    }
+
     [Fact]
     public void SupportsPublicNestedPartialModels()
     {

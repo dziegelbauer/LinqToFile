@@ -9,6 +9,14 @@ internal sealed class CsvParser
     private readonly BufferedCharReader reader;
     private readonly CsvOptions options;
     internal TabularRow Record { get; }
+    internal long RecordByteOffset { get; private set; }
+    internal bool EndsWithTerminator { get; private set; }
+    private LineEnding? recordEnding;
+    internal LineEnding? ReadRecordEnding() => recordEnding == LineEnding.Cr && reader.Peek() == '\n'
+        ? LineEnding.CrLf : recordEnding;
+    internal async ValueTask<LineEnding?> ReadRecordEndingAsync(CancellationToken token) =>
+        recordEnding == LineEnding.Cr && await reader.PeekAsync(token).ConfigureAwait(false) == '\n'
+            ? LineEnding.CrLf : recordEnding;
     private long line = 1;
     private long recordNumber;
     private long sourceLength;
@@ -53,6 +61,7 @@ internal sealed class CsvParser
         int processed = 0;
         while (reader.TryRead(out var c))
         {
+            EndsWithTerminator = c is '\r' or '\n';
             if ((processed++ & 1023) == 0) cancellationToken.ThrowIfCancellationRequested();
             characterLine = line;
             if (skipLf)
@@ -88,10 +97,12 @@ internal sealed class CsvParser
                     ResetRecord();
                     continue;
                 }
+                recordEnding = c == '\r' ? LineEnding.Cr : LineEnding.Lf;
                 CompleteRecord();
                 return ParseResult.Record;
             }
 
+            if (!hasInput) RecordByteOffset = reader.LastByteOffset;
             CountSourceCharacter();
             hasInput = true;
             if (c == options.Delimiter)
@@ -131,6 +142,7 @@ internal sealed class CsvParser
         Record.LineNumber = line;
         Record.RecordNumber = recordNumber + 1;
         sourceLength = 0;
+        recordEnding = null;
         state = State.Start;
         hasInput = false;
         quotedCr = false;

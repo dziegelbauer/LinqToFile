@@ -1,0 +1,241 @@
+{
+  "SchemaVersion": 1,
+  "Runtime": ".NET 10.0.14",
+  "OS": "macOS 27.2.0",
+  "Architecture": "Arm64",
+  "Rows": 1000,
+  "ExistingRows": 2000,
+  "Iterations": 5,
+  "BufferSize": 1,
+  "WarmupMinimumScans": 5,
+  "WarmupMinimumWorkSeconds": 1,
+  "InitialWarmupSeconds": 3,
+  "AllocationCounter": "GC.GetTotalAllocatedBytes(precise: true); entire process; reused input model",
+  "ResetAndByteVerificationExcluded": true,
+  "MovementBlockBytes": 65536,
+  "Results": [
+    {
+      "Name": "numeric-locate-sync",
+      "NewOrScannedRows": 2000,
+      "ExistingRows": 2000,
+      "ExistingBytes": 4006,
+      "NewBytes": 0,
+      "Warmups": 11059,
+      "MedianMilliseconds": 0.0455,
+      "MedianAllocatedBytes": 6920,
+      "Samples": [
+        {
+          "Milliseconds": 0.0537,
+          "AllocatedBytes": 6920,
+          "Result": 2006
+        },
+        {
+          "Milliseconds": 0.0516,
+          "AllocatedBytes": 6920,
+          "Result": 2006
+        },
+        {
+          "Milliseconds": 0.0424,
+          "AllocatedBytes": 6920,
+          "Result": 2006
+        },
+        {
+          "Milliseconds": 0.0455,
+          "AllocatedBytes": 6920,
+          "Result": 2006
+        },
+        {
+          "Milliseconds": 0.0425,
+          "AllocatedBytes": 6920,
+          "Result": 2006
+        }
+      ]
+    },
+    {
+      "Name": "numeric-locate-async",
+      "NewOrScannedRows": 2000,
+      "ExistingRows": 2000,
+      "ExistingBytes": 4006,
+      "NewBytes": 0,
+      "Warmups": 3838,
+      "MedianMilliseconds": 0.1178,
+      "MedianAllocatedBytes": 8080,
+      "Samples": [
+        {
+          "Milliseconds": 0.1048,
+          "AllocatedBytes": 8080,
+          "Result": 2006
+        },
+        {
+          "Milliseconds": 0.1178,
+          "AllocatedBytes": 8080,
+          "Result": 2006
+        },
+        {
+          "Milliseconds": 0.1204,
+          "AllocatedBytes": 8080,
+          "Result": 2006
+        },
+        {
+          "Milliseconds": 0.1155,
+          "AllocatedBytes": 8080,
+          "Result": 2006
+        },
+        {
+          "Milliseconds": 0.121,
+          "AllocatedBytes": 8080,
+          "Result": 2006
+        }
+      ]
+    },
+    {
+      "Name": "quoted-locate-sync",
+      "NewOrScannedRows": 2000,
+      "ExistingRows": 2000,
+      "ExistingBytes": 40006,
+      "NewBytes": 0,
+      "Warmups": 3718,
+      "MedianMilliseconds": 0.3,
+      "MedianAllocatedBytes": 11096,
+      "Samples": [
+        {
+          "Milliseconds": 0.2704,
+          "AllocatedBytes": 11096,
+          "Result": 20006
+        },
+        {
+          "Milliseconds": 0.2576,
+          "AllocatedBytes": 11096,
+          "Result": 20006
+        },
+        {
+          "Milliseconds": 0.3059,
+          "AllocatedBytes": 11096,
+          "Result": 20006
+        },
+        {
+          "Milliseconds": 0.3,
+          "AllocatedBytes": 11096,
+          "Result": 20006
+        },
+        {
+          "Milliseconds": 0.3006,
+          "AllocatedBytes": 11096,
+          "Result": 20006
+        }
+      ]
+    },
+    {
+      "Name": "quoted-locate-async",
+      "NewOrScannedRows": 2000,
+      "ExistingRows": 2000,
+      "ExistingBytes": 40006,
+      "NewBytes": 0,
+      "Warmups": 1407,
+      "MedianMilliseconds": 0.6935,
+      "MedianAllocatedBytes": 15784,
+      "Samples": [
+        {
+          "Milliseconds": 0.6935,
+          "AllocatedBytes": 15784,
+          "Result": 20006
+        },
+        {
+          "Milliseconds": 0.6881,
+          "AllocatedBytes": 15784,
+          "Result": 20006
+        },
+        {
+          "Milliseconds": 0.7126,
+          "AllocatedBytes": 15784,
+          "Result": 20006
+        },
+        {
+          "Milliseconds": 0.6826,
+          "AllocatedBytes": 15784,
+          "Result": 20006
+        },
+        {
+          "Milliseconds": 0.6958,
+          "AllocatedBytes": 15784,
+          "Result": 20006
+        }
+      ]
+    },
+    {
+      "Name": "large-locate-sync",
+      "NewOrScannedRows": 1000,
+      "ExistingRows": 1000,
+      "ExistingBytes": 4097006,
+      "NewBytes": 0,
+      "Warmups": 35,
+      "MedianMilliseconds": 28.5879,
+      "MedianAllocatedBytes": 23488,
+      "Samples": [
+        {
+          "Milliseconds": 29.0452,
+          "AllocatedBytes": 23488,
+          "Result": 2048506
+        },
+        {
+          "Milliseconds": 28.3868,
+          "AllocatedBytes": 23488,
+          "Result": 2048506
+        },
+        {
+          "Milliseconds": 28.3483,
+          "AllocatedBytes": 23488,
+          "Result": 2048506
+        },
+        {
+          "Milliseconds": 28.5879,
+          "AllocatedBytes": 23488,
+          "Result": 2048506
+        },
+        {
+          "Milliseconds": 28.8227,
+          "AllocatedBytes": 23488,
+          "Result": 2048506
+        }
+      ]
+    },
+    {
+      "Name": "large-locate-async",
+      "NewOrScannedRows": 1000,
+      "ExistingRows": 1000,
+      "ExistingBytes": 4097006,
+      "NewBytes": 0,
+      "Warmups": 14,
+      "MedianMilliseconds": 76.7237,
+      "MedianAllocatedBytes": 416800,
+      "Samples": [
+        {
+          "Milliseconds": 77.5417,
+          "AllocatedBytes": 416648,
+          "Result": 2048506
+        },
+        {
+          "Milliseconds": 76.7237,
+          "AllocatedBytes": 416800,
+          "Result": 2048506
+        },
+        {
+          "Milliseconds": 76.3458,
+          "AllocatedBytes": 416648,
+          "Result": 2048506
+        },
+        {
+          "Milliseconds": 76.1865,
+          "AllocatedBytes": 416800,
+          "Result": 2048506
+        },
+        {
+          "Milliseconds": 76.8198,
+          "AllocatedBytes": 416800,
+          "Result": 2048506
+        }
+      ]
+    }
+  ],
+  "LiveHeapAndTemporaryFiles": []
+}

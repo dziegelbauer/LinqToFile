@@ -162,7 +162,10 @@ public sealed class TabularRow
         if (kinds is not null && kinds[ordinal] == CellKind.IsoDate)
             return NativeTemporal.TryIso(GetField(ordinal), out var iso) && iso.Offset is null ? iso.DateTime : throw CreateConversionException(ordinal, member);
         // AdjustToUniversal leaves offset-free input Unspecified, without assuming a local zone.
-        if (DateTime.TryParse(GetTextField(ordinal, member), Culture, DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AdjustToUniversal,
+        var text = GetTextField(ordinal, member);
+        if (DateTime.TryParseExact(text.Trim(), "O", CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind,
+                out var exact) && exact.Kind == DateTimeKind.Unspecified) return exact;
+        if (DateTime.TryParse(text, Culture, DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AdjustToUniversal,
                 out var value) && value.Kind == DateTimeKind.Unspecified)
             return value;
         throw CreateConversionException(ordinal, member);
@@ -175,6 +178,10 @@ public sealed class TabularRow
                 ? new DateTimeOffset(iso.DateTime, offset) : throw CreateConversionException(ordinal, member);
         var text = GetTextField(ordinal, member);
         // Check for an explicit zone using the BCL parser, then retain the original offset.
+        var canonical = text.Trim();
+        if (canonical.Length == 33 && canonical[27] is '+' or '-' &&
+            DateTimeOffset.TryParseExact(canonical, "O", CultureInfo.InvariantCulture, DateTimeStyles.None,
+                out var exact)) return exact;
         if (DateTime.TryParse(text, Culture, DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AdjustToUniversal,
                 out var marker) && marker.Kind == DateTimeKind.Utc &&
             DateTimeOffset.TryParse(text, Culture, DateTimeStyles.AllowWhiteSpaces, out var value))
@@ -190,7 +197,9 @@ public sealed class TabularRow
         if (kinds is not null && kinds[ordinal] == CellKind.IsoDate)
             return NativeTemporal.TryIso(GetField(ordinal), out var iso) && iso.DateOnly
                 ? DateOnly.FromDateTime(iso.DateTime) : throw CreateConversionException(ordinal, member);
-        return DateOnly.TryParse(GetTextField(ordinal, member), Culture, DateTimeStyles.AllowWhiteSpaces, out var value)
+        var text = GetTextField(ordinal, member);
+        if (DateOnly.TryParseExact(text.Trim(), "O", CultureInfo.InvariantCulture, DateTimeStyles.None, out var exact)) return exact;
+        return DateOnly.TryParse(text, Culture, DateTimeStyles.AllowWhiteSpaces, out var value)
             ? value : throw CreateConversionException(ordinal, member);
     }
 
@@ -198,7 +207,9 @@ public sealed class TabularRow
     {
         if (kinds is not null && kinds[ordinal] == CellKind.Number)
             return DateSystem != NumericDateSystem.None && NativeTemporal.TryTime(GetField(ordinal), out var serial) ? serial : throw CreateConversionException(ordinal, member);
-        return TimeOnly.TryParse(GetTextField(ordinal, member), Culture, DateTimeStyles.AllowWhiteSpaces, out var value)
+        var text = GetTextField(ordinal, member);
+        if (TimeOnly.TryParseExact(text.Trim(), "O", CultureInfo.InvariantCulture, DateTimeStyles.None, out var exact)) return exact;
+        return TimeOnly.TryParse(text, Culture, DateTimeStyles.AllowWhiteSpaces, out var value)
             ? value : throw CreateConversionException(ordinal, member);
     }
 
@@ -206,7 +217,9 @@ public sealed class TabularRow
     {
         if (kinds is not null && kinds[ordinal] == CellKind.Number)
             return DateSystem != NumericDateSystem.None && NativeTemporal.TryDuration(GetField(ordinal), out var serial) ? serial : throw CreateConversionException(ordinal, member);
-        return TimeSpan.TryParse(GetTextField(ordinal, member), Culture, out var value) ? value : throw CreateConversionException(ordinal, member);
+        var text = GetTextField(ordinal, member);
+        if (TimeSpan.TryParseExact(text.Trim(), "c", CultureInfo.InvariantCulture, out var exact)) return exact;
+        return TimeSpan.TryParse(text, Culture, out var value) ? value : throw CreateConversionException(ordinal, member);
     }
 
     public TabularConversionException CreateConversionException(int ordinal, string member) =>
