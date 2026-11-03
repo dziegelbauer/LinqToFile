@@ -10,6 +10,7 @@ await TemporalFormatSample.RunAsync();
 await TokenSample.RunAsync();
 await StreamWritingSample.RunAsync();
 await XlsxWritingSample.RunAsync();
+await XlsxMutationSample.RunAsync();
 
 // Read a separately compiled model through its generated static mapping contract.
 var path = Path.GetTempFileName();

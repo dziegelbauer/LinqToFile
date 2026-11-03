@@ -1,5 +1,16 @@
 # Performance and memory
 
+## XLSX append and insertion
+
+[XLSX mutation](xlsx-mutation.md) validates the workbook before it enumerates new records.
+It reads existing rows without creating model objects and writes new records to a temporary spool once.
+The worksheet rewrite uses XML streaming and reusable buffers.
+It does not load the worksheet into an XML tree.
+Small workbook metadata and styles are held in memory.
+The operation copies unchanged package parts and stages the complete compressed result beside the original.
+Budget temporary disk space for both the new-row spool and staged workbook, plus shared-string spill files when needed.
+Decompression limits count repeated source reads, including validation and copying.
+
 ## XLSX exports
 
 [XLSX writing](xlsx-writing.md) processes input once with reusable scalar and active-row buffers.

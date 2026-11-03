@@ -96,4 +96,4 @@ From the repository root, run:
 dotnet run --project samples/NativeAot -c Release
 ```
 
-The sample runs CSV/XLSX queries and CSV creation, append, and insertion with models from a separate assembly.
+The sample runs CSV/XLSX queries, creation, append, and insertion with models from a separate assembly.

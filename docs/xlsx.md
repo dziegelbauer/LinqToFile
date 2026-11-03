@@ -231,3 +231,9 @@ The reader prohibits DTDs and external XML resolution.
 It rejects external relationships needed to read the selected workbook and worksheet.
 It does not fetch external data, calculate formulas, or execute macros.
 Legacy, binary, macro-enabled, and encrypted workbook formats are outside this scope.
+
+## Add records to an existing workbook
+
+Path sources return `XlsxFile<T>`, which also supports `Append`, `AppendRange`, `Insert`, `InsertRange`, and their async variants.
+See [XLSX append and insertion](xlsx-mutation.md) for supported workbooks, placement, validation, and staged replacement.
+Stream and factory sources remain read sources.

@@ -1,0 +1,14 @@
+# XLSX mutation validation
+
+## Implementation and local review
+- Existing path sources expose the full CSV-parity append/insert family. Stream/factory readers remain read-only. Package validation precedes new-input enumeration; original cells are not mapped through T.
+- Streaming worksheet rewriting and bounded cached temporal styles preserve existing indexes and untouched uncompressed part payloads. New rows are enumerated once into a resource-accounted spool before staged replacement.
+- Release build with warnings as errors passed. All 1,294 tests passed, including 49 mutation preparation/integration cases and executable guide drift checks. The runnable cross-assembly sample covers every overload family, custom converters, annotations, and native 1904 dates.
+- A warmed 100,000-row mutation formatter check retains the existing 512-byte allocation ceiling and verifies that style creation stays bounded. This measures active new-row formatting, not the entire ZIP/XML operation; the XML parser and ZIP implementation can allocate.
+- Rider warning/suggestion/hint review completed for all changed C# files, including the earlier output stream/preparation tests, public facade/source, package preparation, scanner, formatter/styles, archive/worksheet rewrite, engine, samples, and documentation tests. No analysis timeouts or incomplete batches remained. Rechecked changes after accepting fixes.
+- Accepted unused-import cleanup, a static helper, clearer using declarations in archive/tests, and removal of a shadowed parameter. Manual review also moved style-ID formatting out of the style search loop and kept new Strict style metadata in the original namespace.
+- Left root public namespaces and existing private-field/type/var conventions unchanged. Kept explicit cleanup to preserve primary archive failures. Quota/forwarding wrappers do not own files, so synchronous disposal does not perform disk I/O. Synchronous reader calls flagged inside async preparation traverse an in-memory XElement. The worksheet writer's protected async attribute-boundary API requires small synchronous state transitions; the forwarding bridge buffers resulting bytes and drains them asynchronously, verified with an async-only destination. Test/sample synchronous calls intentionally exercise synchronous APIs; their one-use arrays do not need static caches.
+- Rider cannot inspect eng/Verify-Package.ps1 because it is outside a solution project. Verify its PowerShell parse and actual package-consumer execution separately. Markdown and project configuration are exempt from IDE linting; reviewed manually and through build/example/package checks.
+
+## Final package and hosted checks
+- Pending final package, JIT/Native AOT, and Windows/Linux/macOS CI validation before PR handoff.

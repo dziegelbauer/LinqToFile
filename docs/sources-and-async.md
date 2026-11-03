@@ -115,3 +115,6 @@ A factory is not called when the token is already cancelled before acquisition.
 
 The token can enter through `GetAsyncEnumerator(token)`, `WithCancellation(token)`, or an async materializer.
 `WithCancellation` applies to the result of `AsAsyncEnumerable()`.
+
+For workbook writes, [XLSX append and insertion](xlsx-mutation.md) accepts async sequences and optional cancellation tokens.
+Mutation uses staged replacement. Its cancellation boundary differs from direct stream export.

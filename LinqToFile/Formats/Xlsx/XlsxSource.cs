@@ -8,73 +8,75 @@ using LinqToFile.Sources;
 namespace LinqToFile;
 
 /// <summary>An immutable, deferred XLSX source with synchronous and asynchronous enumeration.</summary>
-public sealed class XlsxSource<T> : IEnumerable<T> where T : class, ITabularRecord<T>
+public class XlsxSource<T> : IEnumerable<T> where T : class, ITabularRecord<T>
 {
     private readonly StreamSource source;
     private readonly XlsxOptions options;
+    internal XlsxOptions Options => options;
     internal XlsxSource(StreamSource source, XlsxOptions options) { this.source = source; this.options = options; }
+    internal virtual XlsxSource<T> Configure(XlsxOptions value) => new(source, value);
 
-    public XlsxSource<T> WithWorksheet(string name)
+    public virtual XlsxSource<T> WithWorksheet(string name)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        return new(source, options with { Worksheet = name });
+        return Configure(options with { Worksheet = name });
     }
 
-    public XlsxSource<T> WithHeaderRow(int oneBasedRowNumber)
+    public virtual XlsxSource<T> WithHeaderRow(int oneBasedRowNumber)
     {
         if (oneBasedRowNumber is < 1 or > 1_048_576) throw new ArgumentOutOfRangeException(nameof(oneBasedRowNumber));
-        return new(source, options with { HeaderRow = oneBasedRowNumber });
+        return Configure(options with { HeaderRow = oneBasedRowNumber });
     }
 
-    public XlsxSource<T> WithCulture(CultureInfo value)
+    public virtual XlsxSource<T> WithCulture(CultureInfo value)
     {
         ArgumentNullException.ThrowIfNull(value);
         var culture = CultureInfo.ReadOnly((CultureInfo)value.Clone());
         T.Mapper.ValidateCulture(culture);
-        return new(source, options with { Culture = culture });
+        return Configure(options with { Culture = culture });
     }
 
-    public XlsxSource<T> WithHeaderComparison(StringComparer value)
+    public virtual XlsxSource<T> WithHeaderComparison(StringComparer value)
     {
         if (!ReferenceEquals(value, StringComparer.Ordinal) && !ReferenceEquals(value, StringComparer.OrdinalIgnoreCase))
             throw new ArgumentException("Use StringComparer.Ordinal or StringComparer.OrdinalIgnoreCase.", nameof(value));
         SchemaBinding<T>.ValidateMapping(value);
-        return new(source, options with { HeaderComparison = value });
+        return Configure(options with { HeaderComparison = value });
     }
 
-    public XlsxSource<T> WithFieldTrimming(bool enabled = true) => new(source, options with { TrimFields = enabled });
-    public XlsxSource<T> WithTemporaryDirectory(string path)
+    public virtual XlsxSource<T> WithFieldTrimming(bool enabled = true) => Configure(options with { TrimFields = enabled });
+    public virtual XlsxSource<T> WithTemporaryDirectory(string path)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        return new(source, options with { TemporaryDirectory = Path.GetFullPath(path) });
+        return Configure(options with { TemporaryDirectory = Path.GetFullPath(path) });
     }
-    public XlsxSource<T> WithTemporaryFiles(bool enabled = true) => new(source, options with { TemporaryFiles = enabled });
-    public XlsxSource<T> WithSharedStringMemoryBudget(long bytes)
+    public virtual XlsxSource<T> WithTemporaryFiles(bool enabled = true) => Configure(options with { TemporaryFiles = enabled });
+    public virtual XlsxSource<T> WithSharedStringMemoryBudget(long bytes)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(bytes);
-        return new(source, options with { SharedStringMemoryBudget = bytes });
+        return Configure(options with { SharedStringMemoryBudget = bytes });
     }
-    public XlsxSource<T> WithMaxWorkbookBytes(long? bytes)
+    public virtual XlsxSource<T> WithMaxWorkbookBytes(long? bytes)
     {
         if (bytes < 0) throw new ArgumentOutOfRangeException(nameof(bytes));
-        return new(source, options with { MaxWorkbookBytes = bytes });
+        return Configure(options with { MaxWorkbookBytes = bytes });
     }
-    public XlsxSource<T> WithMaxDecompressedBytes(long? bytes)
+    public virtual XlsxSource<T> WithMaxDecompressedBytes(long? bytes)
     {
         if (bytes < 0) throw new ArgumentOutOfRangeException(nameof(bytes));
-        return new(source, options with { MaxDecompressedBytes = bytes });
+        return Configure(options with { MaxDecompressedBytes = bytes });
     }
-    public XlsxSource<T> WithMaxTemporaryBytes(long? bytes)
+    public virtual XlsxSource<T> WithMaxTemporaryBytes(long? bytes)
     {
         if (bytes < 0) throw new ArgumentOutOfRangeException(nameof(bytes));
-        return new(source, options with { MaxTemporaryBytes = bytes });
+        return Configure(options with { MaxTemporaryBytes = bytes });
     }
-    public XlsxSource<T> WithMaxCellTextLength(int? length)
+    public virtual XlsxSource<T> WithMaxCellTextLength(int? length)
     {
         if (length < 0) throw new ArgumentOutOfRangeException(nameof(length));
-        return new(source, options with { MaxCellTextLength = length });
+        return Configure(options with { MaxCellTextLength = length });
     }
-    public XlsxSource<T> WithHeaderTrimming(bool enabled = true) => new(source, options with { TrimHeaders = enabled });
+    public virtual XlsxSource<T> WithHeaderTrimming(bool enabled = true) => Configure(options with { TrimHeaders = enabled });
     public IEnumerable<T> AsEnumerable() => this;
     public IAsyncEnumerable<T> AsAsyncEnumerable() => TabularQuery<T, XlsxOptions>.ReadAsync(source, options, XlsxRecordReaderFactory.Instance);
     public IEnumerator<T> GetEnumerator() => TabularQuery<T, XlsxOptions>.Read(source, options, XlsxRecordReaderFactory.Instance).GetEnumerator();

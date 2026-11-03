@@ -1,6 +1,6 @@
 # XLSX mutation implementation plan
 
-Status: the user authorized all three stages, stopping for unresolved questions. Stage 1 is in progress under [the approved contract](xlsx-mutation.md).
+Status: the user authorized all three stages, stopping for unresolved questions. Stages 1 and 2 are implemented under [the approved contract](xlsx-mutation.md). Stage 3 documentation and release validation are in progress.
 
 ## Stage 1: package validation and mutation preparation
 - Build an explicit supported-feature check for Transitional/Strict packages, workbook-wide formulas/reference features, selected-sheet protection/merges, and unknown content.
