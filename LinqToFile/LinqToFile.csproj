@@ -6,14 +6,14 @@
         <Nullable>enable</Nullable>
         <IsAotCompatible>true</IsAotCompatible>
         <PackageId>LinqToFile</PackageId>
-        <Description>Query CSV and XLSX files with typed C# models and standard LINQ. Create, append, and insert CSV rows with sync/async APIs. BCL-only runtime, source-generated mapping, and Native AOT support on .NET 10+.</Description>
+        <Description>Query CSV and XLSX files with typed C# models and standard LINQ. Create, append, and insert CSV rows. Map domain types with custom column converters. Sync/async APIs, BCL-only runtime, source-generated mapping, and Native AOT on .NET 10+.</Description>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageProjectUrl>https://github.com/dziegelbauer/LinqToFile</PackageProjectUrl>
         <RepositoryUrl>https://github.com/dziegelbauer/LinqToFile.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>linq;csv;xlsx;tabular;streaming;nativeaot;source-generator</PackageTags>
-        <PackageReleaseNotes>Prerelease: sync/async CSV creation, append, and positional insertion with generated serialization, temporary-file replacement or bounded-memory in-place writes, plus CSV and XLSX queries. Insert uses long logical row indexes and full validation. Quick append is optional. Existing-file writes support UTF-8/16/32 and stateless single-byte encodings. API changes remain possible.</PackageReleaseNotes>
+        <PackageReleaseNotes>Prerelease: per-column custom converters for CSV/XLSX reads and CSV writes. Static span-based parsing/formatting supports domain types, nullable values, culture, and native XLSX cell metadata without runtime reflection or converter instances. Includes LINQ queries and sync/async CSV creation, append, and positional insertion. API changes remain possible.</PackageReleaseNotes>
     </PropertyGroup>
 
     <ItemGroup>
