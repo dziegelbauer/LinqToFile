@@ -47,8 +47,11 @@
 ## Confirmed existing-data validation
 - Validate the selected worksheet's existing structure and native cell syntax before publication, without converting existing data through T or invoking its converters. Preserve existing values even when they would not convert to the current model. Missing cells keep existing XLSX empty-cell rules; malformed coordinates, invalid shared-string references, spreadsheet error cells, or non-empty data beyond the header range throw. Keep this validation mandatory for both append and insertion initially, without a quick-append bypass. The user approved these rules; workbook-wide unsupported-feature checks remain a separate scope decision.
 
+## Confirmed empty ranges
+- Return zero and leave the workbook unchanged for empty ranges, while still validating existence, selected worksheet, headers/schema, insertion index, mandatory existing-data validation, and supported workbook scope. Do not publish a replacement or add styles for empty input. The user approved this CSV-parity behavior.
+
 ## Next decision
-- Recommend matching CSV for empty ranges: return zero and leave the workbook unchanged, while still validating existence, selected worksheet, headers/schema, insertion index, mandatory existing-data validation, and supported workbook scope. Do not publish a replacement or add styles for empty input. Await user confirmation.
+- Recommend workbook-wide rejection of formulas and unsupported reference-bearing features, including on unselected sheets, because they can reference rows in the selected sheet. Check all worksheets and relevant workbook/package metadata before publication. Ordinary value conversion/structural table validation remains focused on the selected worksheet; these broader scans detect unsupported features, not mapped data errors on unrelated sheets. Await user confirmation.
 
 ## Remaining design topics
 - Public path-source/mutation API and worksheet selection.
