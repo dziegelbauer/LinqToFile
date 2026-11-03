@@ -53,8 +53,11 @@
 ## Confirmed workbook-wide feature checks
 - Reject formulas and unsupported reference-bearing features throughout the workbook, including on unselected sheets, because they can reference rows in the selected sheet. Check all worksheets and relevant workbook/package metadata before publication. Ordinary value conversion/structural table validation remains focused on the selected worksheet; these broader scans detect unsupported features, not mapped data errors on unrelated sheets. The user approved this validation scope.
 
+## Confirmed concurrency
+- Use the existing shared normalized-path write guard for XLSX mutations, so overlapping library writes to the same path fail immediately even when different worksheets or CSV/XLSX APIs are used. Do not queue or promise coordination with other processes, aliases, or external Excel sessions. The user approved this behavior.
+
 ## Next decision
-- Recommend using the existing shared normalized-path write guard for XLSX mutations, so overlapping library writes to the same path fail immediately even when different worksheets or CSV/XLSX APIs are used. Do not queue or promise coordination with other processes, aliases, or external Excel sessions. Await user confirmation.
+- Recommend rejecting mutation when workbook protection is present or the selected worksheet is protected. Do not remove protection, interpret individual permission flags, or provide a bypass initially. Protection confined to unselected worksheets does not alone prevent mutation of the selected unprotected sheet; preserve those parts unchanged. Encrypted workbooks remain unsupported. Await user confirmation.
 
 ## Remaining design topics
 - Public path-source/mutation API and worksheet selection.
