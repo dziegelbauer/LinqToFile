@@ -34,7 +34,7 @@
 - Ignored required properties produce compiler errors initially; no explicit default-value mechanism is planned for the first pass.
 - Initial built-in conversions: string, char, bool, numeric primitives, decimal, Guid, enums, DateTime, DateTimeOffset, DateOnly, TimeOnly, and TimeSpan, plus applicable nullable forms.
 - Numeric scope is byte, sbyte, short, ushort, int, uint, long, ulong, Int128, UInt128, Half, float, double, and decimal. Platform-sized nint/nuint are deferred.
-- Unsupported conversion types produce compiler diagnostics initially; custom conversion is deferred.
+- Types without a built-in conversion require a ColumnConverter annotation or produce compiler diagnostic LTF003. See converters.md for the shared static conversion contract.
 - Boolean conversion accepts only true and false, ignoring case. Other tokens such as 0/1 and yes/no are deferred to custom conversion.
 - Quoted and unquoted empty fields have identical conversion semantics. Special null tokens are deferred.
 - Enum conversion accepts case-sensitive names and comma-separated names for flags; reject numeric tokens and undefined values.
@@ -67,6 +67,5 @@
 
 ## Future objectives
 - Configurable missing-column handling.
-- Custom converters, additional boolean tokens, and explicit null tokens.
-- Per-column converter annotations; custom conversion remains outside the initial release.
+- Dedicated boolean-token and explicit null-token annotations. Custom converters can supply these rules now.
 - Exact date/time format annotations.

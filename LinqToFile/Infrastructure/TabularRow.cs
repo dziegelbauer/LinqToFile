@@ -101,6 +101,37 @@ public sealed class TabularRow
     }
     public bool IsEmpty(int ordinal) => GetField(ordinal).IsEmpty;
 
+    /// <summary>Invokes a generated, statically selected converter, including for empty fields.</summary>
+    public T ReadConverted<T, TConverter>(int ordinal, string member) where TConverter : IColumnConverter<T>
+    {
+        var text = GetField(ordinal);
+        var kind = kinds is null ? CellKind.Text : kinds[ordinal];
+        var cellKind = kind switch
+        {
+            CellKind.Number => TabularCellKind.Number,
+            CellKind.Boolean => TabularCellKind.Boolean,
+            CellKind.IsoDate => TabularCellKind.IsoDate,
+            _ => TabularCellKind.Text
+        };
+        var dateSystem = DateSystem switch
+        {
+            NumericDateSystem.Excel1900 => TabularDateSystem.Excel1900,
+            NumericDateSystem.Excel1904 => TabularDateSystem.Excel1904,
+            _ => TabularDateSystem.None
+        };
+        var context = new ColumnConversionContext(Culture, cellKind, dateSystem);
+        try
+        {
+            if (TConverter.TryParse(text, context, out T value)) return value;
+        }
+        catch (Exception error) when (error is not OutOfMemoryException)
+        {
+            // Converter exceptions can contain raw data. Never retain them as inner exceptions.
+            throw CreateConversionException(ordinal, member);
+        }
+        throw CreateConversionException(ordinal, member);
+    }
+
     // Generated enum readers use this boundary too; native numeric/boolean cells are not text.
     public ReadOnlySpan<char> GetTextField(int ordinal, string member)
     {

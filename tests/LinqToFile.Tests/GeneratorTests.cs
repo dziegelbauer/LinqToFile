@@ -5,7 +5,7 @@ using Xunit;
 
 namespace LinqToFile.Tests;
 
-public sealed class GeneratorTests
+public sealed partial class GeneratorTests
 {
     private static (GeneratorDriverRunResult Result, Compilation Output) Generate(string source)
     {

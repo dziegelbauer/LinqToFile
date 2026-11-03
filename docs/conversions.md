@@ -19,8 +19,9 @@ The reader maps these types and their nullable value forms:
 | Enumeration | Enum types, including flags |
 | Date and time | `DateTime`, `DateTimeOffset`, `DateOnly`, `TimeOnly`, `TimeSpan` |
 
-Platform-sized `nint` and `nuint` properties, custom converters, and exact-format annotations are not supported.
-Unsupported property types cause compiler diagnostic `LTF003`.
+These are the built-in conversions. [Custom converters](custom-converters.md) can map other types or replace these rules per property.
+Properties without a built-in conversion or a converter annotation cause compiler diagnostic `LTF003`.
+Platform-sized `nint` and `nuint` have no built-in conversion. Exact-format annotations are not supported.
 
 ## Culture
 
@@ -47,6 +48,9 @@ The sample also reads `12,50` with the `fr-FR` culture.
 Its model belongs to a separate assembly.
 
 ## Empty fields
+
+These rules apply to properties without a custom converter.
+An annotated converter decides how to handle empty fields itself.
 
 An empty field becomes an empty string for a string property.
 This rule also applies to nullable string properties.

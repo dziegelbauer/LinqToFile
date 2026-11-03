@@ -15,14 +15,22 @@
 ## Confirmed empty fields and null values
 - An explicitly annotated converter receives empty input fields and null property values, and owns their interpretation. This permits custom null tokens and empty-field defaults without another option. Unannotated properties retain existing empty/null behavior. The user approved this behavior.
 
-## Open decision: converter failures
-- Proposal: follow BCL TryParse/TryFormat conventions. Parsing returns false for invalid input. Formatting returns false only when its destination span is too small; the library grows reusable storage and retries. A converter throws for a value it cannot format.
+## Confirmed converter failures
+- Follow BCL TryParse/TryFormat conventions. Parsing returns false for invalid input. Formatting returns false only when its destination span is too small; the library grows reusable storage and retries. A converter throws for a value it cannot format.
 - Failed parsing and converter exceptions become the existing location-aware conversion/write exceptions, without raw values or inner exceptions. Keep I/O, enumeration, and cancellation outside converter callbacks under their existing rules.
-- Await the user's answer before fixing this contract.
+- The user approved this contract.
 
-## Next design/implementation work
-- Define the annotation and a compile-time-checked parsing/formatting contract; settle null/empty and converter failure semantics.
-- Add generator diagnostics for invalid converter/type/member combinations and preserve inheritance/ignore rules.
-- Reuse generated read/write boundaries without runtime discovery, registration, or per-row converter objects.
-- Test scalar overrides, domain types, nullable values, native XLSX kinds, culture, failures/privacy, write limits, allocations, cross-assembly use, and Native AOT.
-- Keep dedicated built-in format/token annotations and unrelated roadmap features out of this first converter change unless separately approved.
+## Implementation contract
+- ColumnConverterAttribute(Type) selects an accessible, closed, non-abstract, non-file-local class or struct implementing IColumnConverter<T> for the complete property type, including nullability. No constructor requirement or converter instance; explicit static implementations are supported.
+- Static TryParse(ReadOnlySpan<char>, ColumnConversionContext, out T) and TryFormat(T, Span<char>, ColumnConversionContext, out int) use constrained static interface dispatch from generated ReadConverted/SetConverted calls.
+- Context is a readonly struct: Culture is the configured read-only snapshot; CellKind is TabularCellKind Text/Number/Boolean/IsoDate; DateSystem is TabularDateSystem None/Excel1900/Excel1904. CSV reads/writes use Text/None. XLSX uses native lexical values (invariant numbers, normalized booleans) and actual workbook date system, without style formatting or implicit culture conversion.
+- Field trimming precedes the callback. Returned records own their values. Converters may not retain spans; formatting can retry, and callbacks must support concurrent enumerations.
+- LTF005 diagnoses invalid/inaccessible/mismatched converters. Nullable reference annotation mismatch is diagnosed; typeof erases annotations on generic reference arguments, so prefer a dedicated nullable-reference implementation. Normal C# interface implementation errors remain compiler errors.
+- Override chains inherit the nearest converter independently of Column; a more-derived converter replaces it. Effective Ignore plus converter is LTF004. Annotated non-writable/static/indexer properties are LTF002. Setter-only reading remains supported; writing still rejects inaccessible getters before file changes.
+- Converter parsing false/throws use private location-aware conversion errors. Formatting false retries reusable storage, success checks output count, and throws use existing private write errors. OutOfMemoryException is not wrapped. Cancellation thrown inside callbacks is a conversion failure; normal operation cancellation/IO/input enumeration rules remain outside callbacks.
+- Dedicated built-in format/token annotations and unrelated roadmap features remain out of scope.
+
+## Validation
+- Focused generator/runtime tests cover direct dispatch, domain/scalar/nullable types, explicit implementations, constructors, inheritance/accessibility/diagnostics, trimming, native XLSX kinds/date systems, culture, failures/privacy, buffer growth/output counts, limits, and zero per-value allocation after warmup.
+- Product/ConvertedStock models and ConverterSample exercise cross-assembly CSV writes and CSV/XLSX reads under the existing JIT, project Native AOT, and fresh package-consumer checks on all CI platforms.
+- Full local and hosted validation evidence is recorded in history/validation-converters.md when complete.

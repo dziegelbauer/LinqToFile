@@ -11,6 +11,10 @@ Public getters work across assemblies.
 A setter-only model can still be read, but its write calls throw before any file changes.
 This check also applies to headers-only creation.
 
+[Custom converters](custom-converters.md) control field formatting for annotated properties.
+They receive null values and the configured culture.
+CSV quoting, encoding, separators, and output limits still apply to their results.
+
 ## Create with initial rows
 
 The following example uses the `Person` model from the sample.
