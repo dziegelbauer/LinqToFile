@@ -7,9 +7,13 @@
 - Update human usage guides and runnable examples; validate tests, allocations, package consumers, Native AOT, and hosted CI. Commit and push all work and open a PR for human review. Never merge it automatically.
 - Stop for unresolved public behavior questions and ask one item at a time.
 
-## First open decision
-- Proposal: one TemporalFormat annotation specifies one .NET format string used both for exact text parsing and CSV formatting, for example [TemporalFormat("yyyy-MM-dd")]. No fallback to general parsing for annotated text fields.
-- Multiple accepted input formats or distinct read/write formats can be considered later. This first proposal awaits user approval.
+## Confirmed format scope
+- One TemporalFormat annotation specifies one .NET format string used both for exact text parsing and CSV formatting, for example [TemporalFormat("yyyy-MM-dd")]. No fallback to general parsing for annotated text fields. The user approved this behavior.
+- Multiple accepted input formats or distinct read/write formats remain future objectives.
+
+## Open decision: native XLSX cells
+- Proposal: apply the format to CSV fields and XLSX text cells, and to CSV output. Native XLSX numeric serials and ISO date cells keep existing target-type/date-system rules, independent of the annotation. Do not render native cells into display text before parsing.
+- Await the user's answer before implementing this behavior.
 
 ## Remaining contract work
 - Settle native XLSX cell behavior, interaction with ColumnConverter/Ignore/inherited annotations, culture selection, and exact temporal timezone/missing-component rules.
