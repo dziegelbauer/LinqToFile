@@ -36,3 +36,4 @@ Read relevant topics before proposing contracts or changing code:
 - [Release preparation](docs/spec/release.md)
 - [XLSX planning](docs/spec/xlsx.md)
 - [XLSX writing design](docs/spec/xlsx-writing.md)
+- [XLSX append and insertion](docs/spec/xlsx-mutation.md)
