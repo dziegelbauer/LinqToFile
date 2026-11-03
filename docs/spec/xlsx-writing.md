@@ -5,9 +5,6 @@
 - Preserve .NET 10+, cross-platform support, Native AOT, BCL-only runtime, no runtime reflection, and minimized allocations.
 - Plan behavior with the user one decision at a time before implementation. A suggestion is not a confirmed contract.
 
-## Proposed remaining scope
-- Defer append, insertion, and editing existing workbooks.
-
 ## Confirmed existing-file behavior
 - Add the typed option WithExistingFileBehavior(ExistingFileBehavior.Overwrite), with ExistingFileBehavior.Throw as the default. The user approved intentional overwrite for XLSX path exports and the same option for CSV Create/CreateAsync.
 - Overwrite prepares complete output in a temporary file and replaces the destination only after output succeeds, so export failures preserve the original. This applies to complete-document path output; CSV append/insert behavior stays unchanged. Supplied streams retain their separate current-position/partial-output contract.
@@ -25,7 +22,7 @@
 - Match the CsvWriter operation family: Write()/WriteAsync() for headers only, single-record overloads, IEnumerable<T> overloads, and IAsyncEnumerable<T> for WriteAsync only. Return long/ValueTask<long> data-row counts, excluding headers. The user approved these operations.
 
 ## Confirmed default cell types
-- Write unannotated numeric properties as numeric cells, bool properties as boolean cells, and string properties as text cells. The user approved these defaults. Large-number precision, temporal values, nulls, and annotation overrides require separate decisions.
+- Write unannotated numeric properties as numeric cells, bool properties as boolean cells, and string properties as text cells. The user approved these defaults. Precision, temporal values, nulls, and annotation overrides are specified below.
 
 ## Confirmed numeric precision
 - Throw for numeric output requiring more than 15 significant decimal digits instead of silently rounding. The user approved this rule, with an explicit text converter available to preserve such values. Exact lexical/significant-digit checks and floating-point edge cases/range still need specification.
@@ -50,17 +47,17 @@
 - Write unannotated DateTimeOffset values as invariant round-trip ISO 8601 text, preserving clock time and explicit offset, consistent with CSV output and existing XLSX text reading. Do not normalize to UTC or encode as an offset-free numeric serial. The user approved this behavior.
 
 ## Confirmed DateOnly and DateTime output
-- Write unannotated DateOnly/DateTime properties as native Excel serial dates with date/date-time display formats. Retain the existing requirement that DateTime.Kind is Unspecified. Explicit TemporalFormat continues to select text output. The user approved this behavior; calendar/date-system range and temporal precision require subsequent decisions.
+- Write unannotated DateOnly/DateTime properties as native Excel serial dates with date/date-time display formats. Retain the existing requirement that DateTime.Kind is Unspecified. Explicit TemporalFormat continues to select text output. The user approved this behavior; range and precision policies are specified below.
 
 ## Confirmed date systems
 - Use the 1900 date system by default, with WithDateSystem(TabularDateSystem.Excel1904) as an explicit alternative. Reuse the existing enum, accepting Excel1900/Excel1904 and rejecting None/undefined values. The user approved this behavior.
 - Reference: [Microsoft Excel date systems](https://support.microsoft.com/en-us/excel/date-systems-in-excel) documents 1900 as the default in current Excel versions.
 
 ## Confirmed native date range
-- Support native calendar dates from 1900-01-01 in the 1900 system or 1904-01-01 in the 1904 system, through the .NET date range's upper bound, subject to the pending temporal precision policy. Throw for earlier dates rather than silently switching cell types; an explicit TemporalFormat or custom converter can select text for them. The user approved this behavior.
+- Support native calendar dates from 1900-01-01 in the 1900 system or 1904-01-01 in the 1904 system, through the .NET date range's upper bound, subject to the strict temporal precision policy below. Throw for earlier dates rather than silently switching cell types; an explicit TemporalFormat or custom converter can select text for them. The user approved this behavior.
 
 ## Confirmed TimeOnly output
-- Write unannotated TimeOnly values as native numeric fractions of a day with a time display format, consistent with the XLSX reader's numeric time mapping. Explicit TemporalFormat continues to select text. The user approved this behavior; temporal precision remains a separate decision.
+- Write unannotated TimeOnly values as native numeric fractions of a day with a time display format, consistent with the XLSX reader's numeric time mapping. Explicit TemporalFormat continues to select text. The user approved this behavior; the strict temporal precision policy below applies.
 
 ## Confirmed TimeSpan output
 - Write unannotated TimeSpan as invariant constant-format text (c), consistent with CSV output, preserving negative/multi-day durations and tick precision. The user approved this behavior. Native elapsed-time output remains a future explicit option.
@@ -88,8 +85,14 @@
 ## Confirmed stream position
 - Start supplied-stream output at its current position without reading, seeking, rewinding, or truncating, including non-seekable streams. Treat that position as the exported archive origin. Callers prepare/reset/truncate seekable destinations as needed; leftover tail bytes can invalidate the workbook. The user approved this contract.
 
-## Next decision
-- Recommend a plain worksheet export with only the styles required for native date/time display. Defer append/insertion/editing of existing workbooks, formulas, Excel tables/filters, automatic column sizing, and general presentation styling. All string data remains literal text. Await user confirmation.
+## Confirmed presentation and mutation scope
+- Export a plain worksheet with only the styles required for native date/time display. Defer append/insertion/editing of existing workbooks, formulas, Excel tables/filters, automatic column sizing, and general presentation styling. All string data remains literal text. The user approved this initial scope.
+
+## Proposed implementation stages
+1. Shared overwrite option and CSV backport: implement ExistingFileBehavior and immutable configuration for CSV Create/CreateAsync, staged replacement, rejection of in-place overwrite creation, failure/cancellation preservation, and regression coverage. Update CSV usage guides and examples in the same stage.
+2. XLSX writer: implement generated typed output, incremental package/worksheet serialization, approved cell/annotation/precision/limit policies, and all approved path/stream/factory operations. Cover sync/async parity, ownership/cancellation, native cell types, literal text, and round trips. Maintain runnable examples and human guides alongside code.
+3. Release and integration: review the shared introductory README and package metadata, finish API/usage guides and roadmap, validate allocations, package consumers and Native AOT, inspect all edited code with Rider, commit/push, and open a PR. Verify hosted Windows/Linux/macOS checks before review handoff; never merge.
+- These stages are proposed sequencing, not confirmation that implementation has begun. Next ask whether to start stage 1. Resolve any public-contract questions found during implementation with the user.
 
 ## Workflow
 - Work on feature/xlsx-writing. Update human guides and runnable package/AOT examples when behavior is implemented; keep unfinished features on the roadmap.
