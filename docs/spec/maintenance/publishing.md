@@ -66,7 +66,7 @@ Use PowerShell 7 from the repository root:
 $env:LinqToFileVersion = ./eng/Get-CiVersion.ps1 -RunNumber 123
 dotnet build LinqToFile.sln -c Release -warnaserror
 dotnet test tests/LinqToFile.Tests -c Release --no-build --no-restore
-dotnet pack LinqToFile -c Release --no-build --no-restore -o artifacts/publishing-feed
+dotnet pack src/LinqToFile -c Release --no-build --no-restore -o artifacts/publishing-feed
 ./eng/Verify-Package.ps1 -RuntimeIdentifier osx-arm64 -PackageDirectory artifacts/publishing-feed
 Remove-Item Env:LinqToFileVersion
 ```

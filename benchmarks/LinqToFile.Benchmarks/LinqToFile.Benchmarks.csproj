@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><IsPackable>false</IsPackable></PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../LinqToFile/LinqToFile.csproj" />
-    <ProjectReference Include="../../LinqToFile.Generator/LinqToFile.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="../../src/LinqToFile/LinqToFile.csproj" />
+    <ProjectReference Include="../../src/LinqToFile.Generator/LinqToFile.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 </Project>

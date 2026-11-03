@@ -21,7 +21,7 @@ From the repository root, run these commands:
 ```sh
 dotnet build LinqToFile.sln -c Release -warnaserror
 dotnet test tests/LinqToFile.Tests -c Release --no-build --no-restore
-dotnet pack LinqToFile -c Release --no-build --no-restore -o artifacts/feed
+dotnet pack src/LinqToFile -c Release --no-build --no-restore -o artifacts/feed
 ```
 
 Run the external consumer check with PowerShell 7:

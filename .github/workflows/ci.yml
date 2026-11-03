@@ -67,7 +67,7 @@ jobs:
           & $executable
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Pack local feed
-        run: dotnet pack LinqToFile -c Release --no-build --no-restore -o artifacts/feed
+        run: dotnet pack src/LinqToFile -c Release --no-build --no-restore -o artifacts/feed
       - name: Restore package consumer
         run: dotnet restore samples/NativeAot -r ${{ matrix.rid }} -p:UseLocalPackage=true -p:TreatWarningsAsErrors=true -p:RestorePackagesPath="$PWD/artifacts/package-cache" --configfile .github/package-validation.nuget.config
       - name: Publish package consumer with Native AOT
