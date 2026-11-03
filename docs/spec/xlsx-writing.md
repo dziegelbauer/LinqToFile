@@ -79,8 +79,11 @@
 - Use inline strings for initial XLSX output, writing text with each cell rather than retaining a workbook-wide shared-string dictionary. This supports incremental bounded-memory serialization, with potentially larger files for repeated text. The user approved this approach. Shared-string output optimization remains future work.
 - Reference: [Microsoft shared-string guidance](https://learn.microsoft.com/en-us/office/open-xml/spreadsheet/working-with-the-shared-string-table) confirms inline strings are valid and describes the space tradeoff.
 
+## Confirmed stream cancellation and completion
+- Match CSV stream cancellation: honor cancellation throughout async input/output, with failures/cancellation permitted to leave an incomplete, unreadable workbook in the destination. No rollback or temporary staging for supplied/factory streams; owned disposal still runs. Successful exports must finish the archive and flush before reporting success. The user approved this contract.
+
 ## Next decision
-- Recommend matching CSV stream cancellation: honor cancellation throughout async input/output, with failures/cancellation permitted to leave an incomplete, unreadable workbook in the destination. No rollback or temporary staging for supplied/factory streams; owned disposal still runs. Successful exports must finish the archive and flush before reporting success. Path publication/cancellation boundaries remain a separate decision. Await user confirmation.
+- Recommend staging every XLSX path export in a temporary file beside its destination, including create-new output. Honor cancellation through preparation and immediately before publication; once publication starts, stop observing cancellation and report success if publication succeeds. Default publication must not overwrite a competing destination; explicit overwrite uses the approved replacement behavior. Delete owned temporary files on failure/cancellation. Await user confirmation.
 
 ## Workflow
 - Work on feature/xlsx-writing. Update human guides and runnable package/AOT examples when behavior is implemented; keep unfinished features on the roadmap.
