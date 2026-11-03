@@ -95,6 +95,12 @@
 - Existing generated serialization rules cover new cells, including private errors, text/token limits, strict native precision, and rejection of entirely blank new rows. Preserve existing values without mapping them through T.
 - Prefer incremental new-row spooling when the range count is unknown, so input need not be enumerated again or retained as a collection. Charge owned spool files against the approved temporary limit.
 
+## Implementation checkpoint and open view-setting decision
+- The user authorized all three stages. Stage 1 has a shared sync/async XML feature scanner and forward-only temporary-output quota stream; tests cover both variants, rejected features/protection, merged-title inventory, error privacy, cancellation, and shared temporary/output limits. Public mutation APIs and full package preflight are not implemented yet.
+- Worksheet pane/selection metadata also contains cell coordinates. Recommend preserving ordinary freeze/split settings, scroll positions, and selections at their original physical coordinates initially, instead of making them follow moved records. For example, active cell A5 would remain A5 after insertion. Ask the user before settling this public behavior or implementing view-coordinate rewriting.
+- The scanner currently inventories view-coordinate presence without making this mutation decision. Package relationship/attribute checks, row/schema preparation, styles, execution, and release integration remain to be implemented after the decision.
+- References: [worksheet views](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.spreadsheet.sheetviews?view=openxml-3.0.1) and [selection coordinates](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.spreadsheet.selection?view=openxml-3.0.1).
+
 ## Workflow
 - Commit notes before handoff and keep the worktree clean. Review Rider recommendations for edited code; Markdown is exempt.
 - Complete work through a feature PR. All merges to main require human approval; never merge or enable auto-merge.
