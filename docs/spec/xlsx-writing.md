@@ -82,8 +82,11 @@
 ## Confirmed stream cancellation and completion
 - Match CSV stream cancellation: honor cancellation throughout async input/output, with failures/cancellation permitted to leave an incomplete, unreadable workbook in the destination. No rollback or temporary staging for supplied/factory streams; owned disposal still runs. Successful exports must finish the archive and flush before reporting success. The user approved this contract.
 
+## Confirmed path publication
+- Stage every XLSX path export in a temporary file beside its destination, including create-new output. Honor cancellation through preparation and immediately before publication; once publication starts, stop observing cancellation and report success if publication succeeds. Default publication must not overwrite a competing destination; explicit overwrite uses the approved replacement behavior. Delete owned temporary files on failure/cancellation. The user approved this contract.
+
 ## Next decision
-- Recommend staging every XLSX path export in a temporary file beside its destination, including create-new output. Honor cancellation through preparation and immediately before publication; once publication starts, stop observing cancellation and report success if publication succeeds. Default publication must not overwrite a competing destination; explicit overwrite uses the approved replacement behavior. Delete owned temporary files on failure/cancellation. Await user confirmation.
+- Recommend starting supplied-stream output at its current position without reading, seeking, rewinding, or truncating, including non-seekable streams. Treat that position as the exported archive origin. Callers prepare/reset/truncate seekable destinations as needed; leftover tail bytes can invalidate the workbook. Await user confirmation.
 
 ## Workflow
 - Work on feature/xlsx-writing. Update human guides and runnable package/AOT examples when behavior is implemented; keep unfinished features on the roadmap.
