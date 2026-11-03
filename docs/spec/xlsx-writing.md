@@ -8,7 +8,6 @@
 ## Proposed initial scope
 - Export new workbooks with one named worksheet, headers, and typed cells using generated mappings.
 - Provide Write/WriteAsync for header-only, single-record, synchronous sequences, and asynchronous sequences where applicable; return data-row counts consistent with CSV exports.
-- Support paths and supplied streams; consider the existing sync/async factory pattern for parity.
 - Defer append, insertion, and editing existing workbooks.
 
 ## Confirmed existing-file behavior
@@ -20,8 +19,12 @@
 ## Confirmed worksheet scope
 - Export one worksheet per workbook initially, named Sheet1 by default. WithWorksheet(string name) selects its output name. The user approved this scope; multiple worksheets remain future work.
 
+## Confirmed destinations and lifetime
+- Support paths, supplied writable streams, synchronous stream factories, and asynchronous stream factories initially. The user approved matching the CSV stream lifetime and reuse contracts.
+- Supplied streams default to leaveOpen=true, with one export attempt shared across derived configurations. Factory streams are fresh, library-owned, and disposed after each export; asynchronous exports await asynchronous disposal. Factory-backed configurations permit repeated/concurrent exports with independent destinations and buffers.
+
 ## Next decision
-- Recommend supporting paths, supplied writable streams, synchronous stream factories, and asynchronous stream factories in the initial XLSX writer. Mirror the CSV stream ownership, shared single-use allowance, and repeatable/concurrent independent factory contracts. Await user confirmation.
+- Recommend the CsvWriter operation family: Write()/WriteAsync() for headers only, single-record overloads, IEnumerable<T> overloads, and IAsyncEnumerable<T> for WriteAsync only. Return long/ValueTask<long> data-row counts, excluding headers. Await user confirmation.
 
 ## Workflow
 - Work on feature/xlsx-writing. Update human guides and runnable package/AOT examples when behavior is implemented; keep unfinished features on the roadmap.
