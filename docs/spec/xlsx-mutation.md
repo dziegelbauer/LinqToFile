@@ -74,8 +74,11 @@
 ## Confirmed workbook-byte limits
 - Apply WithMaxWorkbookBytes to both the original compressed workbook and the complete staged replacement, including ZIP finalization metadata. Reject an oversized input before processing; stop staged output before it grows past the configured limit. Preserve existing null/zero/negative-argument conventions. The user approved this policy.
 
+## Confirmed decompressed-byte accounting
+- WithMaxDecompressedBytes counts every decompressed byte read from the original package, including workbook-wide feature checks, validation, repeated passes, and copying untouched parts. Do not count generated XML or auxiliary spool reads as source decompression; temporary/output limits cover those separately. Preserve null/zero/negative-argument conventions and throw without publishing when exceeded. The user approved this accounting policy.
+
 ## Next decision
-- Recommend that WithMaxDecompressedBytes count every decompressed byte read from the original package, including workbook-wide feature checks, validation, repeated passes, and copying untouched parts. Do not count generated XML or auxiliary spool reads as source decompression; temporary/output limits cover those separately. Preserve null/zero/negative-argument conventions and throw without publishing when exceeded. Await user confirmation.
+- Recommend rejecting the entire operation if new or shifted physical rows would exceed worksheet row 1,048,576, including trailing blank/formatted rows. Do not discard existing rows, fill gaps, compact the worksheet, or split into another sheet to make room. Enforce the limit before publication and preserve the original workbook on failure. Await user confirmation.
 
 ## Remaining design topics
 - Public path-source/mutation API and worksheet selection.
