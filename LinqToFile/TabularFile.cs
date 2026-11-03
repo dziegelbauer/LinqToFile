@@ -6,6 +6,28 @@ namespace LinqToFile;
 
 public static class TabularFile
 {
+    public static XlsxWriter<T> XlsxWriter<T>(string path) where T : class, ITabularRecord<T>
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        return new(path, null, new XlsxWriteOptions());
+    }
+    public static XlsxWriter<T> XlsxWriter<T>(Stream stream, bool leaveOpen = true) where T : class, ITabularRecord<T>
+    {
+        ArgumentNullException.ThrowIfNull(stream);
+        if (!stream.CanWrite) throw new ArgumentException("The stream must support writing.", nameof(stream));
+        return new(null, new StreamDestination(stream, leaveOpen), new XlsxWriteOptions());
+    }
+    public static XlsxWriter<T> XlsxWriter<T>(Func<Stream> factory) where T : class, ITabularRecord<T>
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+        return new(null, new StreamDestination(factory), new XlsxWriteOptions());
+    }
+    public static XlsxWriter<T> XlsxWriterAsync<T>(Func<CancellationToken, ValueTask<Stream>> factory) where T : class, ITabularRecord<T>
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+        return new(null, new StreamDestination(factory), new XlsxWriteOptions());
+    }
+
     public static CsvWriter<T> CsvWriter<T>(Stream stream, bool leaveOpen = true) where T : class, ITabularRecord<T>
     {
         ArgumentNullException.ThrowIfNull(stream);

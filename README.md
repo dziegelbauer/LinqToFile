@@ -10,7 +10,7 @@ Define your model once, then work with your data through familiar C# code.
 
 - **Keep your queries familiar.** Use standard LINQ with strongly typed records from CSV or XLSX files.
 - **Choose how much to load.** Stream records or collect the results you need in a list, array, or dictionary.
-- **Write as well as read.** Create CSV files, append batches, insert rows, or export to streams with sync and async methods.
+- **Write as well as read.** Export typed records to Excel workbooks, create or extend CSV files, and send output to streams.
 - **Work with real-world data.** Select encodings, cultures, date formats, and boolean or null tokens for your files.
 - **Use your own types.** Add custom converters when your application needs its own value rules.
 - **Keep deployment simple.** Publish with Native AOT and no extra runtime package dependencies.
@@ -102,6 +102,7 @@ await file.InsertAsync(1, new Person { Id = 3, Name = "Katherine", Age = 40 });
 Range methods let you write batches from ordinary or async sequences.
 See [CSV writing](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/csv-writing.md) for more examples and write options.
 For HTTP responses, memory, or compression, use [CSV stream exports](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/csv-streams.md) with `TabularFile.CsvWriter<T>(stream)`.
+You can also send your results to Excel with `TabularFile.XlsxWriter<Person>(outputPath).WriteAsync(people)`. See [XLSX writing](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/xlsx-writing.md) for path and stream examples.
 
 ## Read an XLSX worksheet
 

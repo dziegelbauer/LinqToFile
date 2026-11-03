@@ -1,5 +1,7 @@
 # Read XLSX workbooks
 
+For exports, use [XLSX writing](xlsx-writing.md).
+
 ## Supported workbooks
 
 The XLSX reader supports sync/async queries and storage controls.

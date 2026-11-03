@@ -8,7 +8,7 @@
 ## Confirmed existing-file behavior
 - Add the typed option WithExistingFileBehavior(ExistingFileBehavior.Overwrite), with ExistingFileBehavior.Throw as the default. The user approved intentional overwrite for XLSX path exports and the same option for CSV Create/CreateAsync.
 - Overwrite prepares complete output in a temporary file and replaces the destination only after output succeeds, so export failures preserve the original. This applies to complete-document path output; CSV append/insert behavior stays unchanged. Supplied streams retain their separate current-position/partial-output contract.
-- This is an approved planned API, not implemented behavior. Update human guides only when implementation is available.
+- Both formats implement this approved API; human guides describe the available behavior.
 - The user approved rejecting CSV creation when both WithInPlaceWrites() and ExistingFileBehavior.Overwrite are selected. Do not silently weaken staged overwrite protection. This restriction does not change append/insert behavior.
 
 ## Confirmed worksheet scope
@@ -25,7 +25,7 @@
 - Write unannotated numeric properties as numeric cells, bool properties as boolean cells, and string properties as text cells. The user approved these defaults. Precision, temporal values, nulls, and annotation overrides are specified below.
 
 ## Confirmed numeric precision
-- Throw for numeric output requiring more than 15 significant decimal digits instead of silently rounding. The user approved this rule, with an explicit text converter available to preserve such values. Exact lexical/significant-digit checks and floating-point edge cases/range still need specification.
+- Throw for numeric output requiring more than 15 significant decimal digits instead of silently rounding. The user approved this rule, with an explicit text converter available to preserve such values. Count significant mantissa digits excluding leading/trailing zeros; ignore the decimal point and exponent syntax. Use invariant round-trip formatting for floating-point types. Reject non-finite values, magnitudes above 9.99999999999999E307, and nonzero magnitudes below the normal double minimum, including underflow-to-zero. This enforces the selected native-cell limits without narrowing large integers through double before serialization.
 - Reference: [Microsoft Excel specifications and limits](https://support.microsoft.com/en-us/excel/excel-specifications-and-limits).
 
 ## Confirmed custom converter output
@@ -69,7 +69,7 @@
 - Place headers in row 1 beginning at A1, with generated column names sorted by ordinal comparison, matching new CSV document output. Data starts in row 2. The user approved this layout. Configurable starting positions and column ordering remain future work.
 
 ## Confirmed worksheet and cell limits
-- Throw when output exceeds Excel's worksheet/cell limits: 1,048,575 data rows plus one header row, 16,384 columns, or 32,767 characters in a cell. Do not truncate or automatically split output into worksheets. The user approved this behavior. Detailed text-counting/escaping and other content limits still need specification.
+- Throw when output exceeds Excel's worksheet/cell limits: 1,048,575 data rows plus one header row, 16,384 columns, or 32,767 characters in a cell. Do not truncate or automatically split output into worksheets. The user approved this behavior. Count resolved UTF-16 code units before XML/spreadsheet escaping; enforce the documented Excel limit of 253 line feeds per cell. WithMaxCellTextLength may lower the hard text limit.
 - Reference: [Microsoft Excel specifications and limits](https://support.microsoft.com/en-us/excel/excel-specifications-and-limits).
 
 ## Confirmed text storage
@@ -100,5 +100,8 @@
 
 ## Implementation progress and open API decision
 - Stage 1 implements immutable CSV overwrite configuration, staged replacement, preservation on input failure/cancellation, Unix permission restrictions, and creation-only rejection of in-place overwrite. The human CSV guide and runnable sample are updated.
-- Stage 2 has internal native-cell formatting infrastructure using existing generated WriteField calls: no runtime reflection or generator changes. It distinguishes native/text/blank output, applies invariant native numbers, 15-digit/range checks, strict serial tick precision, and text-only null-token collisions. No public XLSX writer is available yet.
-- Before constructing the unified XLSX writer API, ask whether calling the path-only WithExistingFileBehavior option on a stream/factory-backed writer should throw. Recommend an immediate InvalidOperationException rather than silently ignoring it. The default options still permit ordinary stream exports.
+- Stage 2 implements XlsxWriter<T> with existing generated WriteField calls: no runtime reflection or generator changes. XlsxOutput serializes one active row with reusable buffers and invariant native cell formatting; XlsxExport creates a Transitional archive through shared path/stream helpers. Public overloads, immutable options, annotations, limits, strict precision, and private locations are implemented and tested.
+- The user approved an immediate InvalidOperationException when WithExistingFileBehavior is called on a stream/factory-backed XLSX writer, rather than silently ignoring the path-only option. The default options still permit ordinary stream exports.
+- BCL ZIP entry DisposeAsync can synchronously emit compression/footer bytes. ForwardWriteStream captures those incidental synchronous bytes in reusable storage and drains them asynchronously before subsequent async writes, after each part/row, and at final flush. It never blocks on async work or forwards synchronous I/O to an asynchronous destination. This is active-record/finalization storage, not workbook buffering. It also hides Position/Length/Seek so ZIP offsets start at the export origin.
+- Explicit archive-entry cleanup preserves the original export exception when compression/ZIP cleanup also fails; successful cleanup errors still propagate. Completion flushes and awaits owned disposal. Worksheet names follow Excel/XML constraints; History is rejected case-insensitively. Required date/time styles are fixed and bounded; shared strings and optional workbook features are not emitted.
+- All stages are implemented and locally validated, including human docs/runnable examples, alpha.18 metadata, zero-allocation row-formatting checks, and fresh package/Native AOT consumers. See [validation](history/validation-xlsx-writing-progress.md). Hosted checks and PR handoff follow; no public-contract questions remain open.

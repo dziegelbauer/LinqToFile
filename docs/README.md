@@ -11,6 +11,7 @@ The library supports standard LINQ, async queries, and Native AOT on .NET 10 and
 | Create CSV files, append rows, or insert rows | [CSV writing](csv-writing.md) |
 | Export CSV to memory, HTTP, or compression streams | [CSV stream exports](csv-streams.md) |
 | Select worksheets and read workbook cells | [XLSX workbooks](xlsx.md) |
+| Export typed records to Excel workbooks | [XLSX writing](xlsx-writing.md) |
 | Convert values and select a culture | [Value conversions](conversions.md) |
 | Map custom types or override a column conversion | [Custom converters](custom-converters.md) |
 | Set exact date and time formats per property | [Temporal formats](temporal-formats.md) |
