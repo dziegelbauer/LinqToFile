@@ -10,7 +10,7 @@ Define your model once, then work with your data through familiar C# code.
 
 - **Keep your queries familiar.** Use standard LINQ with strongly typed records from CSV or XLSX files.
 - **Choose how much to load.** Stream records or collect the results you need in a list, array, or dictionary.
-- **Write as well as read.** Export typed records to Excel workbooks, create or extend CSV files, and send output to streams.
+- **Write as well as read.** Create CSV and Excel files, append or insert records in either format, and send exports to streams.
 - **Work with real-world data.** Select encodings, cultures, date formats, and boolean or null tokens for your files.
 - **Use your own types.** Add custom converters when your application needs its own value rules.
 - **Keep deployment simple.** Publish with Native AOT and no extra runtime package dependencies.
@@ -116,6 +116,7 @@ var workbookAdults = TabularFile.Xlsx<Person>(workbookPath)
 ```
 
 See [XLSX workbooks](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/xlsx.md) for worksheet selection and cell conversion options.
+To add records to an existing workbook, use the same `AppendAsync` and `InsertAsync` methods on `TabularFile.Xlsx<Person>(workbookPath)`. See [XLSX append and insertion](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/xlsx-mutation.md) for examples.
 
 ## Learn more
 

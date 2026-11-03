@@ -3,7 +3,7 @@
 ## Confirmed objective
 - Add write capability with an API intuitive to LINQ/EF Core users.
 - Begin with inserting or appending one or more rows to a file.
-- CSV creation, append, and insertion are implemented. Complete-document XLSX exports are specified and implemented under xlsx-writing.md; XLSX mutation remains future work.
+- CSV creation, append, and insertion are implemented. Complete-document XLSX exports are specified and implemented under xlsx-writing.md. Existing-path XLSX append and insertion are implemented under xlsx-mutation.md.
 - Support both appending records and inserting records at a specified row position.
 - Use direct write operations that execute when called, rather than staging Add/AddRange calls for SaveChanges.
 - Async operations are AppendAsync(record), AppendRangeAsync(records), InsertAsync(long position, record), and InsertRangeAsync(long position, records). Range inputs support IEnumerable<T> and IAsyncEnumerable<T>; all async operations accept an optional CancellationToken.

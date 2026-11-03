@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.IO.Compression;
 using System.Xml;
 using LinqToFile.Infrastructure;
 using LinqToFile.Reading;
@@ -14,6 +13,7 @@ internal sealed partial class XlsxRecordReader : IRecordReader
     private readonly XlsxText text;
     private XmlReader? reader;
     private int previousRow;
+    internal int LastPhysicalRow => previousRow;
     private int width;
     private int column;
     private bool header = true;

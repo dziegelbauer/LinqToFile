@@ -12,6 +12,7 @@ The library supports standard LINQ, async queries, and Native AOT on .NET 10 and
 | Export CSV to memory, HTTP, or compression streams | [CSV stream exports](csv-streams.md) |
 | Select worksheets and read workbook cells | [XLSX workbooks](xlsx.md) |
 | Export typed records to Excel workbooks | [XLSX writing](xlsx-writing.md) |
+| Append or insert records in an existing workbook | [XLSX append and insertion](xlsx-mutation.md) |
 | Convert values and select a culture | [Value conversions](conversions.md) |
 | Map custom types or override a column conversion | [Custom converters](custom-converters.md) |
 | Set exact date and time formats per property | [Temporal formats](temporal-formats.md) |
@@ -21,7 +22,8 @@ The library supports standard LINQ, async queries, and Native AOT on .NET 10 and
 | See unimplemented plans | [Roadmap](roadmap.md) |
 
 Headers are required for both formats.
-CSV path sources also support explicit creation, append, and positional insertion.
+CSV path sources support explicit creation, append, and positional insertion.
+XLSX path sources support append and positional insertion in existing workbooks.
 Invalid file data, missing columns, duplicate headers, and conversion failures throw exceptions.
 The format guides describe the error types and location properties.
 

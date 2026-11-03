@@ -9,15 +9,18 @@ internal sealed class XlsxOutput<T> where T : class, ITabularRecord<T>
     private readonly XlsxWriteOptions options;
     private readonly int[] ordinals;
     private readonly TabularValue value;
+    private readonly XlsxMutationLayout? layout;
     private char[] buffer = new char[1024];
     private int length;
     private int column;
     private long inputRow;
+    private long worksheetRow = 1;
     internal ReadOnlyMemory<char> Record => buffer.AsMemory(0, length);
 
-    internal XlsxOutput(XlsxWriteOptions options)
+    internal XlsxOutput(XlsxWriteOptions options, XlsxMutationLayout? layout = null)
     {
         this.options = options;
+        this.layout = layout;
         value = new(options.Culture, options.TrimFields, options.DateSystem);
         var mapper = T.Mapper;
         if (!mapper.CanWrite)
@@ -28,6 +31,7 @@ internal sealed class XlsxOutput<T> where T : class, ITabularRecord<T>
         }
         if (mapper.Columns.Length is < 1 or > 16384)
             throw new TabularSchemaException("Writing requires between one and 16,384 columns.", 1, 0, 0);
+        if (layout is not null) { ordinals = layout.Order; return; }
         ordinals = Enumerable.Range(0, mapper.Columns.Length).ToArray();
         Array.Sort(ordinals, (a, b) => StringComparer.Ordinal.Compare(T.Mapper.Columns[a], T.Mapper.Columns[b]));
         var seen = new HashSet<string>(options.HeaderComparison);
@@ -44,11 +48,12 @@ internal sealed class XlsxOutput<T> where T : class, ITabularRecord<T>
         Append("</row>");
     }
 
-    internal void Row(T record, long number)
+    internal void Row(T record, long number, long? physicalRow = null)
     {
         inputRow = number;
-        if (record is null || number > 1_048_575) throw Located(new TabularWriteException(number));
-        Start(number + 1);
+        worksheetRow = physicalRow ?? number + 1;
+        if (record is null || number > 1_048_575 || worksheetRow > 1_048_576) throw Located(new TabularWriteException(number));
+        Start(worksheetRow);
         bool content = false;
         for (column = 0; column < ordinals.Length; column++)
         {
@@ -68,15 +73,15 @@ internal sealed class XlsxOutput<T> where T : class, ITabularRecord<T>
         return Located(header
             ? new TabularSchemaException("A generated header cannot be written with these options.", 1, 0, 0,
                 column + 1, T.Mapper.Columns[index], T.Mapper.Members[index])
-            : new TabularWriteException(inputRow, column + 1, T.Mapper.Columns[index], T.Mapper.Members[index]));
+            : new TabularWriteException(inputRow, column + 1, layout?.Headers[column] ?? T.Mapper.Columns[index], T.Mapper.Members[index]));
     }
 
     private TabularFileException Located(TabularFileException error)
     {
         error.WorksheetName = options.Worksheet;
-        error.WorksheetRowNumber = inputRow + 1;
-        error.PartName = "xl/worksheets/sheet1.xml";
-        if (error.ColumnIndex is { } index) error.CellReference = Address(index, inputRow + 1);
+        error.WorksheetRowNumber = worksheetRow;
+        error.PartName = layout?.Part ?? "xl/worksheets/sheet1.xml";
+        if (error.ColumnIndex is { } index) error.CellReference = Address(index, worksheetRow);
         return error;
     }
 
@@ -92,7 +97,9 @@ internal sealed class XlsxOutput<T> where T : class, ITabularRecord<T>
     private void Start(long row)
     {
         length = 0;
-        Append("<row r=\"");
+        Append("<row");
+        if (layout is not null) { Append(" xmlns=\""); Append(layout.Namespace); Append("\""); }
+        Append(" r=\"");
         Span<char> digits = stackalloc char[20];
         row.TryFormat(digits, out int written, provider: CultureInfo.InvariantCulture);
         Append(digits[..written]);
@@ -112,9 +119,14 @@ internal sealed class XlsxOutput<T> where T : class, ITabularRecord<T>
             return;
         }
         if (kind == ExportCellKind.Boolean) Append(" t=\"b\"");
-        else if (kind == ExportCellKind.Date) Append(" s=\"1\"");
-        else if (kind == ExportCellKind.DateTime) Append(" s=\"2\"");
-        else if (kind == ExportCellKind.Time) Append(" s=\"3\"");
+        else if (kind is ExportCellKind.Date or ExportCellKind.DateTime or ExportCellKind.Time)
+        {
+            int style = layout?.Styles.Get(kind) ?? (kind == ExportCellKind.Date ? 1 : kind == ExportCellKind.DateTime ? 2 : 3);
+            Append(" s=\"");
+            Span<char> digits = stackalloc char[12];
+            style.TryFormat(digits, out int count, provider: CultureInfo.InvariantCulture);
+            Append(digits[..count]); Append("\"");
+        }
         Append("><v>"); Append(text); Append("</v></c>");
     }
 

@@ -163,5 +163,6 @@ I/O, factory, input-enumeration, and cancellation exceptions retain their standa
 Raw values and inner conversion exceptions are omitted.
 
 The writer exports a plain worksheet in Transitional XLSX format.
-It does not edit existing workbooks, create formulas/tables/filters, or provide general layout styling.
+For existing workbooks, use [XLSX append and insertion](xlsx-mutation.md).
+The writer does not create formulas/tables/filters or provide general layout styling.
 See the [roadmap](roadmap.md) for future work and the [runnable sample](../samples/NativeAot/XlsxWritingSample.cs) for more examples.

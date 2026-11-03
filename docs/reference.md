@@ -1,6 +1,7 @@
 # Mapping and API reference
 
 Model requirements and annotations apply to CSV and XLSX.
+For existing workbook writes, see [XLSX append and insertion](xlsx-mutation.md).
 The source options below describe CSV. See the [XLSX guide](xlsx.md) for XLSX source methods, options, conversions, and limits.
 
 ## Model requirements

@@ -17,13 +17,14 @@ public sealed class DocumentationTests
     [InlineData("column-tokens.md", 2)]
     [InlineData("csv-streams.md", 2)]
     [InlineData("xlsx-writing.md", 2)]
+    [InlineData("xlsx-mutation.md", 2)]
     public void CSharpExamplesMatchTheRunnableSample(string file, int expectedCount)
     {
         var directory = Path.Combine(AppContext.BaseDirectory, "Examples");
         var readme = File.ReadAllText(Path.Combine(directory, file));
         var examples = Regex.Matches(readme, "```csharp\\r?\\n(.*?)```", RegexOptions.Singleline);
         Assert.Equal(expectedCount, examples.Count);
-        var sources = new[] { "Person.txt", "Program.txt", "WorkbookEntry.txt", "WorkbookSample.txt", "WorkbookCellsSample.txt", "WorkbookAsyncSample.txt", "CsvWritingSample.txt", "QuickStartSample.txt", "Product.txt", "ConverterSample.txt", "Appointment.txt", "TemporalFormatSample.txt", "InventoryItem.txt", "TokenSample.txt", "StreamWritingSample.txt", "XlsxWritingSample.txt" }
+        var sources = new[] { "Person.txt", "Program.txt", "WorkbookEntry.txt", "WorkbookSample.txt", "WorkbookCellsSample.txt", "WorkbookAsyncSample.txt", "CsvWritingSample.txt", "QuickStartSample.txt", "Product.txt", "ConverterSample.txt", "Appointment.txt", "TemporalFormatSample.txt", "InventoryItem.txt", "TokenSample.txt", "StreamWritingSample.txt", "XlsxWritingSample.txt", "XlsxMutationSample.txt" }
             .Select(name => Normalize(File.ReadAllText(Path.Combine(directory, name)))).ToArray();
         foreach (Match example in examples)
             Assert.Contains(sources, source => source.Contains(Normalize(example.Groups[1].Value), StringComparison.Ordinal));
