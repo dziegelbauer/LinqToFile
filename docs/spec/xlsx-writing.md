@@ -11,8 +11,13 @@
 - Support paths and supplied streams; consider the existing sync/async factory pattern for parity.
 - Defer append, insertion, and editing existing workbooks.
 
+## Confirmed existing-file behavior
+- Add the typed option WithExistingFileBehavior(ExistingFileBehavior.Overwrite), with ExistingFileBehavior.Throw as the default. The user approved intentional overwrite for XLSX path exports and the same option for CSV Create/CreateAsync.
+- Overwrite prepares complete output in a temporary file and replaces the destination only after output succeeds, so export failures preserve the original. This applies to complete-document path output; CSV append/insert behavior stays unchanged. Supplied streams retain their separate current-position/partial-output contract.
+- This is an approved planned API, not implemented behavior. Update human guides only when implementation is available.
+
 ## Next decision
-- Recommend create-new-only behavior for path destinations: throw if the target exists. Replacing an existing workbook would require an explicit future option/API, consistent with the requirement that file creation and mutation communicate intent.
+- CSV already exposes WithInPlaceWrites(). Recommend rejecting its combination with overwrite for creation, rather than silently bypassing the approved staged-replacement guarantee. Ask the user before settling this interaction.
 
 ## Workflow
 - Work on feature/xlsx-writing. Update human guides and runnable package/AOT examples when behavior is implemented; keep unfinished features on the roadmap.
