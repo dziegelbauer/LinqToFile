@@ -11,8 +11,11 @@
 - Keep new-workbook exports on XlsxWriter<T>; define the existing-workbook mutation entry point separately while retaining consistent source/configuration conventions.
 - Prefer same-directory staging and replacement, incremental processing, existing generated cell serialization/annotations, private worksheet/cell-aware errors, and current human documentation/runnable samples.
 
+## Confirmed destinations
+- Support existing file paths only for initial XLSX mutation, matching CSV append/insert. The user approved this scope. Supplied-stream/factory mutation remains future work; existing complete-document stream exports stay available.
+
 ## Next decision
-- Recommend existing file paths only for initial XLSX mutation, matching CSV append/insert. Supplied-stream/factory mutation remains future work; existing complete-document stream exports stay available. Await user confirmation.
+- Recommend TabularFile.Xlsx<T>(path) returning XlsxFile<T>, a readable source that adds append/insert operations and preserves its path-specific type through fluent options, matching CsvFile<T>. Stream/factory Xlsx overloads remain read-only XlsxSource<T>; complete-document exports stay on XlsxWriter<T>. Await user confirmation.
 
 ## Remaining design topics
 - Public path-source/mutation API and worksheet selection.
