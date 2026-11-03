@@ -33,12 +33,16 @@
 - After validating the call's arguments, atomically consume the supplied destination's one-export allowance when the export attempt starts, before observing operation cancellation or writing bytes. Subsequent failure/cancellation still consumes that attempt, including cancellation before any output. Derived configurations share the same claim. The user approved this boundary.
 - Creating/configuring a writer does not consume its allowance; invalid arguments do not constitute an export attempt.
 
-## Open decision: successful flushing
-- Proposal: successful Write/WriteAsync finalizes the export's encoder/library buffers and flushes the destination stream before returning. Async export uses asynchronous writes/flush and honors its token through the final flush. Owned stream disposal also completes before success is reported; supplied streams with leaveOpen=true remain open.
-- Flushing does not promise crash durability or finalize a caller-owned compression wrapper; its caller still controls wrapper disposal. Failure/cancellation cleanup and pending-buffer behavior remain implementation details to validate against the approved partial-output contract. Await the user's answer before fixing successful completion behavior.
+## Confirmed successful flushing
+- Successful Write/WriteAsync finalizes the export's encoder/library buffers and flushes the destination stream before returning. Async export uses asynchronous writes/flush and honors its token through the final flush. Owned stream disposal also completes before success is reported; supplied streams with leaveOpen=true remain open. The user approved this completion behavior.
+- Flushing does not promise crash durability or finalize a caller-owned compression wrapper; its caller still controls wrapper disposal. Failure/cancellation cleanup and pending-buffer behavior remain implementation details to validate against the approved partial-output contract.
+
+## Open decision: encoding preamble
+- Proposal: write the configured encoding's preamble once at the start of each exported CSV document, even at a nonzero underlying stream position. Default strict UTF-8 has no BOM. Do not inspect or alter existing bytes, and do not make preamble behavior depend on stream seekability.
+- This is a new document at the current position, not an append operation. Await the user's answer before fixing preamble behavior.
 
 ## Remaining decisions
-- BOM emission and factory concurrency remain to be settled.
+- Factory concurrency remains to be settled.
 
 ## Existing contracts to preserve
 - Supplied read streams start at their current position, are single-use across derived configurations, and default to leaveOpen=true. Read factories return fresh library-owned streams.
