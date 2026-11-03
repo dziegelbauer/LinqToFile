@@ -35,8 +35,11 @@
 ## Confirmed existing-workbook scope
 - Initially support plain tabular workbooks: ordinary values, shared/inline strings, cell styles, and multiple worksheets. Preserve supported existing content. Reject workbooks with formulas or reference-bearing features (such as tables, named ranges, charts, or drawings) that the implementation cannot reliably update/preserve. Do not rebuild arbitrary workbooks through typed read/write mapping or silently strip unsupported features. The user approved this initial scope; exact supported-feature validation and package preservation rules require subsequent specification.
 
+## Confirmed preservation
+- Preserve untouched worksheet/part payloads without rewriting their XML; modify only the selected worksheet and supporting metadata strictly required by the mutation. Preserve existing cell values/types/styles, worksheet names/order/visibility, shared-string indexes, and workbook date system. ZIP compression/container bytes may change, so do not promise byte-identical archive output. The user approved these preservation rules; new-row styles and supporting metadata still require separate decisions.
+
 ## Next decision
-- Recommend preserving untouched worksheet/part payloads without rewriting their XML; modify only the selected worksheet and supporting metadata strictly required by the mutation. Preserve existing cell values/types/styles, worksheet names/order/visibility, shared-string indexes, and workbook date system. ZIP compression/container bytes may change, so do not promise byte-identical archive output. Await user confirmation; treatment of new-row styles and supporting metadata remains a separate decision.
+- Recommend formatting new rows with the existing XLSX writer's native/text/annotation and strict precision rules, using the existing workbook's date system. Do not copy adjacent row/cell formatting automatically. Reuse compatible native date/time styles or add bounded required styles without changing existing style indexes; leave general style inheritance/configuration for future work. Await user confirmation.
 
 ## Remaining design topics
 - Public path-source/mutation API and worksheet selection.
