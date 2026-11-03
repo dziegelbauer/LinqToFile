@@ -11,9 +11,13 @@
 - [BooleanTokens("yes", "no")] specifies exactly one true token and one false token, used for both text parsing and CSV output. The annotation replaces built-in text tokens rather than silently also accepting true/false. Boolean properties without it keep current true/false behavior. The user approved this behavior.
 - Multiple accepted aliases or separate read/write tokens remain future objectives.
 
-## Open decision: boolean comparison
-- Proposal: default to StringComparison.OrdinalIgnoreCase, consistent with built-in boolean parsing. Permit an explicit Comparison = StringComparison.Ordinal for case-sensitive tokens. Only these two enum values are supported, keeping comparisons independent of culture.
-- CSV output uses the literal token spelling from the annotation; comparison changes input matching only. Await the user's answer before fixing this contract.
+## Confirmed boolean comparison
+- Default to StringComparison.OrdinalIgnoreCase, consistent with built-in boolean parsing. Permit an explicit Comparison = StringComparison.Ordinal for case-sensitive tokens. Only these two enum values are supported, keeping comparisons independent of culture. The user approved this behavior.
+- CSV output uses the literal token spelling from the annotation; comparison changes input matching only.
+
+## Open decision: null token scope
+- Proposal: [NullToken("NULL")] specifies one token used both to recognize null on text input and to serialize null to CSV. Do not automatically recognize other null spellings. Multiple aliases or separate read/write null tokens remain future work.
+- Empty-field semantics, applicable property types, and string/token collisions need separate decisions. Await the user's answer before fixing this contract.
 
 ## Remaining contract work
 - Define case comparison with typed options, trimming, empty/null distinctions, applicable property types, native XLSX behavior, canonical null output, collision validation, and interaction with custom converters/temporal formats/inheritance/Ignore.
