@@ -14,12 +14,17 @@
 - Write at the supplied stream's current position without seeking, rewinding, or truncating it. Callers prepare/reset a seekable stream when they need replacement behavior. Bytes before the start position remain untouched; ordinary writes may overwrite existing bytes, and any tail beyond the output remains unless the caller removed it. The user approved this behavior.
 - Do not query Position/Length as a requirement for export, so non-seekable streams remain supported.
 
-## Open decision: repeated exports
-- Proposal: a caller-supplied stream destination permits one export total across that destination and its derived configurations, consistent with supplied-stream read sources. Factory destinations permit repeated exports by opening a fresh stream per call.
-- Await the user's answer before fixing this contract. The exact claim boundary and failure/cancellation behavior remain separate details.
+## Confirmed repeated exports
+- A caller-supplied stream destination permits one export total across that destination and its derived configurations, consistent with supplied-stream read sources. Factory destinations permit repeated exports by opening a fresh stream per call. The user approved this behavior.
+- The exact claim boundary and failure/cancellation behavior remain separate details.
+
+## Open decision: public API shape
+- Proposal: separate write-only entry points TabularFile.CsvWriter<T>(stream, leaveOpen=true) and CsvWriter<T>(Func<Stream>), with CsvWriterAsync<T>(Func<CancellationToken, ValueTask<Stream>>) for async-only factories. Return an immutable configurable CsvWriter<T> with Write/WriteAsync operations that export a complete document. Keep existing Csv<T>(stream/factory) reading APIs unchanged.
+- Example: await TabularFile.CsvWriter<Person>(stream).WithDelimiter(';').WriteAsync(rows). Input overloads, counts, and headers-only export will follow existing file-writing conventions unless a separate behavior question requires confirmation.
+- Await the user's answer before fixing these API names and shape.
 
 ## Remaining decisions
-- Exact API names, factory ownership, flushing/BOM, cancellation/partial writes, and concurrency remain to be settled.
+- Factory ownership, flushing/BOM, cancellation/partial writes, and concurrency remain to be settled.
 
 ## Existing contracts to preserve
 - Supplied read streams start at their current position, are single-use across derived configurations, and default to leaveOpen=true. Read factories return fresh library-owned streams.
