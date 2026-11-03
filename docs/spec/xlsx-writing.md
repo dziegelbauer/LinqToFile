@@ -27,9 +27,12 @@
 ## Confirmed default cell types
 - Write unannotated numeric properties as numeric cells, bool properties as boolean cells, and string properties as text cells. The user approved these defaults. Large-number precision, temporal values, nulls, and annotation overrides require separate decisions.
 
-## Next decision
-- Excel documents 15-digit numeric precision. Recommend throwing for numeric output requiring more than 15 significant decimal digits instead of silently rounding; callers can explicitly supply text through a custom converter. Await user confirmation. Exact lexical/significant-digit checks, floating-point edge cases/range, and converter output behavior still need specification.
+## Confirmed numeric precision
+- Throw for numeric output requiring more than 15 significant decimal digits instead of silently rounding. The user approved this rule, with an explicit text converter available to preserve such values. Exact lexical/significant-digit checks and floating-point edge cases/range still need specification.
 - Reference: [Microsoft Excel specifications and limits](https://support.microsoft.com/en-us/excel/excel-specifications-and-limits).
+
+## Next decision
+- Recommend writing custom-converter output as literal text cells, preserving the existing span-based TryFormat contract without guessing a native cell type or interpreting formulas. Use Text/None conversion context for formatting, as with CSV output. Await user confirmation.
 
 ## Workflow
 - Work on feature/xlsx-writing. Update human guides and runnable package/AOT examples when behavior is implemented; keep unfinished features on the roadmap.
