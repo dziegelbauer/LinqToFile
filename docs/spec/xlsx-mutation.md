@@ -17,8 +17,11 @@
 ## Confirmed public entry point
 - TabularFile.Xlsx<T>(path) returns XlsxFile<T>, a readable source that adds append/insert operations and preserves its path-specific type through fluent options, matching CsvFile<T>. Stream/factory Xlsx overloads remain read-only XlsxSource<T>; complete-document exports stay on XlsxWriter<T>. The user approved this API direction.
 
+## Confirmed operation family
+- Provide Append/AppendRange and Insert/InsertRange, with corresponding async variants. Single-record and IEnumerable<T> inputs support sync/async methods; IAsyncEnumerable<T> ranges support async methods only. Return long/ValueTask<long> inserted-row counts; async methods accept an optional CancellationToken. The user approved this CSV-parity method family.
+
 ## Next decision
-- Recommend the full CSV method family: Append/AppendRange and Insert/InsertRange, with corresponding async variants. Single-record and IEnumerable<T> inputs support sync/async methods; IAsyncEnumerable<T> ranges support async methods only. Return long/ValueTask<long> inserted-row counts; async methods accept an optional CancellationToken. Await user confirmation.
+- Recommend staged replacement only for initial XLSX mutation: require an existing workbook, prepare changes in a temporary file beside it, and replace only after successful completion. Honor cancellation until immediately before replacement; once replacement starts, report success if it succeeds. Do not expose in-place XLSX mutation initially. Await user confirmation.
 
 ## Remaining design topics
 - Public path-source/mutation API and worksheet selection.
