@@ -83,8 +83,11 @@
 ## Confirmed merged cells
 - Preserve merged ranges wholly above the selected header, such as title rows, but reject any merged range on the selected worksheet that reaches the header row or below, even outside mapped columns. This avoids needing merge-shift rules initially. Preserve merges on untouched worksheets; they do not alone block mutation. The user approved these rules.
 
+## Confirmed new text storage
+- Write newly added text as inline strings, matching XlsxWriter<T>, while retaining the existing shared-string table and indexes unchanged. Do not deduplicate new strings into or rebuild that table. Existing shared-string validation/spill limits still apply where needed. The user approved this approach.
+
 ## Next decision
-- Recommend writing newly added text as inline strings, matching XlsxWriter<T>, while retaining the existing shared-string table and indexes unchanged. Do not deduplicate new strings into or rebuild that table. Existing shared-string validation/spill limits still apply where needed. Await user confirmation.
+- Recommend rejecting mutation when unfamiliar extension markup, relationship types, or workbook parts cannot be established as safe to preserve under row insertion. Preserve explicitly supported non-reference metadata; do not silently drop unknown content or assume that copying it prevents stale references. Document the supported subset and report a private format error before publication for unsupported features. Await user confirmation; implementation must define and test the supported-feature checks.
 
 ## Remaining design topics
 - Public path-source/mutation API and worksheet selection.
