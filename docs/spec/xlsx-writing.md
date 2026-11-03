@@ -24,8 +24,12 @@
 ## Confirmed operations
 - Match the CsvWriter operation family: Write()/WriteAsync() for headers only, single-record overloads, IEnumerable<T> overloads, and IAsyncEnumerable<T> for WriteAsync only. Return long/ValueTask<long> data-row counts, excluding headers. The user approved these operations.
 
+## Confirmed default cell types
+- Write unannotated numeric properties as numeric cells, bool properties as boolean cells, and string properties as text cells. The user approved these defaults. Large-number precision, temporal values, nulls, and annotation overrides require separate decisions.
+
 ## Next decision
-- Recommend native numeric and boolean cells for unannotated numeric/bool properties, rather than formatting all values as text. Store string properties as text. Await user confirmation; large-number precision, temporal values, nulls, and annotation overrides still need separate decisions.
+- Excel documents 15-digit numeric precision. Recommend throwing for numeric output requiring more than 15 significant decimal digits instead of silently rounding; callers can explicitly supply text through a custom converter. Await user confirmation. Exact lexical/significant-digit checks, floating-point edge cases/range, and converter output behavior still need specification.
+- Reference: [Microsoft Excel specifications and limits](https://support.microsoft.com/en-us/excel/excel-specifications-and-limits).
 
 ## Workflow
 - Work on feature/xlsx-writing. Update human guides and runnable package/AOT examples when behavior is implemented; keep unfinished features on the roadmap.
