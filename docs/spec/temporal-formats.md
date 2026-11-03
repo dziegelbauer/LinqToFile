@@ -14,9 +14,11 @@
 ## Confirmed native XLSX cells
 - Apply the format to CSV fields and XLSX text cells, and to CSV output. Native XLSX numeric serials and ISO date cells keep existing target-type/date-system rules, independent of the annotation. Do not render native cells into display text before parsing. The user approved this behavior.
 
-## Open decision: custom converter conflicts
-- Proposal: reject an effective mapping containing both TemporalFormat and ColumnConverter with a compiler diagnostic, including combinations inherited through overrides. A converter already owns parsing/formatting; silently prioritizing either annotation would hide a configuration error.
-- Await the user's answer before implementing this behavior.
+## Confirmed custom converter conflicts
+- Reject an effective mapping containing both TemporalFormat and ColumnConverter with a compiler diagnostic, including combinations inherited through overrides. A converter already owns parsing/formatting; silently prioritizing either annotation would hide a configuration error. The user approved this behavior.
+
+## Paused work
+- The user explicitly paused this branch to fix the failed main CI run after PR #4. Preserve these decisions and return after the CI fix is validated and merged. The user explicitly authorized merging that fix; this does not authorize merging the temporal-format PR.
 
 ## Remaining contract work
 - Settle interaction with ColumnConverter/Ignore/inherited annotations, culture selection, and exact temporal timezone/missing-component rules.
