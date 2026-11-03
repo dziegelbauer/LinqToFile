@@ -62,8 +62,11 @@
 ## Confirmed workbook variants
 - Support both Transitional and Strict XLSX for the agreed mutation subset, matching reader coverage. Preserve the input variant rather than converting the workbook; generate new worksheet/style content with its existing namespaces/relationship conventions. Keep legacy/binary/macro-enabled/encrypted workbook formats out of scope. The user approved this scope.
 
+## Confirmed temporary-file requirement
+- Reject append/insert when WithTemporaryFiles(false) is selected, since the approved mutation contract requires same-directory staging. Do not ignore the option or fall back to in-place mutation. Reject before opening output or enumerating new records, including empty ranges. The user approved this restriction; temporary-directory selection and resource accounting still require separate details.
+
 ## Next decision
-- Recommend rejecting append/insert when WithTemporaryFiles(false) is selected, since the approved mutation contract requires same-directory staging. Do not ignore the option or fall back to in-place mutation. Reject before opening output or enumerating new records, including empty ranges. Await user confirmation; temporary-directory selection and resource accounting require separate details.
+- Recommend keeping the publication staging file beside the workbook, regardless of WithTemporaryDirectory. Use WithTemporaryDirectory for auxiliary storage such as shared-string spill or incremental new-row spooling. Document these distinct roles; do not move publication staging to a different filesystem or silently weaken replacement guarantees. Await user confirmation. Aggregate temporary-byte accounting remains a separate decision.
 
 ## Remaining design topics
 - Public path-source/mutation API and worksheet selection.
