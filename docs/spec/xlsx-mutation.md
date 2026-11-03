@@ -65,8 +65,11 @@
 ## Confirmed temporary-file requirement
 - Reject append/insert when WithTemporaryFiles(false) is selected, since the approved mutation contract requires same-directory staging. Do not ignore the option or fall back to in-place mutation. Reject before opening output or enumerating new records, including empty ranges. The user approved this restriction; temporary-directory selection and resource accounting still require separate details.
 
+## Confirmed temporary storage locations
+- Keep the publication staging file beside the workbook, regardless of WithTemporaryDirectory. Use WithTemporaryDirectory for auxiliary storage such as shared-string spill or incremental new-row spooling. Document these distinct roles; do not move publication staging to a different filesystem or silently weaken replacement guarantees. The user approved these storage roles. Aggregate temporary-byte accounting remains a separate decision.
+
 ## Next decision
-- Recommend keeping the publication staging file beside the workbook, regardless of WithTemporaryDirectory. Use WithTemporaryDirectory for auxiliary storage such as shared-string spill or incremental new-row spooling. Document these distinct roles; do not move publication staging to a different filesystem or silently weaken replacement guarantees. Await user confirmation. Aggregate temporary-byte accounting remains a separate decision.
+- Recommend applying WithMaxTemporaryBytes to the aggregate live logical lengths of all operation-owned temporary files, including publication staging, new-row spool, and shared-string spill/index files, wherever located. Do not count the original workbook or filesystem block overhead. Preserve null as unlimited and zero as valid; exceeding the limit throws before further growth, leaves the workbook unchanged, and cleans up owned files. Await user confirmation.
 
 ## Remaining design topics
 - Public path-source/mutation API and worksheet selection.
