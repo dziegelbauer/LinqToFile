@@ -18,13 +18,16 @@
 - A caller-supplied stream destination permits one export total across that destination and its derived configurations, consistent with supplied-stream read sources. Factory destinations permit repeated exports by opening a fresh stream per call. The user approved this behavior.
 - The exact claim boundary and failure/cancellation behavior remain separate details.
 
-## Open decision: public API shape
-- Proposal: separate write-only entry points TabularFile.CsvWriter<T>(stream, leaveOpen=true) and CsvWriter<T>(Func<Stream>), with CsvWriterAsync<T>(Func<CancellationToken, ValueTask<Stream>>) for async-only factories. Return an immutable configurable CsvWriter<T> with Write/WriteAsync operations that export a complete document. Keep existing Csv<T>(stream/factory) reading APIs unchanged.
+## Confirmed public API shape
+- Separate write-only entry points TabularFile.CsvWriter<T>(stream, leaveOpen=true) and CsvWriter<T>(Func<Stream>), with CsvWriterAsync<T>(Func<CancellationToken, ValueTask<Stream>>) for async-only factories. Return an immutable configurable CsvWriter<T> with Write/WriteAsync operations that export a complete document. Keep existing Csv<T>(stream/factory) reading APIs unchanged. The user approved these names and shape.
 - Example: await TabularFile.CsvWriter<Person>(stream).WithDelimiter(';').WriteAsync(rows). Input overloads, counts, and headers-only export will follow existing file-writing conventions unless a separate behavior question requires confirmation.
-- Await the user's answer before fixing these API names and shape.
+
+## Open decision: factory ownership
+- Proposal: factory-returned streams are library-owned and disposed after each export, including failure or cancellation. Async operations use asynchronous disposal. Caller-supplied streams retain the approved leaveOpen=true default, with leaveOpen=false explicitly transferring disposal responsibility to the operation.
+- Await the user's answer before fixing factory ownership. Cancellation and partial-write behavior remain separate decisions.
 
 ## Remaining decisions
-- Factory ownership, flushing/BOM, cancellation/partial writes, and concurrency remain to be settled.
+- Flushing/BOM, cancellation/partial writes, and concurrency remain to be settled.
 
 ## Existing contracts to preserve
 - Supplied read streams start at their current position, are single-use across derived configurations, and default to leaveOpen=true. Read factories return fresh library-owned streams.
