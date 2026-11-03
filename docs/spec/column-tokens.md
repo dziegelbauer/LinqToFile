@@ -39,9 +39,13 @@
 ## Confirmed custom converter conflicts
 - Reject effective combinations of ColumnConverter with either BooleanTokens or NullToken as compiler errors, including inherited combinations. A custom converter already owns token parsing, formatting, empty fields, and null values; do not silently prioritize or layer annotations around it. The user approved this behavior.
 
-## Open decision: non-null output collisions
-- Proposal: throw the existing private, location-aware TabularWriteException if a non-null value's formatted text would match its configured null token when read with the same options. Apply the configured null comparison and field trimming. This covers strings and all other annotated built-in types; quoting cannot disambiguate decoded token content.
-- Example: [NullToken("NULL")] string? cannot write a non-null literal "NULL"; [NullToken("0")] int? cannot write zero. Null values still write the configured token. Await the user's answer before implementing this behavior.
+## Confirmed non-null output collisions
+- Throw the existing private, location-aware TabularWriteException if a non-null value's formatted text would match its configured null token when read with the same options. Apply the configured null comparison and field trimming. This covers strings and all other annotated built-in types; quoting cannot disambiguate decoded token content. The user approved this behavior.
+- Example: [NullToken("NULL")] string? cannot write a non-null literal "NULL"; [NullToken("0")] int? cannot write zero. Null values still write the configured token.
+
+## Open decision: annotation composition
+- Proposal: allow NullToken with BooleanTokens on bool?, and with TemporalFormat on supported nullable temporal types. Check the text null token before ordinary value conversion; a match yields null. On writes, null emits its token and bypasses ordinary formatting; non-null values use their boolean/temporal/built-in formatter and the approved output-collision check.
+- Native XLSX cells and empty fields retain the already confirmed rules. Await the user's answer before fixing this composition contract.
 
 ## Remaining contract work
 - Define case comparison with typed options, trimming, empty/null distinctions, applicable property types, native XLSX behavior, canonical null output, collision validation, and interaction with custom converters/temporal formats/inheritance/Ignore.
