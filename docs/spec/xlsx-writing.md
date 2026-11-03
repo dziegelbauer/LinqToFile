@@ -15,9 +15,10 @@
 - Add the typed option WithExistingFileBehavior(ExistingFileBehavior.Overwrite), with ExistingFileBehavior.Throw as the default. The user approved intentional overwrite for XLSX path exports and the same option for CSV Create/CreateAsync.
 - Overwrite prepares complete output in a temporary file and replaces the destination only after output succeeds, so export failures preserve the original. This applies to complete-document path output; CSV append/insert behavior stays unchanged. Supplied streams retain their separate current-position/partial-output contract.
 - This is an approved planned API, not implemented behavior. Update human guides only when implementation is available.
+- The user approved rejecting CSV creation when both WithInPlaceWrites() and ExistingFileBehavior.Overwrite are selected. Do not silently weaken staged overwrite protection. This restriction does not change append/insert behavior.
 
 ## Next decision
-- CSV already exposes WithInPlaceWrites(). Recommend rejecting its combination with overwrite for creation, rather than silently bypassing the approved staged-replacement guarantee. Ask the user before settling this interaction.
+- Recommend one worksheet per exported workbook initially, named Sheet1 by default, with WithWorksheet(string name) to select its output name. Defer multiple worksheets and edits to existing workbooks. Await user confirmation.
 
 ## Workflow
 - Work on feature/xlsx-writing. Update human guides and runnable package/AOT examples when behavior is implemented; keep unfinished features on the roadmap.
