@@ -23,8 +23,11 @@
 ## Confirmed publication and cancellation
 - Require an existing workbook and use staged replacement only initially: prepare changes in a temporary file beside it, and replace only after successful completion. Honor cancellation until immediately before replacement; once replacement starts, report success if it succeeds. The user approved this contract. Do not expose in-place XLSX mutation initially.
 
+## Confirmed worksheet selection
+- Match XLSX read selection: mutate the first worksheet in workbook order by default, or the existing sheet selected with WithWorksheet(name). Match names ordinal-ignore-case and throw when missing; never create a missing worksheet implicitly. The user approved this behavior. Existing read selection includes hidden/very-hidden worksheets; visibility does not change the selected worksheet.
+
 ## Next decision
-- Recommend matching XLSX read selection: mutate the first worksheet in workbook order by default, or the existing sheet selected with WithWorksheet(name). Match names ordinal-ignore-case and throw when missing; never create a missing worksheet implicitly. Await user confirmation. Preservation of other sheets/parts and unsupported workbook features remains a separate decision.
+- Recommend zero-based long insertion indexes counting logical data records returned under the selected header/blank-row rules, excluding the header and skipped blank rows. Zero inserts before the first data record; the existing data-record count appends. Negative or greater indexes throw. WithHeaderRow retains its current physical one-based meaning. Await user confirmation; exact physical placement and preservation of blank/formatted rows remain separate decisions.
 
 ## Remaining design topics
 - Public path-source/mutation API and worksheet selection.
