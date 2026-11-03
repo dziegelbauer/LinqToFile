@@ -33,8 +33,11 @@
 - Require boolean and null tokens to be nonempty and have no leading/trailing .NET whitespace; invalid annotation values produce compiler diagnostics. Internal whitespace remains literal token content. The user approved this behavior.
 - Input matching uses the field after configured WithFieldTrimming; no extra token-specific trimming occurs. This avoids padded tokens becoming unreadable when trimming is enabled.
 
-## Open decision: native XLSX cells
-- Proposal: apply tokens to CSV fields and XLSX text cells only. Native XLSX booleans keep their typed true/false values, independent of BooleanTokens. Native numeric/date/boolean cells cannot become null merely because their storage text matches a null token; existing target-type conversion boundaries remain unchanged. Empty/missing cells retain the already approved empty-field rules.
+## Confirmed native XLSX cells
+- Apply tokens to CSV fields and XLSX text cells only. Native XLSX booleans keep their typed true/false values, independent of BooleanTokens. Native numeric/date/boolean cells cannot become null merely because their storage text matches a null token; existing target-type conversion boundaries remain unchanged. Empty/missing cells retain the already approved empty-field rules. The user approved this behavior.
+
+## Open decision: custom converter conflicts
+- Proposal: reject effective combinations of ColumnConverter with either BooleanTokens or NullToken as compiler errors, including inherited combinations. A custom converter already owns token parsing, formatting, empty fields, and null values; do not silently prioritize or layer annotations around it.
 - Await the user's answer before fixing this contract.
 
 ## Remaining contract work
