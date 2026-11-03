@@ -27,6 +27,7 @@ Read relevant topics before proposing contracts or changing code:
 - [Exact temporal format design](docs/spec/temporal-formats.md)
 - [Boolean and null token design](docs/spec/column-tokens.md)
 - [Writing and row insertion planning](docs/spec/writing.md)
+- [Writable CSV streams and factories](docs/spec/stream-writing.md)
 - [Reading and errors](docs/spec/reading.md)
 - [Sources and query execution](docs/spec/sources.md)
 - [Open questions](docs/spec/questions.md)
