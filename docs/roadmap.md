@@ -7,7 +7,6 @@ Priority and design can change.
 ## File formats and headers
 
 - Read additional tabular file formats.
-- Read headerless CSV files.
 - Extend workbook support to legacy `.xls`, binary `.xlsb`, and encrypted workbooks.
 
 ## Writing

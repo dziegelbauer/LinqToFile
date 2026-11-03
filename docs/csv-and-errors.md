@@ -2,7 +2,8 @@
 
 ## File and header rules
 
-The file must contain a header record.
+By default, the file must contain a header record.
+For input without headers, see [Read headerless CSV](headerless-csv.md).
 Missing mapped headers cause errors.
 Extra headers are permitted.
 Empty headers and whitespace-only headers cause errors.
@@ -19,6 +20,9 @@ Annotation names keep their literal whitespace.
 
 | Method | Default | Effect |
 |---|---|---|
+| `WithColumnNames(names)` | Not selected | Reads headerless CSV with supplied names in file order |
+| `WithColumnIndexes()` | Not selected | Reads headerless CSV with model index annotations |
+| `WithHeaders()` | Selected | Reads column names from the first record |
 | `WithDelimiter(character)` | Comma | Selects a single-character field delimiter |
 | `WithQuote(character)` | Double quote | Selects a single-character quote |
 | `WithBomDetection(enabled)` | True | Selects encoding from a recognized BOM |
@@ -142,7 +146,8 @@ They give location properties when the information is available:
 - `TargetMember`
 
 Record numbers, line numbers, and column indexes start at 1.
-The header is record 1.
+The header is record 1 in header-based mode.
+The first data record is record 1 in headerless mode.
 Skipped blank lines increase line numbers but do not increase record numbers.
 A column index is a field ordinal, not a character position.
 A width error identifies the first missing or extra column.

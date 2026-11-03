@@ -35,6 +35,6 @@ public sealed class TabularSchemaException : TabularFileException
 
 public sealed class TabularConversionException : TabularFileException
 {
-    internal TabularConversionException(long record, long line, long failureLine, int column, string header, string member)
+    internal TabularConversionException(long record, long line, long failureLine, int column, string? header, string member)
         : base("A field could not be converted to the target property type.", record, line, failureLine, column, header, member) { }
 }

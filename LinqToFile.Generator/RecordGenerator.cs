@@ -21,6 +21,7 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
     private static readonly DiagnosticDescriptor InvalidConverter = Rule("LTF005", "Unsupported column converter");
     private static readonly DiagnosticDescriptor InvalidTemporalFormat = Rule("LTF006", "Unsupported temporal format");
     private static readonly DiagnosticDescriptor InvalidTokens = Rule("LTF007", "Unsupported column tokens");
+    private static readonly DiagnosticDescriptor InvalidIndex = Rule("LTF008", "Unsupported column index");
     private static readonly SymbolDisplayFormat TypeFormat = SymbolDisplayFormat.FullyQualifiedFormat
         .WithMiscellaneousOptions(SymbolDisplayFormat.FullyQualifiedFormat.MiscellaneousOptions |
             SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
@@ -63,6 +64,8 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
 
         var properties = new List<IPropertySymbol>();
         var columns = new List<string>();
+        var indexes = new List<int>();
+        var indexSet = new HashSet<int>();
         var readers = new List<string>();
         var nullable = new List<bool>();
         var converters = new List<string?>();
@@ -80,6 +83,7 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
             foreach (var property in type.GetMembers().OfType<IPropertySymbol>())
             {
                 AttributeData? column = null;
+                AttributeData? columnIndex = null;
                 AttributeData? converter = null;
                 AttributeData? temporal = null;
                 AttributeData? booleanTokens = null;
@@ -91,6 +95,7 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
                     {
                         switch (attribute.AttributeClass?.ToDisplayString())
                         {
+                            case "LinqToFile.ColumnIndexAttribute" when columnIndex is null: columnIndex = attribute; break;
                             case "LinqToFile.ColumnAttribute" when column is null: column = attribute; break;
                             case "LinqToFile.ColumnConverterAttribute" when converter is null: converter = attribute; break;
                             case "LinqToFile.TemporalFormatAttribute" when temporal is null: temporal = attribute; break;
@@ -106,7 +111,7 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
                     derived is IPropertySymbol derivedProperty && Overrides(derivedProperty, property))
                     continue;
 
-                if ((ignored && (column != null || converter != null || temporal != null || booleanTokens != null || nullToken != null)) ||
+                if ((ignored && (columnIndex != null || column != null || converter != null || temporal != null || booleanTokens != null || nullToken != null)) ||
                     (converter != null && (temporal != null || booleanTokens != null || nullToken != null)))
                 {
                     Error(Conflict, property, "Ignore cannot combine with mapping annotations; ColumnConverter cannot combine with TemporalFormat or token annotations, including inherited annotations.");
@@ -120,7 +125,7 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
                 if (property.IsStatic || property.IsIndexer || property.DeclaredAccessibility != Accessibility.Public ||
                     property.SetMethod?.DeclaredAccessibility != Accessibility.Public)
                 {
-                    if (column != null || converter != null || temporal != null || booleanTokens != null || nullToken != null || property.IsRequired)
+                    if (columnIndex != null || column != null || converter != null || temporal != null || booleanTokens != null || nullToken != null || property.IsRequired)
                         Error(InvalidMember, property, "Mapped and required properties must be instance properties with a public setter or public init accessor, and cannot be indexers.");
                     continue;
                 }
@@ -137,6 +142,16 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
                     continue;
                 }
                 if (!columnSet.Add(header!)) Error(Conflict, property, "Multiple properties map to the same column name.");
+
+                int fieldIndex = -1;
+                if (columnIndex != null)
+                {
+                    fieldIndex = (int)columnIndex.ConstructorArguments[0].Value!;
+                    if (fieldIndex < 0)
+                        Error(InvalidIndex, property, "Column indexes must be zero or greater.");
+                    else if (!indexSet.Add(fieldIndex))
+                        Error(InvalidIndex, property, "Multiple properties map to the same column index.");
+                }
 
                 var valueType = property.Type;
                 bool isNullable = valueType is INamedTypeSymbol n &&
@@ -191,6 +206,7 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
                     enums.Add(new KeyValuePair<int, INamedTypeSymbol>(index, (INamedTypeSymbol)valueType));
                 properties.Add(property);
                 columns.Add(header!);
+                indexes.Add(fieldIndex);
                 readers.Add(reader);
                 nullable.Add(isNullable);
                 converters.Add(converterName);
@@ -221,6 +237,13 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
         foreach (var column in columns) source.Append(Literal(column)).Append(",");
         source.AppendLine("};");
         source.AppendLine("public override global::System.ReadOnlySpan<string> Columns => names;");
+        if (indexes.Any(i => i >= 0))
+        {
+            source.Append("private static readonly int[] indexes = new int[] {");
+            foreach (int fieldIndex in indexes) source.Append(fieldIndex.ToString(CultureInfo.InvariantCulture)).Append(",");
+            source.AppendLine("};");
+            source.AppendLine("public override global::System.ReadOnlySpan<int> ColumnIndexes => indexes;");
+        }
         bool sharedNames = columns.SequenceEqual(properties.Select(p => p.Name), StringComparer.Ordinal);
         if (!sharedNames)
         {

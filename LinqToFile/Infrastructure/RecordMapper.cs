@@ -5,6 +5,7 @@ public abstract class RecordMapper<T> where T : class
 {
     public abstract ReadOnlySpan<string> Columns { get; }
     public abstract ReadOnlySpan<string> Members { get; }
+    public virtual ReadOnlySpan<int> ColumnIndexes => [];
     public abstract T Read(TabularRow record, ReadOnlySpan<int> ordinals);
     public virtual void ValidateCulture(System.Globalization.CultureInfo culture) { }
     public virtual bool CanWrite => false;

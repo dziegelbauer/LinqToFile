@@ -255,7 +255,7 @@ public sealed partial class TabularRow
 
     public TabularConversionException CreateConversionException(int ordinal, string member) =>
         WithLocation(new TabularConversionException(RecordNumber, LineNumber, FailureLineNumber, ordinal + 1,
-            ordinal < Headers.Length ? Headers[ordinal] : "", member));
+            ordinal < Headers.Length ? Headers[ordinal] : null, member));
 
     internal TException WithLocation<TException>(TException error) where TException : TabularFileException
     {

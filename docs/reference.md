@@ -1,6 +1,7 @@
 # Mapping and API reference
 
-Model requirements and annotations apply to CSV and XLSX.
+Model requirements and shared annotations apply to CSV and XLSX.
+`[ColumnIndex]` applies only to explicit headerless CSV reads.
 For existing workbook writes, see [XLSX append and insertion](xlsx-mutation.md).
 The source options below describe CSV. See the [XLSX guide](xlsx.md) for XLSX source methods, options, conversions, and limits.
 
@@ -33,6 +34,7 @@ This rule also applies when a field or method hides that property.
 | Attribute | Effect |
 |---|---|
 | `[TabularRecord]` | Makes a generated mapper for the partial class |
+| `[ColumnIndex(0)]` | Maps a property to a zero-based field position for headerless CSV reading |
 | `[Column("header")]` | Uses the literal header name for a property |
 | `[ColumnConverter(typeof(MyConverter))]` | Uses static conversion methods for the property's complete type |
 | `[TemporalFormat("yyyy-MM-dd")]` | Uses one exact temporal format for text reads and CSV output |
@@ -59,6 +61,9 @@ Public fields are not mapped.
 | `TabularFile.CsvWriter<T>(stream, leaveOpen)` | Configures a write-only CSV stream export |
 | `TabularFile.CsvWriter<T>(factory)` | Opens a fresh owned stream for each CSV export |
 | `TabularFile.CsvWriterAsync<T>(factory)` | Opens output streams through an async-only factory |
+| `WithColumnNames(names)` | Reads headerless CSV with supplied column names in file order |
+| `WithColumnIndexes()` | Reads headerless CSV with model index annotations |
+| `WithHeaders()` | Reads column names from the first CSV record |
 | `WithEncoding(encoding)` | Returns a new source with a copy of the encoding |
 | `WithCulture(culture)` | Returns a new source with a read-only copy of the conversion culture |
 | `WithHeaderComparison(comparer)` | Returns a new source with the selected header comparison |
@@ -88,6 +93,7 @@ Boolean options default to true when the caller omits the argument.
 Length limits accept null to remove a limit.
 All options return a new source.
 The [CSV guide](csv-and-errors.md) gives the defaults and counting rules.
+The [headerless CSV guide](headerless-csv.md) gives mapping, field-count, and empty-input rules.
 The [source guide](sources-and-async.md) gives ownership, cancellation, and async signatures.
 The [stream export guide](csv-streams.md) gives writer operations, options, ownership, and partial-output behavior.
 
@@ -128,6 +134,7 @@ Quoted and unquoted empty fields have the same meaning.
 | `LTF005` | The column converter type is invalid, inaccessible, or incompatible |
 | `LTF006` | The temporal format or target type is invalid or incompatible |
 | `LTF007` | The token values, comparison, or property type is invalid |
+| `LTF008` | A column index is negative or duplicates another mapped index |
 
 An unmarked class cannot satisfy the generated interface constraint.
 The C# compiler reports that use as a constraint error.

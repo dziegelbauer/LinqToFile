@@ -11,6 +11,9 @@ public sealed class CsvFile<T> : CsvSource<T> where T : class, ITabularRecord<T>
     private readonly string path;
     internal CsvFile(string path, CsvOptions options) : base(new StreamSource(path), options) => this.path = path;
     internal override CsvSource<T> Configure(CsvOptions value) => new CsvFile<T>(path, value);
+    public override CsvFile<T> WithColumnNames(params string[] names) => (CsvFile<T>)base.WithColumnNames(names);
+    public override CsvFile<T> WithColumnIndexes() => (CsvFile<T>)base.WithColumnIndexes();
+    public override CsvFile<T> WithHeaders() => (CsvFile<T>)base.WithHeaders();
     public override CsvFile<T> WithEncoding(Encoding value) => (CsvFile<T>)base.WithEncoding(value);
     public override CsvFile<T> WithHeaderComparison(StringComparer value) => (CsvFile<T>)base.WithHeaderComparison(value);
     public override CsvFile<T> WithCulture(CultureInfo value) => (CsvFile<T>)base.WithCulture(value);
