@@ -8,10 +8,13 @@
 - Update human usage documentation and runnable examples, validate package/cross-assembly Native AOT and CI, then open a PR for review.
 - Stop for unresolved public behavior questions. Commit all changes before handing work back. All main merges require human approval.
 
-## First open decision
+## Confirmed converter input
 - Existing XLSX mapping distinguishes text, native numeric/boolean values, and ISO dates. Built-in readers apply cell-kind boundaries and special numeric date-system rules.
-- Proposal: custom converters can inspect native XLSX cells as well as text, receiving a value span plus cell kind, culture, and applicable date-system context. CSV values remain text. Do not implicitly convert every native value into culture-formatted text.
-- Await the user's answer before fixing the converter input contract. This proposal is not yet an approved behavior.
+- Custom converters can inspect native XLSX cells as well as text, receiving a value span plus cell kind, culture, and applicable date-system context. CSV values remain text. Do not implicitly convert every native value into culture-formatted text. The user approved this behavior.
+
+## Open decision: empty fields and null values
+- Proposal: an explicitly annotated converter receives empty input fields and null property values, and owns their interpretation. This permits custom null tokens and empty-field defaults without another option. Unannotated properties retain existing empty/null behavior.
+- Await the user's answer before implementing this behavior.
 
 ## Next design/implementation work
 - Define the annotation and a compile-time-checked parsing/formatting contract; settle null/empty and converter failure semantics.
