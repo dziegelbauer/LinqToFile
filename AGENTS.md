@@ -24,6 +24,7 @@ Read relevant topics before proposing contracts or changing code:
 - [Mapping](docs/spec/mapping.md)
 - [Custom converter design](docs/spec/converters.md)
 - [Exact temporal format design](docs/spec/temporal-formats.md)
+- [Boolean and null token design](docs/spec/column-tokens.md)
 - [Writing and row insertion planning](docs/spec/writing.md)
 - [Reading and errors](docs/spec/reading.md)
 - [Sources and query execution](docs/spec/sources.md)
