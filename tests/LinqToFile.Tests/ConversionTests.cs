@@ -266,15 +266,25 @@ public sealed class ConversionTests
         parser.Record.Headers = ["Value", "Wide", "Approx", "Flags"];
         int[] ordinals = [0, 1, 2, 3];
         var mapper = GetMapper<NumericEnumRow>();
-        for (int i = 0; i < 100; i++) Volatile.Write(ref allocationSink, mapper.Read(parser.Record, ordinals));
+        for (int i = 0; i < 20_000; i++)
+        {
+            Volatile.Write(ref allocationSink, mapper.Read(parser.Record, ordinals));
+            Volatile.Write(ref allocationSink, new NumericEnumRow());
+        }
 
-        long before = GC.GetAllocatedBytesForCurrentThread();
-        for (int i = 0; i < 10_000; i++) Volatile.Write(ref allocationSink, mapper.Read(parser.Record, ordinals));
-        long mapped = GC.GetAllocatedBytesForCurrentThread() - before;
+        // One-time runtime work must not be mistaken for a per-field allocation.
+        // A field string would allocate on every pass and still fail this unchanged bound.
+        long mapped = long.MaxValue, objectsOnly = long.MaxValue;
+        for (int sample = 0; sample < 3; sample++)
+        {
+            long before = GC.GetAllocatedBytesForCurrentThread();
+            for (int i = 0; i < 10_000; i++) Volatile.Write(ref allocationSink, mapper.Read(parser.Record, ordinals));
+            mapped = Math.Min(mapped, GC.GetAllocatedBytesForCurrentThread() - before);
 
-        before = GC.GetAllocatedBytesForCurrentThread();
-        for (int i = 0; i < 10_000; i++) Volatile.Write(ref allocationSink, new NumericEnumRow());
-        long objectsOnly = GC.GetAllocatedBytesForCurrentThread() - before;
+            before = GC.GetAllocatedBytesForCurrentThread();
+            for (int i = 0; i < 10_000; i++) Volatile.Write(ref allocationSink, new NumericEnumRow());
+            objectsOnly = Math.Min(objectsOnly, GC.GetAllocatedBytesForCurrentThread() - before);
+        }
         Assert.InRange(mapped - objectsOnly, 0, 512);
         Volatile.Write(ref allocationSink, null);
     }

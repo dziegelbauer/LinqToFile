@@ -173,9 +173,14 @@ public sealed class ConverterTests
         row.Append("12.5"); row.EndField();
         var output = new TabularValue(CultureInfo.InvariantCulture);
         for (int i = 0; i < 20000; i++) output.SetConverted<Amount, AmountConverter>(row.ReadConverted<Amount, AmountConverter>(0, "Value"));
-        long before = GC.GetAllocatedBytesForCurrentThread();
-        for (int i = 0; i < 10000; i++) output.SetConverted<Amount, AmountConverter>(row.ReadConverted<Amount, AmountConverter>(0, "Value"));
-        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+        long bytes = long.MaxValue;
+        for (int sample = 0; sample < 3; sample++)
+        {
+            long before = GC.GetAllocatedBytesForCurrentThread();
+            for (int i = 0; i < 10000; i++) output.SetConverted<Amount, AmountConverter>(row.ReadConverted<Amount, AmountConverter>(0, "Value"));
+            bytes = Math.Min(bytes, GC.GetAllocatedBytesForCurrentThread() - before);
+        }
+        Assert.Equal(0, bytes);
         Assert.Equal("12.5", output.Text.ToString());
     }
 }
