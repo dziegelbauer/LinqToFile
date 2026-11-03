@@ -41,8 +41,11 @@
 ## Confirmed new-row formatting
 - Format new rows with the existing XLSX writer's native/text/annotation and strict precision rules, using the existing workbook's date system. Do not copy adjacent row/cell formatting automatically. Reuse compatible native date/time styles or add bounded required styles without changing existing style indexes; leave general style inheritance/configuration for future work. The user approved these rules.
 
+## Confirmed header/schema matching
+- Require exact header/model matching for mutation, as with CSV writes: all mapped columns must exist, no extra header columns are permitted, and duplicate/invalid headers throw under configured comparison/trimming. Preserve existing header order and write new cells in that order rather than sorting or rewriting the header. Reading retains its existing extra-column behavior. The user approved these rules.
+
 ## Next decision
-- Recommend exact header/model matching for mutation, as with CSV writes: all mapped columns must exist, no extra header columns are permitted, and duplicate/invalid headers throw under configured comparison/trimming. Preserve existing header order and write new cells in that order rather than sorting or rewriting the header. Reading retains its existing extra-column behavior. Await user confirmation.
+- Recommend validating the selected worksheet's existing structure and native cell syntax before publication, without converting existing data through T or invoking its converters. Preserve existing values even when they would not convert to the current model. Missing cells keep existing XLSX empty-cell rules; malformed coordinates, invalid shared-string references, spreadsheet error cells, or non-empty data beyond the header range throw. Initially keep this validation mandatory for both append and insertion, without a quick-append bypass. Await user confirmation; workbook-wide unsupported-feature checks remain a separate scope decision.
 
 ## Remaining design topics
 - Public path-source/mutation API and worksheet selection.
