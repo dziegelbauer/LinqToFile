@@ -6,14 +6,14 @@
         <Nullable>enable</Nullable>
         <IsAotCompatible>true</IsAotCompatible>
         <PackageId>LinqToFile</PackageId>
-        <Description>Bring familiar LINQ queries to CSV and XLSX files. Work with typed C# objects, stream results, create or extend CSV files, and export CSV to writable streams. Select date formats, boolean/null tokens, or your own converters. .NET 10+, Native AOT, and no extra runtime package dependencies.</Description>
+        <Description>Bring familiar LINQ queries to CSV and XLSX files. Work with typed C# objects, stream results, export Excel workbooks, and create or extend CSV files. Write to paths or streams, with date formats, boolean/null tokens, and custom converters. .NET 10+, Native AOT, and no extra runtime package dependencies.</Description>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageProjectUrl>https://github.com/dziegelbauer/LinqToFile</PackageProjectUrl>
         <RepositoryUrl>https://github.com/dziegelbauer/LinqToFile.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>linq;csv;xlsx;tabular;streaming;nativeaot;source-generator</PackageTags>
-        <PackageReleaseNotes>Prerelease: Export complete CSV documents to writable streams with CsvWriter and Write/WriteAsync. Use caller-owned streams or repeatable stream factories, including non-seekable and compression streams. Includes cancellation, configurable encoding and dialect, generated annotations, LINQ queries, and CSV file creation, append, and insertion. Native AOT and a BCL-only runtime. API changes remain possible.</PackageReleaseNotes>
+        <PackageReleaseNotes>Prerelease: Export typed records to single-worksheet XLSX workbooks with XlsxWriter and Write/WriteAsync. Supports paths, writable streams, sync/async factories, native cells, explicit text annotations, and strict precision checks. Opt into staged overwrite for XLSX exports or CSV creation with ExistingFileBehavior.Overwrite. Includes LINQ queries, CSV append/insertion, Native AOT, and a BCL-only runtime. API changes remain possible.</PackageReleaseNotes>
     </PropertyGroup>
 
     <ItemGroup>
