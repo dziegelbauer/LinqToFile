@@ -32,8 +32,11 @@
 ## Confirmed physical placement
 - Insert new physical rows immediately before the indexed data row, keeping preceding blank rows in place and shifting that row and subsequent worksheet rows down by the inserted count. Append (including Insert at the data-record count) goes after the last existing physical row, including trailing blank/formatted row elements, rather than filling gaps. A declared dimension alone must not create artificial trailing rows. Preserve existing blank/formatted row elements rather than consuming them as insertion space. The user approved this behavior; supported reference-bearing features still require separate scope decisions.
 
+## Confirmed existing-workbook scope
+- Initially support plain tabular workbooks: ordinary values, shared/inline strings, cell styles, and multiple worksheets. Preserve supported existing content. Reject workbooks with formulas or reference-bearing features (such as tables, named ranges, charts, or drawings) that the implementation cannot reliably update/preserve. Do not rebuild arbitrary workbooks through typed read/write mapping or silently strip unsupported features. The user approved this initial scope; exact supported-feature validation and package preservation rules require subsequent specification.
+
 ## Next decision
-- Recommend an initial plain-tabular-workbook scope: permit ordinary values, shared/inline strings, cell styles, and multiple worksheets; preserve supported existing content. Reject workbooks with formulas or reference-bearing features (such as tables, named ranges, charts, or drawings) that the implementation cannot reliably update/preserve. Do not rebuild arbitrary workbooks through typed read/write mapping or silently strip unsupported features. Await user confirmation; exact supported-feature validation and package preservation rules require subsequent specification.
+- Recommend preserving untouched worksheet/part payloads without rewriting their XML; modify only the selected worksheet and supporting metadata strictly required by the mutation. Preserve existing cell values/types/styles, worksheet names/order/visibility, shared-string indexes, and workbook date system. ZIP compression/container bytes may change, so do not promise byte-identical archive output. Await user confirmation; treatment of new-row styles and supporting metadata remains a separate decision.
 
 ## Remaining design topics
 - Public path-source/mutation API and worksheet selection.
