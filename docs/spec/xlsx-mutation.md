@@ -59,8 +59,11 @@
 ## Confirmed protection behavior
 - Reject mutation when workbook protection is present or the selected worksheet is protected. Do not remove protection, interpret individual permission flags, or provide a bypass initially. Protection confined to unselected worksheets does not alone prevent mutation of the selected unprotected sheet; preserve those parts unchanged. Encrypted workbooks remain unsupported. The user approved this behavior.
 
+## Confirmed workbook variants
+- Support both Transitional and Strict XLSX for the agreed mutation subset, matching reader coverage. Preserve the input variant rather than converting the workbook; generate new worksheet/style content with its existing namespaces/relationship conventions. Keep legacy/binary/macro-enabled/encrypted workbook formats out of scope. The user approved this scope.
+
 ## Next decision
-- Recommend supporting both Transitional and Strict XLSX for the agreed mutation subset, matching reader coverage. Preserve the input variant rather than converting the workbook; generate new worksheet/style content with its existing namespaces/relationship conventions. Keep legacy/binary/macro-enabled/encrypted workbook formats out of scope. Await user confirmation.
+- Recommend rejecting append/insert when WithTemporaryFiles(false) is selected, since the approved mutation contract requires same-directory staging. Do not ignore the option or fall back to in-place mutation. Reject before opening output or enumerating new records, including empty ranges. Await user confirmation; temporary-directory selection and resource accounting require separate details.
 
 ## Remaining design topics
 - Public path-source/mutation API and worksheet selection.
