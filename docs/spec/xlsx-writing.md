@@ -71,9 +71,13 @@
 ## Confirmed header layout
 - Place headers in row 1 beginning at A1, with generated column names sorted by ordinal comparison, matching new CSV document output. Data starts in row 2. The user approved this layout. Configurable starting positions and column ordering remain future work.
 
-## Next decision
-- Recommend throwing when output exceeds Excel's worksheet/cell limits: 1,048,575 data rows plus one header row, 16,384 columns, or 32,767 characters in a cell. Do not truncate or automatically split output into worksheets. Await user confirmation. Detailed text-counting/escaping and other content limits still need specification.
+## Confirmed worksheet and cell limits
+- Throw when output exceeds Excel's worksheet/cell limits: 1,048,575 data rows plus one header row, 16,384 columns, or 32,767 characters in a cell. Do not truncate or automatically split output into worksheets. The user approved this behavior. Detailed text-counting/escaping and other content limits still need specification.
 - Reference: [Microsoft Excel specifications and limits](https://support.microsoft.com/en-us/excel/excel-specifications-and-limits).
+
+## Next decision
+- Recommend inline strings for initial XLSX output, writing text with each cell rather than retaining a workbook-wide shared-string dictionary. This supports incremental bounded-memory serialization, with potentially larger files for repeated text. Shared-string output optimization remains future work. Await user confirmation.
+- Reference: [Microsoft shared-string guidance](https://learn.microsoft.com/en-us/office/open-xml/spreadsheet/working-with-the-shared-string-table) confirms inline strings are valid and describes the space tradeoff.
 
 ## Workflow
 - Work on feature/xlsx-writing. Update human guides and runnable package/AOT examples when behavior is implemented; keep unfinished features on the roadmap.
