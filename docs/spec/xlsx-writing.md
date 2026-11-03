@@ -49,8 +49,12 @@
 ## Confirmed DateTimeOffset output
 - Write unannotated DateTimeOffset values as invariant round-trip ISO 8601 text, preserving clock time and explicit offset, consistent with CSV output and existing XLSX text reading. Do not normalize to UTC or encode as an offset-free numeric serial. The user approved this behavior.
 
+## Confirmed DateOnly and DateTime output
+- Write unannotated DateOnly/DateTime properties as native Excel serial dates with date/date-time display formats. Retain the existing requirement that DateTime.Kind is Unspecified. Explicit TemporalFormat continues to select text output. The user approved this behavior; calendar/date-system range and temporal precision require subsequent decisions.
+
 ## Next decision
-- Recommend native Excel serial dates with date/date-time display formats for unannotated DateOnly/DateTime properties. Retain the existing requirement that DateTime.Kind is Unspecified. Explicit TemporalFormat continues to select text output. Await user confirmation; calendar/date-system range and temporal precision require subsequent decisions.
+- Recommend the 1900 date system by default, with WithDateSystem(TabularDateSystem.Excel1904) as an explicit alternative. Reuse the existing enum, accepting Excel1900/Excel1904 and rejecting None/undefined values. Await user confirmation.
+- Reference: [Microsoft Excel date systems](https://support.microsoft.com/en-us/excel/date-systems-in-excel) documents 1900 as the default in current Excel versions.
 
 ## Workflow
 - Work on feature/xlsx-writing. Update human guides and runnable package/AOT examples when behavior is implemented; keep unfinished features on the roadmap.
