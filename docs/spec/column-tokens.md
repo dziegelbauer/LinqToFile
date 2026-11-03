@@ -36,9 +36,12 @@
 ## Confirmed native XLSX cells
 - Apply tokens to CSV fields and XLSX text cells only. Native XLSX booleans keep their typed true/false values, independent of BooleanTokens. Native numeric/date/boolean cells cannot become null merely because their storage text matches a null token; existing target-type conversion boundaries remain unchanged. Empty/missing cells retain the already approved empty-field rules. The user approved this behavior.
 
-## Open decision: custom converter conflicts
-- Proposal: reject effective combinations of ColumnConverter with either BooleanTokens or NullToken as compiler errors, including inherited combinations. A custom converter already owns token parsing, formatting, empty fields, and null values; do not silently prioritize or layer annotations around it.
-- Await the user's answer before fixing this contract.
+## Confirmed custom converter conflicts
+- Reject effective combinations of ColumnConverter with either BooleanTokens or NullToken as compiler errors, including inherited combinations. A custom converter already owns token parsing, formatting, empty fields, and null values; do not silently prioritize or layer annotations around it. The user approved this behavior.
+
+## Open decision: non-null output collisions
+- Proposal: throw the existing private, location-aware TabularWriteException if a non-null value's formatted text would match its configured null token when read with the same options. Apply the configured null comparison and field trimming. This covers strings and all other annotated built-in types; quoting cannot disambiguate decoded token content.
+- Example: [NullToken("NULL")] string? cannot write a non-null literal "NULL"; [NullToken("0")] int? cannot write zero. Null values still write the configured token. Await the user's answer before implementing this behavior.
 
 ## Remaining contract work
 - Define case comparison with typed options, trimming, empty/null distinctions, applicable property types, native XLSX behavior, canonical null output, collision validation, and interaction with custom converters/temporal formats/inheritance/Ignore.
