@@ -5,7 +5,7 @@ For memory, HTTP responses, compression streams, or factories, see [CSV stream e
 Use a path source to create a file.
 The parent directory must exist.
 The destination must not exist.
-Creation never overwrites a file.
+Creation throws if a file exists unless you explicitly select overwrite.
 
 The model uses the same attributes as a read query.
 Each mapped property must have a getter accessible to the generated mapper.
@@ -189,7 +189,14 @@ Local and UTC kinds throw.
 
 The default mode prepares the complete file in a temporary file beside the destination.
 It publishes the result only after serialization and writes succeed.
-Publication does not overwrite a destination created by another writer.
+By default, publication does not overwrite a destination created by another writer.
+Use `.WithExistingFileBehavior(ExistingFileBehavior.Overwrite)` before `Create` or `CreateAsync` to replace an existing file.
+Overwrite also creates the file when it is missing.
+The original remains unchanged until the complete replacement is ready.
+This option does not change append or insertion.
+Combining overwrite with `WithInPlaceWrites()` throws for creation.
+On Unix, replacement permissions are limited to the original file's access bits and the process mask.
+Ownership, ACLs, and other metadata are not generally preserved.
 Before publication, an error or cancellation removes the owned temporary file.
 Successful publication reports success.
 There is no crash or power-loss durability guarantee.

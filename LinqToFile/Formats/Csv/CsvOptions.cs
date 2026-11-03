@@ -12,6 +12,7 @@ internal sealed record CsvOptions : TextOptions
     internal bool InPlaceWrites { get; init; }
     internal LineEnding? NewLine { get; init; }
     internal bool ValidateAppend { get; init; } = true;
+    internal ExistingFileBehavior ExistingFileBehavior { get; init; }
 
     internal static void ValidateCharacter(char value, string parameter)
     {

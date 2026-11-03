@@ -64,6 +64,9 @@ internal static class CsvWritingSample
                 throw new InvalidOperationException("Direct insertion failed.");
             var headers = TabularFile.Csv<Person>(Path.Combine(directory, "headers.csv"));
             if (headers.Create() != 0 || headers.Any()) throw new InvalidOperationException("Header creation failed.");
+            var replacement = headers.WithExistingFileBehavior(ExistingFileBehavior.Overwrite);
+            if (await replacement.CreateAsync(People()) != 1 || headers.Single().Id != 3)
+                throw new InvalidOperationException("Explicit CSV overwrite failed.");
 
             var scalar = new ScalarRecord
             {
