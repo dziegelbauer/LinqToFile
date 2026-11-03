@@ -17,8 +17,11 @@
 - This is an approved planned API, not implemented behavior. Update human guides only when implementation is available.
 - The user approved rejecting CSV creation when both WithInPlaceWrites() and ExistingFileBehavior.Overwrite are selected. Do not silently weaken staged overwrite protection. This restriction does not change append/insert behavior.
 
+## Confirmed worksheet scope
+- Export one worksheet per workbook initially, named Sheet1 by default. WithWorksheet(string name) selects its output name. The user approved this scope; multiple worksheets remain future work.
+
 ## Next decision
-- Recommend one worksheet per exported workbook initially, named Sheet1 by default, with WithWorksheet(string name) to select its output name. Defer multiple worksheets and edits to existing workbooks. Await user confirmation.
+- Recommend supporting paths, supplied writable streams, synchronous stream factories, and asynchronous stream factories in the initial XLSX writer. Mirror the CSV stream ownership, shared single-use allowance, and repeatable/concurrent independent factory contracts. Await user confirmation.
 
 ## Workflow
 - Work on feature/xlsx-writing. Update human guides and runnable package/AOT examples when behavior is implemented; keep unfinished features on the roadmap.
