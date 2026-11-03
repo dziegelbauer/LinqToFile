@@ -20,12 +20,13 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
     private static readonly DiagnosticDescriptor Conflict = Rule("LTF004", "Conflicting column mapping");
     private static readonly DiagnosticDescriptor InvalidConverter = Rule("LTF005", "Unsupported column converter");
     private static readonly DiagnosticDescriptor InvalidTemporalFormat = Rule("LTF006", "Unsupported temporal format");
+    private static readonly DiagnosticDescriptor InvalidTokens = Rule("LTF007", "Unsupported column tokens");
     private static readonly SymbolDisplayFormat TypeFormat = SymbolDisplayFormat.FullyQualifiedFormat
         .WithMiscellaneousOptions(SymbolDisplayFormat.FullyQualifiedFormat.MiscellaneousOptions |
             SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
     private static DiagnosticDescriptor Rule(string id, string title) =>
-        new DiagnosticDescriptor(id, title, "{0}", "LinqToFile", DiagnosticSeverity.Error, true);
+        new(id, title, "{0}", "LinqToFile", DiagnosticSeverity.Error, true);
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -66,6 +67,7 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
         var nullable = new List<bool>();
         var converters = new List<string?>();
         var formats = new List<string?>();
+        var tokens = new List<TokenMapping?>();
         var enums = new List<KeyValuePair<int, INamedTypeSymbol>>();
         var seen = new Dictionary<string, ISymbol>(StringComparer.Ordinal);
         var columnSet = new HashSet<string>(StringComparer.Ordinal);
@@ -80,16 +82,22 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
                 AttributeData? column = null;
                 AttributeData? converter = null;
                 AttributeData? temporal = null;
+                AttributeData? booleanTokens = null;
+                AttributeData? nullToken = null;
                 bool ignored = false;
                 for (var declaration = property; declaration != null; declaration = declaration.OverriddenProperty)
                 {
                     foreach (var attribute in declaration.GetAttributes())
                     {
-                        var name = attribute.AttributeClass?.ToDisplayString();
-                        if (name == "LinqToFile.ColumnAttribute" && column == null) column = attribute;
-                        if (name == "LinqToFile.ColumnConverterAttribute" && converter == null) converter = attribute;
-                        if (name == "LinqToFile.TemporalFormatAttribute" && temporal == null) temporal = attribute;
-                        if (name == "LinqToFile.IgnoreAttribute") ignored = true;
+                        switch (attribute.AttributeClass?.ToDisplayString())
+                        {
+                            case "LinqToFile.ColumnAttribute" when column is null: column = attribute; break;
+                            case "LinqToFile.ColumnConverterAttribute" when converter is null: converter = attribute; break;
+                            case "LinqToFile.TemporalFormatAttribute" when temporal is null: temporal = attribute; break;
+                            case "LinqToFile.BooleanTokensAttribute" when booleanTokens is null: booleanTokens = attribute; break;
+                            case "LinqToFile.NullTokenAttribute" when nullToken is null: nullToken = attribute; break;
+                            case "LinqToFile.IgnoreAttribute": ignored = true; break;
+                        }
                     }
                 }
 
@@ -98,9 +106,10 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
                     derived is IPropertySymbol derivedProperty && Overrides(derivedProperty, property))
                     continue;
 
-                if ((ignored && (column != null || converter != null || temporal != null)) || (converter != null && temporal != null))
+                if ((ignored && (column != null || converter != null || temporal != null || booleanTokens != null || nullToken != null)) ||
+                    (converter != null && (temporal != null || booleanTokens != null || nullToken != null)))
                 {
-                    Error(Conflict, property, "Ignore cannot combine with mapping annotations; TemporalFormat cannot combine with ColumnConverter, including inherited annotations.");
+                    Error(Conflict, property, "Ignore cannot combine with mapping annotations; ColumnConverter cannot combine with TemporalFormat or token annotations, including inherited annotations.");
                     continue;
                 }
                 if (ignored)
@@ -111,7 +120,7 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
                 if (property.IsStatic || property.IsIndexer || property.DeclaredAccessibility != Accessibility.Public ||
                     property.SetMethod?.DeclaredAccessibility != Accessibility.Public)
                 {
-                    if (column != null || converter != null || temporal != null || property.IsRequired)
+                    if (column != null || converter != null || temporal != null || booleanTokens != null || nullToken != null || property.IsRequired)
                         Error(InvalidMember, property, "Mapped and required properties must be instance properties with a public setter or public init accessor, and cannot be indexers.");
                     continue;
                 }
@@ -134,6 +143,12 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
                     n.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
                 if (isNullable) valueType = ((INamedTypeSymbol)valueType).TypeArguments[0];
                 int index = properties.Count;
+                string? tokenError = ReadTokens(property, valueType, isNullable, booleanTokens, nullToken, out var tokenMapping);
+                if (tokenError != null)
+                {
+                    Error(InvalidTokens, property, tokenError);
+                    continue;
+                }
                 string? format = null;
                 if (temporal != null)
                 {
@@ -165,6 +180,8 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
                     "row.ReadConverted<" + property.Type.ToDisplayString(TypeFormat) + ", " + converterName +
                     ">(ordinals[" + index + "], " + Literal(property.Name) + ")";
                 if (format != null) reader = "row.Read" + GetTemporalKind(valueType) + "Exact(ordinals[" + index + "], " + Literal(property.Name) + ", " + Literal(format) + ")";
+                if (tokenMapping?.TrueToken != null) reader = "row.ReadBooleanTokens(ordinals[" + index + "], " + Literal(property.Name) + ", " +
+                    Literal(tokenMapping.TrueToken) + ", " + Literal(tokenMapping.FalseToken!) + ", " + ComparisonExpression(tokenMapping.BooleanComparison) + ")";
                 if (reader == null)
                 {
                     Error(InvalidType, property, "Use a supported scalar type or enum, or annotate the property with ColumnConverter.");
@@ -178,6 +195,7 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
                 nullable.Add(isNullable);
                 converters.Add(converterName);
                 formats.Add(format);
+                tokens.Add(tokenMapping);
             }
 
             // Fields and methods can also hide an inherited property from an object initializer.
@@ -218,12 +236,15 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
         for (int i = 0; i < properties.Count; i++)
         {
             source.Append("@").Append(properties[i].Name).Append(" = ");
+            if (tokens[i]?.NullToken is { } nullToken)
+                source.Append("row.IsNullToken(ordinals[").Append(i).Append("], ").Append(Literal(nullToken)).Append(", ")
+                    .Append(ComparisonExpression(tokens[i]!.NullComparison)).Append(") ? null : ");
             if (nullable[i] && converters[i] == null) source.Append("row.IsEmpty(ordinals[").Append(i).Append("]) ? null : ");
             source.Append(readers[i]).AppendLine(",");
         }
         source.AppendLine("};");
         EmitTemporalCultureValidation(source, properties, formats);
-        EmitWriter(source, model, modelName, properties, nullable, enums, converters, formats);
+        EmitWriter(source, model, modelName, properties, nullable, enums, converters, formats, tokens);
         foreach (var item in enums) EmitEnum(source, item.Key, item.Value);
         source.AppendLine("} }");
 
@@ -245,7 +266,7 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
             .Append("> global::LinqToFile.ITabularRecord<").Append(modelName)
             .Append(">.Mapper => global::LinqToFile.Generated.").Append(mapper).AppendLine(".Instance;");
         source.AppendLine("}");
-        foreach (var owner in containers) source.AppendLine("}");
+        foreach (var _ in containers) source.AppendLine("}");
         if (!model.ContainingNamespace.IsGlobalNamespace) source.AppendLine("}");
         context.AddSource(mapper + ".g.cs", SourceText.From(source.ToString(), Encoding.UTF8));
     }
@@ -259,8 +280,8 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
 
     private static bool ContainsFileLocalType(ITypeSymbol type)
     {
-        if (type is IArrayTypeSymbol array) return ContainsFileLocalType(array.ElementType);
-        if (!(type is INamedTypeSymbol named)) return false;
+        while (type is IArrayTypeSymbol array) type = array.ElementType;
+        if (type is not INamedTypeSymbol named) return false;
         return named.IsFileLocal || (named.ContainingType != null && ContainsFileLocalType(named.ContainingType)) ||
             named.TypeArguments.Any(ContainsFileLocalType);
     }
@@ -270,11 +291,11 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
         var getter = property.GetMethod;
         return getter != null && (getter.DeclaredAccessibility == Accessibility.Public ||
             (SymbolEqualityComparer.Default.Equals(getter.ContainingAssembly, model.ContainingAssembly) &&
-             (getter.DeclaredAccessibility == Accessibility.Internal || getter.DeclaredAccessibility == Accessibility.ProtectedOrInternal)));
+             getter.DeclaredAccessibility is Accessibility.Internal or Accessibility.ProtectedOrInternal));
     }
 
     private static void EmitWriter(StringBuilder source, INamedTypeSymbol model, string modelName,
-        List<IPropertySymbol> properties, List<bool> nullable, List<KeyValuePair<int, INamedTypeSymbol>> enums, List<string?> converters, List<string?> formats)
+        List<IPropertySymbol> properties, List<bool> nullable, List<KeyValuePair<int, INamedTypeSymbol>> enums, List<string?> converters, List<string?> formats, List<TokenMapping?> tokens)
     {
         int unreadable = properties.FindIndex(p => !CanReadProperty(p, model));
         source.Append("public override bool CanWrite => ").Append(unreadable < 0 ? "true" : "false").AppendLine(";");
@@ -298,10 +319,14 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
                 source.AppendLine("return; }");
                 continue;
             }
-            if (nullable[i]) source.AppendLine("if (!field.HasValue) { value.SetText(null); return; }");
+            string nullText = tokens[i]?.NullToken is { } nullToken ? Literal(nullToken) : "null";
+            if (nullable[i]) source.Append("if (!field.HasValue) { value.SetText(").Append(nullText).AppendLine("); return; }");
+            else if (tokens[i]?.NullToken != null) source.Append("if (field is null) { value.SetText(").Append(nullText).AppendLine("); return; }");
             string field = nullable[i] ? "field.Value" : "field";
             ITypeSymbol type = nullable[i] ? ((INamedTypeSymbol)properties[i].Type).TypeArguments[0] : properties[i].Type;
-            if (formats[i] != null)
+            if (tokens[i]?.TrueToken is { } trueToken)
+                source.Append("value.SetText(").Append(field).Append(" ? ").Append(Literal(trueToken)).Append(" : ").Append(Literal(tokens[i]!.FalseToken!)).AppendLine(");");
+            else if (formats[i] != null)
                 source.Append("value.Set(").Append(field).Append(", ").Append(Literal(formats[i]!)).AppendLine(");");
             else if (type.TypeKind == TypeKind.Enum)
                 source.Append("WriteEnum_").Append(i).Append("(").Append(field).AppendLine(", value);");
@@ -315,6 +340,8 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
                 if (floating) source.Append(", \"R\"");
                 source.AppendLine(");");
             }
+            if (tokens[i]?.NullToken is { } token)
+                source.Append("value.RejectNullToken(").Append(Literal(token)).Append(", ").Append(ComparisonExpression(tokens[i]!.NullComparison)).AppendLine(");");
             source.AppendLine("return; }");
         }
         source.AppendLine("default: throw new global::System.ArgumentOutOfRangeException(nameof(ordinal)); } }");

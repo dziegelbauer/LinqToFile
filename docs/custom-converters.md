@@ -139,6 +139,7 @@ An override inherits the nearest converter annotation unless it declares another
 `[Column]` can rename a converted property.
 `[Ignore]` cannot apply with an effective converter annotation.
 `[TemporalFormat]` also conflicts with a converter, including inherited combinations.
+The same rule applies to `[BooleanTokens]` and `[NullToken]`.
 The normal public setter or init accessor rules still apply.
 Writing also requires an accessible getter.
 

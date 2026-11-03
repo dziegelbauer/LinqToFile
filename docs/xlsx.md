@@ -133,6 +133,9 @@ It also receives empty fields after any configured trimming.
 [Temporal format annotations](temporal-formats.md) select exact formats for text cells.
 Native numeric and ISO date cells retain the date rules below.
 
+[Boolean and null tokens](column-tokens.md) also apply to text cells.
+Native cell values retain their existing typed meaning.
+
 ## Dates and times
 
 Numeric temporal conversion is selected by the target property type, not the cell display style.

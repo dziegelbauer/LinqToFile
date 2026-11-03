@@ -123,6 +123,7 @@ CSV quoting, separators, encoding, and size limits still apply to formatted outp
 An override inherits the nearest temporal format unless it declares another one.
 `[Column]` can rename the property.
 An effective temporal format cannot combine with `[Ignore]` or `[ColumnConverter]`.
+A nullable temporal property can also use `[NullToken]`; see [column tokens](column-tokens.md).
 This rule also applies to inherited combinations.
 The normal setter, init accessor, and write getter requirements still apply.
 

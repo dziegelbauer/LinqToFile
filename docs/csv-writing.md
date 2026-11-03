@@ -18,6 +18,9 @@ CSV quoting, encoding, separators, and output limits still apply to their result
 [Temporal format annotations](temporal-formats.md) select exact date/time output per property.
 They use the configured culture and can intentionally omit precision.
 
+[Column token annotations](column-tokens.md) select boolean and null output text.
+Non-null values that match a configured null token cause write errors.
+
 ## Create with initial rows
 
 The following example uses the `Person` model from the sample.

@@ -27,7 +27,7 @@
 - CSV null output retains the exact spelling supplied in the annotation.
 
 ## Confirmed null-token property types
-- Support NullToken on nullable built-in value types (including enums) and explicitly nullable string properties (string?). Reject non-nullable properties with a compiler diagnostic, since they cannot represent the annotated null value. The user approved this behavior. Custom converter interaction remains a separate decision.
+- Support NullToken on nullable built-in value types (including enums) and explicitly nullable string properties (string?). Reject non-nullable properties with a compiler diagnostic, since they cannot represent the annotated null value. The user approved this behavior. Custom converter conflicts are defined below.
 
 ## Confirmed token whitespace
 - Require boolean and null tokens to be nonempty and have no leading/trailing .NET whitespace; invalid annotation values produce compiler diagnostics. Internal whitespace remains literal token content. The user approved this behavior.
@@ -43,11 +43,21 @@
 - Throw the existing private, location-aware TabularWriteException if a non-null value's formatted text would match its configured null token when read with the same options. Apply the configured null comparison and field trimming. This covers strings and all other annotated built-in types; quoting cannot disambiguate decoded token content. The user approved this behavior.
 - Example: [NullToken("NULL")] string? cannot write a non-null literal "NULL"; [NullToken("0")] int? cannot write zero. Null values still write the configured token.
 
-## Open decision: annotation composition
-- Proposal: allow NullToken with BooleanTokens on bool?, and with TemporalFormat on supported nullable temporal types. Check the text null token before ordinary value conversion; a match yields null. On writes, null emits its token and bypasses ordinary formatting; non-null values use their boolean/temporal/built-in formatter and the approved output-collision check.
-- Native XLSX cells and empty fields retain the already confirmed rules. Await the user's answer before fixing this composition contract.
+## Confirmed annotation composition
+- Allow NullToken with BooleanTokens on bool?, and with TemporalFormat on supported nullable temporal types. Check the text null token before ordinary value conversion; a match yields null. On writes, null emits its token and bypasses ordinary formatting; non-null values use their boolean/temporal/built-in formatter and the approved output-collision check. The user approved this behavior.
+- Native XLSX cells and empty fields retain the already confirmed rules.
 
-## Remaining contract work
-- Define case comparison with typed options, trimming, empty/null distinctions, applicable property types, native XLSX behavior, canonical null output, collision validation, and interaction with custom converters/temporal formats/inheritance/Ignore.
-- Token strings are user-provided data, not magic strings for fixed options. Configuration choices must use enums or other typed values.
-- Preserve existing public setter/init and write getter requirements. Keep format parsing and CSV escaping/mutation separate from shared mapping.
+## Implementation choices
+- BooleanTokensAttribute(string trueToken, string falseToken) exposes TrueToken/FalseToken and a Comparison enum property. NullTokenAttribute(string token) exposes Token and Comparison. These strings are user-provided data; fixed comparison choices use StringComparison enum values, never magic strings.
+- LTF007 diagnoses invalid property types, null/empty/padded tokens, unsupported comparisons, and true/false tokens that compare equal. Each override inherits the nearest annotation of its kind; a derived annotation replaces that kind. Column renames remain supported. Effective Ignore/ColumnConverter conflicts are LTF004. Existing setter/init/getter diagnostics remain unchanged.
+- BooleanTokens supports bool and bool?. NullToken requires a supported nullable value type or explicitly annotated string?; oblivious/non-nullable strings are rejected. Existing nullable-empty checks stay after the text null-token check.
+- The generator emits literal tokens and typed comparison values through ReadBooleanTokens/IsNullToken and direct SetText/typed formatting. Metadata objects exist only during compilation. No runtime attribute discovery, registration, or per-field token objects are used.
+- Native non-text cells use existing conversions. Non-null output is formatted once, then compared to its null token before escaping. TabularValue receives the CSV trimming option; RejectNullToken uses spans and throws without data, then CsvOutput supplies private write locations. A null write bypasses value formatting/collision checks.
+- Null tokens can reserve ordinary values, including enum names, dates, numbers, or boolean spellings. Null input matching has priority. Do not reject such reservations statically: enforce the approved write-collision rule with the null comparison alone. True/false pair ambiguity is rejected at compile time.
+- Keep format parsing and CSV escaping/mutation separate from shared mapping. Source options, file intent checks, cancellation, staged/in-place write behavior, headers, resource limits, and encoding rules remain unchanged.
+- Human docs include docs/column-tokens.md and runnable InventoryItem/TokenSample examples. Per the user's added instruction, refresh the shared GitHub/NuGet README with friendly, benefit-led copy; retain installation/examples/links and move detailed restrictions to guides. Package verification still runs the exact five introductory C# blocks.
+
+## Validation and review
+- Tests cover diagnostics, inheritance, nullable composition, comparison/trimming, native cell boundaries, reserved-value output guards, private locations, CSV escaping/limits, and zero additional allocations in warmed token operations.
+- Project/package and fresh external-consumer samples include cross-assembly boolean/null/date annotations, async input, append/insertion, collision protection, and native XLSX preservation. See history/validation-column-tokens.md for evidence.
+- Commit and push all changes, run hosted checks, and open a PR for human review. Do not merge this PR or enable auto-merge.
