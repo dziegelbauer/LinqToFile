@@ -25,12 +25,16 @@
 ## Confirmed factory ownership
 - Factory-returned streams are library-owned and disposed after each export, including failure or cancellation. Async operations use asynchronous disposal. Caller-supplied streams retain the approved leaveOpen=true default, with leaveOpen=false explicitly transferring disposal responsibility to the operation. The user approved this ownership contract.
 
-## Open decision: cancellation and partial output
-- Proposal: stream exports honor the operation token throughout async input enumeration and output I/O, including after writing starts. Cancellation or other failures may leave partial output; no rollback, atomic publication, or complete-document guarantee applies. This supports responsive HTTP/network exports without adding temporary storage.
-- Existing file-path staged/in-place cancellation rules remain unchanged. Await the user's answer before fixing stream cancellation behavior.
+## Confirmed cancellation and partial output
+- Stream exports honor the operation token throughout async input enumeration and output I/O, including after writing starts. Cancellation or other failures may leave partial output; no rollback, atomic publication, or complete-document guarantee applies. This supports responsive HTTP/network exports without adding temporary storage. The user approved this behavior.
+- Existing file-path staged/in-place cancellation rules remain unchanged.
+
+## Open decision: supplied-stream claim boundary
+- Proposal: after validating the call's arguments, atomically consume the supplied destination's one-export allowance when the export attempt starts, before observing operation cancellation or writing bytes. Subsequent failure/cancellation still consumes that attempt, including cancellation before any output. Derived configurations share the same claim.
+- Creating/configuring a writer does not consume its allowance; invalid arguments do not constitute an export attempt. Await the user's answer before fixing this boundary.
 
 ## Remaining decisions
-- Flushing/BOM, the single-use claim boundary, and concurrency remain to be settled.
+- Flushing/BOM and factory concurrency remain to be settled.
 
 ## Existing contracts to preserve
 - Supplied read streams start at their current position, are single-use across derived configurations, and default to leaveOpen=true. Read factories return fresh library-owned streams.
