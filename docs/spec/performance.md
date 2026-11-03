@@ -5,6 +5,13 @@
 - Runtime remains BCL-only. Benchmark and diagnostic tools are development-only.
 - Performance tuning must follow evidence; buffer/pooling choices need no further user decision initially.
 
+## Main CI allocation guard fix after PR #4
+- Main run 41553302441 failed only the Windows NumericAndEnumMappingAddsNoPerFieldStringAllocations test: 2,768 excess bytes versus its 512-byte bound. Linux/macOS passed; publication was skipped. The preceding feature and PR matrices had passed.
+- The failing guard warmed only 100 calls and measured once. Align it with existing allocation guards: warm both mapper/model paths for 20,000 calls, then use the minimum of three 10,000-row samples for each path. Keep the existing 0..512-byte bound. Real per-field allocations recur in every sample.
+- Apply repeated sampling to the new scalar converter guard as well, retaining its zero-byte bound. No production code, dependencies, or publishing gates change.
+- Local validation: warning-free Release solution build, all 1,064 tests, and five fresh test-process runs of both allocation guards pass. A temporary field-string allocation in each measured iteration failed at 320,000 excess bytes against the same 512-byte limit; that mutation was removed and the full suite rerun successfully.
+- The user explicitly paused feature/temporal-formats, approved the annotation conflict rule there, and instructed this CI fix to be merged after validation, then to return to that branch. This is explicit authorization for this fix's merge only; other merges still require human approval.
+
 ## CSV writing stage 4
 - The writing harness isolates formatting, input enumeration, validation, byte-offset scans, copying, rotation, and end-to-end operations. Its 93-case matrix includes both mutation modes and execution styles plus single-call/range comparisons. Timings are informational.
 - Five local reports cover baseline/tuning, one-million-row scale, tiny read buffers, retained heap/temporary snapshots, and short batches. The UTF-8 ASCII byte-position path improves measured scan time without changing fallback/offset semantics. Keep current buffer sizes and movement blocks; no further pooling changes are justified.
