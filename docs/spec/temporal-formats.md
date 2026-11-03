@@ -21,12 +21,18 @@
 - The user explicitly paused this branch to fix the failed main CI run after PR #4 and explicitly authorized merging that fix. This does not authorize merging the temporal-format PR.
 - PR #5 merged as 30fbc34 after both branch and PR Windows/Linux/macOS matrices passed. Main run 41555256955 passed all platform checks and NuGet publication. This branch was rebased onto that fix, preserving all format decisions, and contract work has resumed.
 
-## Open decision: culture
-- Proposal: annotated formats use the configured WithCulture snapshot for both exact text parsing and CSV formatting, defaulting to InvariantCulture. Unannotated temporal formatting retains its existing invariant round-trip behavior; native XLSX conversion remains unchanged.
-- Await the user's answer before implementing this behavior.
+## Confirmed culture
+- Annotated formats use the configured WithCulture snapshot for both exact text parsing and CSV formatting, defaulting to InvariantCulture. Unannotated temporal formatting retains its existing invariant round-trip behavior; native XLSX conversion remains unchanged. The user approved this behavior.
+
+## Existing timezone requirements to preserve
+- Existing mapping/writing requirements still apply: DateTime accepts offset-free input and writes only Unspecified values; DateTimeOffset requires an explicit offset and preserves that offset and clock time. Do not infer or convert through the machine's local timezone. Exact-format validation must account for these existing requirements rather than silently bypass them.
+
+## Open decision: incomplete date formats
+- Proposal: formats for DateTime, DateTimeOffset, and DateOnly must specify a complete date (year, month, day). Reject formats that require the BCL to fill missing date components. Time-only data should use TimeOnly; omitted seconds/fractions can retain zero defaults.
+- Await the user's answer before implementing this additional format restriction.
 
 ## Remaining contract work
-- Settle interaction with ColumnConverter/Ignore/inherited annotations, culture selection, and exact temporal timezone/missing-component rules.
+- Settle interaction with Ignore/inherited annotations and exact format validation/missing-component rules.
 - Keep empty nullable fields and existing error privacy/location rules unless the user approves a change. Use generated direct span-based calls rather than runtime annotation inspection.
 - Validate annotation values and applicable property types. Do not claim all .NET format strings can be completely validated at compile time without establishing a reliable validation contract.
 - Dedicated boolean/null tokens, TimeSpan formats, and other roadmap features are outside the authorized initial type scope.
