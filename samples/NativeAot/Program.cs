@@ -8,6 +8,7 @@ await QuickStartSample.RunAsync();
 await ConverterSample.RunAsync();
 await TemporalFormatSample.RunAsync();
 await TokenSample.RunAsync();
+await StreamWritingSample.RunAsync();
 
 // Read a separately compiled model through its generated static mapping contract.
 var path = Path.GetTempFileName();

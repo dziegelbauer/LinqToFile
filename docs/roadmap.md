@@ -13,7 +13,7 @@ Priority and design can change.
 ## Writing
 
 - Extend writing to XLSX workbooks.
-- Support writable streams and stream factories as write destinations.
+- Add append and positional insertion for existing stream content.
 
 ## Conversion and error handling
 

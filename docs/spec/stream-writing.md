@@ -16,7 +16,7 @@
 
 ## Confirmed repeated exports
 - A caller-supplied stream destination permits one export total across that destination and its derived configurations, consistent with supplied-stream read sources. Factory destinations permit repeated exports by opening a fresh stream per call. The user approved this behavior.
-- The exact claim boundary and failure/cancellation behavior remain separate details.
+- The claim boundary and failure/cancellation behavior are specified below.
 
 ## Confirmed public API shape
 - Separate write-only entry points TabularFile.CsvWriter<T>(stream, leaveOpen=true) and CsvWriter<T>(Func<Stream>), with CsvWriterAsync<T>(Func<CancellationToken, ValueTask<Stream>>) for async-only factories. Return an immutable configurable CsvWriter<T> with Write/WriteAsync operations that export a complete document. Keep existing Csv<T>(stream/factory) reading APIs unchanged. The user approved these names and shape.
@@ -41,14 +41,22 @@
 - Write the configured encoding's preamble once at the start of each exported CSV document, even at a nonzero underlying stream position. Default strict UTF-8 has no BOM. Do not inspect or alter existing bytes, and do not make preamble behavior depend on stream seekability. The user approved this behavior.
 - This is a new document at the current position, not an append operation.
 
-## Open decision: factory concurrency
-- Proposal: allow concurrent exports through a factory-backed writer, with each invocation receiving its own newly opened stream, encoder, and output buffers. The factory must supply an independent fresh stream per call and support the concurrent invocation pattern chosen by the caller.
-- Supplied-stream destinations retain their shared atomic single-use allowance, so overlapping attempts fail immediately. Await the user's answer before fixing factory concurrency.
+## Confirmed factory concurrency
+- Allow concurrent exports through a factory-backed writer, with each invocation receiving its own newly opened stream, encoder, and output buffers. The factory must supply an independent fresh stream per call and support the concurrent invocation pattern chosen by the caller. The user approved this behavior.
+- Supplied-stream destinations retain their shared atomic single-use allowance, so overlapping attempts fail immediately.
 
 ## Existing contracts to preserve
 - Supplied read streams start at their current position, are single-use across derived configurations, and default to leaveOpen=true. Read factories return fresh library-owned streams.
 - File-path writes retain their existing create/append/insert intent checks, mutation modes, guards, validation, and cancellation boundaries; do not silently apply path replacement guarantees to arbitrary streams.
 - CSV output reuses shared generated mapping, custom dialect/encoding/culture/limits, LF default endings, converter/temporal/token annotations, null collision guards, and private structured write errors.
+
+## Implementation
+- CsvWriter<T> holds immutable CsvOptions and a shared StreamDestination identity. CsvStreamExport<T> reuses CsvOutput<T> and EncodedOutput; no reflection, new runtime dependencies, or whole-sequence buffering is introduced.
+- Validate model/header serialization before opening a factory. Supplied streams are already claimed and receive ownership cleanup if model validation fails.
+- Each factory operation allocates its own serialization buffers and encoder; configurations do not cache mutable export state. Skip zero-byte underlying writes when an encoder produces no bytes.
+- On failure, do not finalize/flush pending CSV encoder data. Still dispose owned streams, asynchronously for WriteAsync. Retain the primary export exception if stream cleanup also fails, except OutOfMemoryException; surface disposal failures after otherwise successful output.
+- Header-only, single-row, IEnumerable<T>, and asynchronous IAsyncEnumerable<T> overloads return data-row counts. Supplied leaveOpen=false ownership applies to attempted exports, not to constructing/configuring an unused writer.
+- Runnable samples and package checks cover supplied/factory/async-only/compression output; the stream guide is checked against the sample. See [validation](history/validation-stream-writing.md) for evidence and IDE review.
 
 ## IDE review
 - Markdown files are exempt under the updated standing rule. This topic and its index/guidance edits receive manual review and diff checks; no IDE lint is required for them.

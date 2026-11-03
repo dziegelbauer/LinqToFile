@@ -1,5 +1,7 @@
 # Write CSV files
 
+For memory, HTTP responses, compression streams, or factories, see [CSV stream exports](csv-streams.md).
+
 Use a path source to create a file.
 The parent directory must exist.
 The destination must not exist.

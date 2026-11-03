@@ -9,6 +9,7 @@ The library supports standard LINQ, async queries, and Native AOT on .NET 10 and
 | Declare models and map columns | [Mapping and API reference](reference.md) |
 | Set CSV syntax, encoding, and limits | [CSV rules and errors](csv-and-errors.md) |
 | Create CSV files, append rows, or insert rows | [CSV writing](csv-writing.md) |
+| Export CSV to memory, HTTP, or compression streams | [CSV stream exports](csv-streams.md) |
 | Select worksheets and read workbook cells | [XLSX workbooks](xlsx.md) |
 | Convert values and select a culture | [Value conversions](conversions.md) |
 | Map custom types or override a column conversion | [Custom converters](custom-converters.md) |

@@ -35,7 +35,7 @@ internal sealed class EncodedOutput
         {
             int count = Convert(text, offset, flush, row, out int consumed, out completed);
             offset += consumed;
-            stream.Write(buffer.AsSpan(0, count));
+            if (count != 0) stream.Write(buffer.AsSpan(0, count));
         } while (!completed);
     }
     internal async ValueTask WriteAsync(ReadOnlyMemory<char> text, long row, CancellationToken token, bool flush = false)
@@ -47,7 +47,7 @@ internal sealed class EncodedOutput
             token.ThrowIfCancellationRequested();
             int count = Convert(text, offset, flush, row, out int consumed, out completed);
             offset += consumed;
-            await stream.WriteAsync(buffer.AsMemory(0, count), token).ConfigureAwait(false);
+            if (count != 0) await stream.WriteAsync(buffer.AsMemory(0, count), token).ConfigureAwait(false);
         } while (!completed);
     }
 }

@@ -54,6 +54,9 @@ Public fields are not mapped.
 | `TabularFile.Csv<T>(stream, leaveOpen)` | Uses a supplied stream once |
 | `TabularFile.Csv<T>(factory)` | Opens a fresh stream for each enumeration |
 | `TabularFile.CsvAsync<T>(factory)` | Opens streams through an async factory |
+| `TabularFile.CsvWriter<T>(stream, leaveOpen)` | Configures a write-only CSV stream export |
+| `TabularFile.CsvWriter<T>(factory)` | Opens a fresh owned stream for each CSV export |
+| `TabularFile.CsvWriterAsync<T>(factory)` | Opens output streams through an async-only factory |
 | `WithEncoding(encoding)` | Returns a new source with a copy of the encoding |
 | `WithCulture(culture)` | Returns a new source with a read-only copy of the conversion culture |
 | `WithHeaderComparison(comparer)` | Returns a new source with the selected header comparison |
@@ -84,6 +87,7 @@ Length limits accept null to remove a limit.
 All options return a new source.
 The [CSV guide](csv-and-errors.md) gives the defaults and counting rules.
 The [source guide](sources-and-async.md) gives ownership, cancellation, and async signatures.
+The [stream export guide](csv-streams.md) gives writer operations, options, ownership, and partial-output behavior.
 
 The generator adds `ITabularRecord<T>` to each marked class.
 A generic helper must have the constraint `where T : class, ITabularRecord<T>`.
