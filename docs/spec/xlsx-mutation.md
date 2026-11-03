@@ -86,16 +86,14 @@
 ## Confirmed new text storage
 - Write newly added text as inline strings, matching XlsxWriter<T>, while retaining the existing shared-string table and indexes unchanged. Do not deduplicate new strings into or rebuild that table. Existing shared-string validation/spill limits still apply where needed. The user approved this approach.
 
-## Next decision
-- Recommend rejecting mutation when unfamiliar extension markup, relationship types, or workbook parts cannot be established as safe to preserve under row insertion. Preserve explicitly supported non-reference metadata; do not silently drop unknown content or assume that copying it prevents stale references. Document the supported subset and report a private format error before publication for unsupported features. Await user confirmation; implementation must define and test the supported-feature checks.
+## Confirmed unsupported-content fallback
+- Reject mutation when unfamiliar extension markup, relationship types, or workbook parts cannot be established as safe to preserve under row insertion. Preserve explicitly supported non-reference metadata; do not silently drop unknown content or assume that copying it prevents stale references. Document the supported subset and report a private format error before publication for unsupported features. The user approved this policy; implementation must define and test the supported-feature checks.
 
-## Remaining design topics
-- Public path-source/mutation API and worksheet selection.
-- Supported existing workbook content, preservation of unrelated parts, and rejection of features whose references cannot be updated correctly. Do not promise transparent insertion into arbitrary formula/table/chart-rich workbooks.
-- Header/data-row boundaries, logical indexes versus physical worksheet rows, and sparse/blank-row behavior.
-- Existing schema validation, column order, native/text cells, styles/shared strings, date-system preservation, limits, and unsupported package variants.
-- Reference/coordinate updates, cancellation/publication guarantees, empty input, concurrency, and whether any CSV performance options are appropriate for ZIP-based mutation.
-- Implementation stages, cross-platform/package/Native AOT checks, documentation, and review handoff.
+## Implementation planning
+- Proposed stages and acceptance checks are in [the implementation plan](xlsx-mutation-plan.md).
+- During implementation, define the supported XML/relationship/part checks conservatively under the approved rejection policy. Preserve ordinary worksheet metadata where safe; stop for unresolved public behavior instead of silently broadening or weakening the contract.
+- Existing generated serialization rules cover new cells, including private errors, text/token limits, strict native precision, and rejection of entirely blank new rows. Preserve existing values without mapping them through T.
+- Prefer incremental new-row spooling when the range count is unknown, so input need not be enumerated again or retained as a collection. Charge owned spool files against the approved temporary limit.
 
 ## Workflow
 - Commit notes before handoff and keep the worktree clean. Review Rider recommendations for edited code; Markdown is exempt.
