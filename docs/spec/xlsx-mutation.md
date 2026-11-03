@@ -77,8 +77,11 @@
 ## Confirmed decompressed-byte accounting
 - WithMaxDecompressedBytes counts every decompressed byte read from the original package, including workbook-wide feature checks, validation, repeated passes, and copying untouched parts. Do not count generated XML or auxiliary spool reads as source decompression; temporary/output limits cover those separately. Preserve null/zero/negative-argument conventions and throw without publishing when exceeded. The user approved this accounting policy.
 
+## Confirmed physical row limits
+- Reject the entire operation if new or shifted physical rows would exceed worksheet row 1,048,576, including trailing blank/formatted rows. Do not discard existing rows, fill gaps, compact the worksheet, or split into another sheet to make room. Enforce the limit before publication and preserve the original workbook on failure. The user approved this behavior.
+
 ## Next decision
-- Recommend rejecting the entire operation if new or shifted physical rows would exceed worksheet row 1,048,576, including trailing blank/formatted rows. Do not discard existing rows, fill gaps, compact the worksheet, or split into another sheet to make room. Enforce the limit before publication and preserve the original workbook on failure. Await user confirmation.
+- Recommend preserving merged ranges wholly above the selected header, such as title rows, but rejecting any merged range on the selected worksheet that reaches the header row or below, even outside mapped columns. This avoids needing merge-shift rules initially. Preserve merges on untouched worksheets; they do not alone block mutation. Await user confirmation.
 
 ## Remaining design topics
 - Public path-source/mutation API and worksheet selection.
