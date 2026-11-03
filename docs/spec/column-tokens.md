@@ -15,9 +15,12 @@
 - Default to StringComparison.OrdinalIgnoreCase, consistent with built-in boolean parsing. Permit an explicit Comparison = StringComparison.Ordinal for case-sensitive tokens. Only these two enum values are supported, keeping comparisons independent of culture. The user approved this behavior.
 - CSV output uses the literal token spelling from the annotation; comparison changes input matching only.
 
-## Open decision: null token scope
-- Proposal: [NullToken("NULL")] specifies one token used both to recognize null on text input and to serialize null to CSV. Do not automatically recognize other null spellings. Multiple aliases or separate read/write null tokens remain future work.
-- Empty-field semantics, applicable property types, and string/token collisions need separate decisions. Await the user's answer before fixing this contract.
+## Confirmed null token scope
+- [NullToken("NULL")] specifies one token used both to recognize null on text input and to serialize null to CSV. Do not automatically recognize other null spellings. The user approved this behavior. Multiple aliases or separate read/write null tokens remain future work.
+
+## Open decision: empty fields
+- Proposal: retain existing empty-field rules alongside the explicit null token. Empty strings remain empty strings; empty nullable value fields remain null. Null strings can use the explicit token, so null and empty string remain distinct. Quoted/unquoted empties remain equivalent.
+- This treats the explicit token as an additional null representation rather than changing existing absence semantics. Await the user's answer before fixing this contract.
 
 ## Remaining contract work
 - Define case comparison with typed options, trimming, empty/null distinctions, applicable property types, native XLSX behavior, canonical null output, collision validation, and interaction with custom converters/temporal formats/inheritance/Ignore.
