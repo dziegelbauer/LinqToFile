@@ -17,7 +17,6 @@ Priority and design can change.
 
 ## Conversion and error handling
 
-- Add custom converters and per-column converter annotations.
 - Add exact date/time format annotations.
 - Add configurable boolean tokens and explicit null tokens.
 - Support platform-sized `nint` and `nuint` properties.

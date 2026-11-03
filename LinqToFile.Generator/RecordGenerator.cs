@@ -18,6 +18,10 @@ public sealed class RecordGenerator : IIncrementalGenerator
     private static readonly DiagnosticDescriptor InvalidMember = Rule("LTF002", "Unsupported record member");
     private static readonly DiagnosticDescriptor InvalidType = Rule("LTF003", "Unsupported property type");
     private static readonly DiagnosticDescriptor Conflict = Rule("LTF004", "Conflicting column mapping");
+    private static readonly DiagnosticDescriptor InvalidConverter = Rule("LTF005", "Unsupported column converter");
+    private static readonly SymbolDisplayFormat TypeFormat = SymbolDisplayFormat.FullyQualifiedFormat
+        .WithMiscellaneousOptions(SymbolDisplayFormat.FullyQualifiedFormat.MiscellaneousOptions |
+            SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
     private static DiagnosticDescriptor Rule(string id, string title) =>
         new DiagnosticDescriptor(id, title, "{0}", "LinqToFile", DiagnosticSeverity.Error, true);
@@ -28,10 +32,11 @@ public sealed class RecordGenerator : IIncrementalGenerator
             "LinqToFile.TabularRecordAttribute",
             static (node, _) => node is TypeDeclarationSyntax,
             static (ctx, _) => (INamedTypeSymbol)ctx.TargetSymbol);
-        context.RegisterSourceOutput(models, static (output, model) => Emit(output, model));
+        context.RegisterSourceOutput(models.Combine(context.CompilationProvider),
+            static (output, pair) => Emit(output, pair.Left, pair.Right));
     }
 
-    private static void Emit(SourceProductionContext context, INamedTypeSymbol model)
+    private static void Emit(SourceProductionContext context, INamedTypeSymbol model, Compilation compilation)
     {
         bool failed = false;
         void Error(DiagnosticDescriptor rule, ISymbol symbol, string message)
@@ -58,6 +63,7 @@ public sealed class RecordGenerator : IIncrementalGenerator
         var columns = new List<string>();
         var readers = new List<string>();
         var nullable = new List<bool>();
+        var converters = new List<string?>();
         var enums = new List<KeyValuePair<int, INamedTypeSymbol>>();
         var seen = new Dictionary<string, ISymbol>(StringComparer.Ordinal);
         var columnSet = new HashSet<string>(StringComparer.Ordinal);
@@ -70,6 +76,7 @@ public sealed class RecordGenerator : IIncrementalGenerator
             foreach (var property in type.GetMembers().OfType<IPropertySymbol>())
             {
                 AttributeData? column = null;
+                AttributeData? converter = null;
                 bool ignored = false;
                 for (var declaration = property; declaration != null; declaration = declaration.OverriddenProperty)
                 {
@@ -77,6 +84,7 @@ public sealed class RecordGenerator : IIncrementalGenerator
                     {
                         var name = attribute.AttributeClass?.ToDisplayString();
                         if (name == "LinqToFile.ColumnAttribute" && column == null) column = attribute;
+                        if (name == "LinqToFile.ColumnConverterAttribute" && converter == null) converter = attribute;
                         if (name == "LinqToFile.IgnoreAttribute") ignored = true;
                     }
                 }
@@ -86,9 +94,9 @@ public sealed class RecordGenerator : IIncrementalGenerator
                     derived is IPropertySymbol derivedProperty && Overrides(derivedProperty, property))
                     continue;
 
-                if (ignored && column != null)
+                if (ignored && (column != null || converter != null))
                 {
-                    Error(Conflict, property, "Column and Ignore cannot apply to the same effective property.");
+                    Error(Conflict, property, "Column or ColumnConverter and Ignore cannot apply to the same effective property.");
                     continue;
                 }
                 if (ignored)
@@ -99,7 +107,7 @@ public sealed class RecordGenerator : IIncrementalGenerator
                 if (property.IsStatic || property.IsIndexer || property.DeclaredAccessibility != Accessibility.Public ||
                     property.SetMethod?.DeclaredAccessibility != Accessibility.Public)
                 {
-                    if (column != null || property.IsRequired)
+                    if (column != null || converter != null || property.IsRequired)
                         Error(InvalidMember, property, "Mapped and required properties must be instance properties with a public setter or public init accessor, and cannot be indexers.");
                     continue;
                 }
@@ -122,18 +130,37 @@ public sealed class RecordGenerator : IIncrementalGenerator
                     n.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
                 if (isNullable) valueType = ((INamedTypeSymbol)valueType).TypeArguments[0];
                 int index = properties.Count;
-                var reader = ReadExpression(valueType, index, property.Name);
+                string? converterName = null;
+                if (converter != null)
+                {
+                    var converterType = converter.ConstructorArguments.FirstOrDefault().Value as INamedTypeSymbol;
+                    var contract = compilation.GetTypeByMetadataName("LinqToFile.IColumnConverter`1");
+                    if (converterType == null || converterType.IsUnboundGenericType || converterType.IsAbstract || ContainsFileLocalType(converterType) ||
+                        converterType.IsRefLikeType || (converterType.TypeKind != TypeKind.Class && converterType.TypeKind != TypeKind.Struct) ||
+                        !compilation.IsSymbolAccessibleWithin(converterType, model.ContainingAssembly) ||
+                        !converterType.AllInterfaces.Any(i => SymbolEqualityComparer.Default.Equals(i.OriginalDefinition, contract) &&
+                            SymbolEqualityComparer.IncludeNullability.Equals(i.TypeArguments[0], property.Type)))
+                    {
+                        Error(InvalidConverter, property, "Use an accessible, closed, non-abstract class or struct implementing IColumnConverter<T> for the complete property type, including its nullability.");
+                        continue;
+                    }
+                    converterName = converterType.ToDisplayString(TypeFormat);
+                }
+                var reader = converterName == null ? ReadExpression(valueType, index, property.Name) :
+                    "row.ReadConverted<" + property.Type.ToDisplayString(TypeFormat) + ", " + converterName +
+                    ">(ordinals[" + index + "], " + Literal(property.Name) + ")";
                 if (reader == null)
                 {
-                    Error(InvalidType, property, "Use a supported scalar type or enum. Custom converters, nint, and nuint are not supported yet.");
+                    Error(InvalidType, property, "Use a supported scalar type or enum, or annotate the property with ColumnConverter.");
                     continue;
                 }
-                if (valueType.TypeKind == TypeKind.Enum)
+                if (converterName == null && valueType.TypeKind == TypeKind.Enum)
                     enums.Add(new KeyValuePair<int, INamedTypeSymbol>(index, (INamedTypeSymbol)valueType));
                 properties.Add(property);
                 columns.Add(header!);
                 readers.Add(reader);
                 nullable.Add(isNullable);
+                converters.Add(converterName);
             }
 
             // Fields and methods can also hide an inherited property from an object initializer.
@@ -174,11 +201,11 @@ public sealed class RecordGenerator : IIncrementalGenerator
         for (int i = 0; i < properties.Count; i++)
         {
             source.Append("@").Append(properties[i].Name).Append(" = ");
-            if (nullable[i]) source.Append("row.IsEmpty(ordinals[").Append(i).Append("]) ? null : ");
+            if (nullable[i] && converters[i] == null) source.Append("row.IsEmpty(ordinals[").Append(i).Append("]) ? null : ");
             source.Append(readers[i]).AppendLine(",");
         }
         source.AppendLine("};");
-        EmitWriter(source, model, modelName, properties, nullable, enums);
+        EmitWriter(source, model, modelName, properties, nullable, enums, converters);
         foreach (var item in enums) EmitEnum(source, item.Key, item.Value);
         source.AppendLine("} }");
 
@@ -212,6 +239,14 @@ public sealed class RecordGenerator : IIncrementalGenerator
         return false;
     }
 
+    private static bool ContainsFileLocalType(ITypeSymbol type)
+    {
+        if (type is IArrayTypeSymbol array) return ContainsFileLocalType(array.ElementType);
+        if (!(type is INamedTypeSymbol named)) return false;
+        return named.IsFileLocal || (named.ContainingType != null && ContainsFileLocalType(named.ContainingType)) ||
+            named.TypeArguments.Any(ContainsFileLocalType);
+    }
+
     private static bool CanReadProperty(IPropertySymbol property, INamedTypeSymbol model)
     {
         var getter = property.GetMethod;
@@ -221,7 +256,7 @@ public sealed class RecordGenerator : IIncrementalGenerator
     }
 
     private static void EmitWriter(StringBuilder source, INamedTypeSymbol model, string modelName,
-        List<IPropertySymbol> properties, List<bool> nullable, List<KeyValuePair<int, INamedTypeSymbol>> enums)
+        List<IPropertySymbol> properties, List<bool> nullable, List<KeyValuePair<int, INamedTypeSymbol>> enums, List<string?> converters)
     {
         int unreadable = properties.FindIndex(p => !CanReadProperty(p, model));
         source.Append("public override bool CanWrite => ").Append(unreadable < 0 ? "true" : "false").AppendLine(";");
@@ -238,6 +273,13 @@ public sealed class RecordGenerator : IIncrementalGenerator
                 continue;
             }
             source.Append("var field = record.@").Append(properties[i].Name).AppendLine(";");
+            if (converters[i] != null)
+            {
+                source.Append("value.SetConverted<").Append(properties[i].Type.ToDisplayString(TypeFormat)).Append(", ")
+                    .Append(converters[i]).AppendLine(">(field);");
+                source.AppendLine("return; }");
+                continue;
+            }
             if (nullable[i]) source.AppendLine("if (!field.HasValue) { value.SetText(null); return; }");
             string field = nullable[i] ? "field.Value" : "field";
             ITypeSymbol type = nullable[i] ? ((INamedTypeSymbol)properties[i].Type).TypeArguments[0] : properties[i].Type;

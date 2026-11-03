@@ -13,6 +13,23 @@ public sealed class TabularValue
     internal TabularValue(CultureInfo culture) => this.culture = culture;
     internal ReadOnlySpan<char> Text => text is null ? buffer.AsSpan(0, length) : text.AsSpan();
     internal void Reset() { text = null; length = 0; }
+    /// <summary>Formats through a statically selected converter into reusable storage, including null values.</summary>
+    public void SetConverted<T, TConverter>(T value) where TConverter : IColumnConverter<T>
+    {
+        text = null;
+        var context = new ColumnConversionContext(culture, TabularCellKind.Text, TabularDateSystem.None);
+        while (true)
+        {
+            if (TConverter.TryFormat(value, buffer, context, out int written))
+            {
+                if ((uint)written > (uint)buffer.Length) throw new FormatException();
+                length = written;
+                return;
+            }
+            if (buffer.Length == Array.MaxLength) throw new FormatException();
+            Array.Resize(ref buffer, (int)Math.Min((long)buffer.Length * 2, Array.MaxLength));
+        }
+    }
     public void SetText(string? value) { text = value; length = 0; }
     public void AppendText(string value)
     {

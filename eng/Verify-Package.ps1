@@ -60,12 +60,12 @@ try {
 "@ | Set-Content (Join-Path $models 'Models.csproj')
     $examples[0].Groups[1].Value.Replace('namespace SampleModels;', 'namespace ConsumerModels;') | Set-Content (Join-Path $models 'Person.cs')
     # Compile the XLSX models in the external model assembly with the packaged generator.
-    foreach ($name in @('WorkbookEntry', 'WorkbookCells', 'ScalarRecord')) {
+    foreach ($name in @('WorkbookEntry', 'WorkbookCells', 'ScalarRecord', 'Product', 'ConvertedStock')) {
         $model = [System.IO.File]::ReadAllText((Join-Path $repository "samples/Models/$name.cs"))
         ("using System;`n" + $model.Replace('namespace SampleModels;', 'namespace ConsumerModels;')) |
             Set-Content (Join-Path $models "$name.cs")
     }
-    foreach ($name in @('WorkbookSample', 'WorkbookCellsSample', 'WorkbookAsyncSample', 'CsvWritingSample', 'QuickStartSample')) {
+    foreach ($name in @('WorkbookSample', 'WorkbookCellsSample', 'WorkbookAsyncSample', 'CsvWritingSample', 'QuickStartSample', 'ConverterSample')) {
         $sample = [System.IO.File]::ReadAllText((Join-Path $repository "samples/NativeAot/$name.cs"))
         $sample.Replace('using SampleModels;', 'using ConsumerModels;') | Set-Content (Join-Path $app "$name.cs")
     }
@@ -105,6 +105,7 @@ if (adults.Count != 1 || adults[0].Name != "Ada" || peopleById.Count != 2 ||
 WorkbookSample.Run();
 await WorkbookAsyncSample.RunAsync();
 await CsvWritingSample.RunAsync();
+await ConverterSample.RunAsync();
 Console.WriteLine("Clean package consumer passed: README, CSV/XLSX sync/async, non-seekable input, and cross-assembly mapping.");
 '@
     $program | Set-Content (Join-Path $app 'Program.cs')

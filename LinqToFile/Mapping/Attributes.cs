@@ -14,3 +14,10 @@ public sealed class ColumnAttribute(string name) : Attribute
 /// <summary>Excludes a property from mapping.</summary>
 [AttributeUsage(AttributeTargets.Property, Inherited = true)]
 public sealed class IgnoreAttribute : Attribute;
+
+/// <summary>Uses a compile-time converter for the property's complete type.</summary>
+[AttributeUsage(AttributeTargets.Property, Inherited = true)]
+public sealed class ColumnConverterAttribute(Type converterType) : Attribute
+{
+    public Type ConverterType { get; } = converterType;
+}

@@ -32,6 +32,7 @@ This rule also applies when a field or method hides that property.
 |---|---|
 | `[TabularRecord]` | Makes a generated mapper for the partial class |
 | `[Column("header")]` | Uses the literal header name for a property |
+| `[ColumnConverter(typeof(MyConverter))]` | Uses static conversion methods for the property's complete type |
 | `[Ignore]` | Excludes a property |
 
 A property without a column annotation uses its property name.
@@ -39,7 +40,7 @@ An empty or whitespace-only annotation name causes a compiler error.
 The generator preserves whitespace in a meaningful annotation name.
 
 The generator ignores ordinary read-only properties and indexers.
-A column annotation on such a member causes a compiler error.
+A column or converter annotation on such a member causes a compiler error.
 Public fields are not mapped.
 
 ## Source methods
@@ -100,6 +101,7 @@ The generator supplies the mapping methods without application code.
 | Temporal types | Culture-based dates, times, and durations under the offset rules |
 
 Numeric and temporal conversions default to `InvariantCulture`.
+These built-in rules apply to properties without a [custom converter](custom-converters.md).
 The numeric parser does not accept thousands separators or currency symbols.
 An empty field becomes an empty string.
 An empty field becomes null for a nullable value property.
@@ -114,8 +116,10 @@ Quoted and unquoted empty fields have the same meaning.
 | `LTF002` | A member or annotation is not supported |
 | `LTF003` | The property type is not supported |
 | `LTF004` | The mapping contains a conflict |
+| `LTF005` | The column converter type is invalid, inaccessible, or incompatible |
 
 An unmarked class cannot satisfy the generated interface constraint.
 The C# compiler reports that use as a constraint error.
 The [conversion guide](conversions.md) lists all types and their rules.
-Custom converters and exact-format annotations are not supported.
+Use [custom converters](custom-converters.md) for other types, tokens, or formats.
+Dedicated exact-format annotations are not supported.

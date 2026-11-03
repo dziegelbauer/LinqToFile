@@ -39,7 +39,11 @@ Acceptance: clean consumer and cross-project model samples work from the package
 Behavior and [implementation stages](xlsx-plan.md) are approved. Stage 1 is implemented and locally validated with 583 passing tests and project/package Native AOT samples; the user confirmed successful CI after commit 7b798b7, completing stage 1. Stage 2 is authorized and implemented; local validation passes: 688 tests, warning-free Release build, project/package JIT and Native AOT, and clean package consumption; the user confirmed CI passed after commit 32ff4d2, completing stage 2. Stage 3 is authorized and locally validated with 719 tests, project/package JIT and Native AOT, clean consumption, and recorded performance workloads. The user confirmed CI passed after commit 339dc55, completing stage 3; see [stage 3 validation](history/validation-xlsx-stage3.md). See [stage 2 validation](history/validation-xlsx-stage2.md). The approved XLSX subset is implemented; all three stages are complete. See [XLSX planning](xlsx.md) and [stage 1 validation](history/validation-xlsx-stage1.md).
 
 ## Future objectives
-Other tabular formats; headerless files; per-column error policies; configurable missing columns; opt-in raw error values; custom converters/null tokens/exact date formats; broader model shapes and fields; custom IQueryable if justified. Change tracking remains outside current scope.
+Other tabular formats; headerless files; per-column error policies; configurable missing columns; opt-in raw error values; dedicated null/boolean token and exact date format annotations; broader model shapes and fields; custom IQueryable if justified. Change tracking remains outside current scope.
+
+## Per-column converters
+
+Implement the approved static span-based parsing/formatting contract for shared CSV/XLSX reads and CSV writes. Preserve unannotated behavior and compiler-check converter compatibility. See [converter contract](converters.md) for confirmed native-cell, nullable, and failure behavior and [validation](history/validation-converters.md) for evidence.
 
 ## Next capability: CSV writing
 

@@ -125,6 +125,11 @@ Numeric cells cannot become booleans, enums, characters, or GUIDs.
 String targets receive numeric storage text or canonical true/false for boolean cells.
 No cell display formatting is rendered.
 
+These are the built-in conversion rules.
+A [custom converter](custom-converters.md) can accept other mappings for an annotated property.
+It receives the stored value, cell kind, configured culture, and workbook date system.
+It also receives empty fields after any configured trimming.
+
 ## Dates and times
 
 Numeric temporal conversion is selected by the target property type, not the cell display style.

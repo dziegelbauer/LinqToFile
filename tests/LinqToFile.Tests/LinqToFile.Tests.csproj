@@ -12,6 +12,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="../../README.md" Link="Examples/README.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../docs/custom-converters.md" Link="Examples/custom-converters.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../samples/Models/Product.cs" Link="Examples/Product.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../samples/NativeAot/ConverterSample.cs" Link="Examples/ConverterSample.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../docs/csv-and-errors.md" Link="Examples/csv-and-errors.md" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../docs/conversions.md" Link="Examples/conversions.md" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../docs/sources-and-async.md" Link="Examples/sources-and-async.md" CopyToOutputDirectory="PreserveNewest" />

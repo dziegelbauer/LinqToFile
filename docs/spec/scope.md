@@ -9,6 +9,7 @@
 - Production library dependencies: BCL only.
 - Distribute one consumer NuGet package containing the BCL-only runtime and build-time source generator; no separate generator installation or manual registration is required.
 - CSV path sources support creation, append, and positional insertion with long logical indexes, synchronous/asynchronous ranges, validated/quick append, and both temporary-file and bounded-memory in-place modes. Insertion always fully validates existing syntax and widths. See writing.md and writing-plan.md. Change tracking, updates, and deletes remain outside the approved scope.
+- Per-column custom converters use statically generated span-based calls for CSV/XLSX reading and CSV writing, including custom domain types and nullable values. Native cell metadata is available without reflection or converter instances. See converters.md.
 - Release license: Apache License 2.0 (SPDX identifier Apache-2.0).
 - Source-generator tooling may use compiler dependencies separately from the runtime library.
 - Development-only tests and benchmarks may use external packages.
