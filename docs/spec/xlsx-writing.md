@@ -31,8 +31,11 @@
 - Throw for numeric output requiring more than 15 significant decimal digits instead of silently rounding. The user approved this rule, with an explicit text converter available to preserve such values. Exact lexical/significant-digit checks and floating-point edge cases/range still need specification.
 - Reference: [Microsoft Excel specifications and limits](https://support.microsoft.com/en-us/excel/excel-specifications-and-limits).
 
+## Confirmed custom converter output
+- Write custom-converter output as literal text cells, preserving the existing span-based TryFormat contract without guessing a native cell type or interpreting formulas. The user approved this behavior. Formatting uses Text/None conversion context, as with CSV output.
+
 ## Next decision
-- Recommend writing custom-converter output as literal text cells, preserving the existing span-based TryFormat contract without guessing a native cell type or interpreting formulas. Use Text/None conversion context for formatting, as with CSV output. Await user confirmation.
+- Recommend that explicit TemporalFormat and BooleanTokens annotations select text output using the same configured culture/literal tokens as CSV. These annotations override default native output for the annotated non-null value. NullToken/null behavior remains a separate decision. Await user confirmation.
 
 ## Workflow
 - Work on feature/xlsx-writing. Update human guides and runnable package/AOT examples when behavior is implemented; keep unfinished features on the roadmap.
