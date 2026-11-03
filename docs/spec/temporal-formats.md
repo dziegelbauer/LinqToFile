@@ -27,9 +27,12 @@
 ## Existing timezone requirements to preserve
 - Existing mapping/writing requirements still apply: DateTime accepts offset-free input and writes only Unspecified values; DateTimeOffset requires an explicit offset and preserves that offset and clock time. Do not infer or convert through the machine's local timezone. Exact-format validation must account for these existing requirements rather than silently bypass them.
 
-## Open decision: incomplete date formats
-- Proposal: formats for DateTime, DateTimeOffset, and DateOnly must specify a complete date (year, month, day). Reject formats that require the BCL to fill missing date components. Time-only data should use TimeOnly; omitted seconds/fractions can retain zero defaults.
-- Await the user's answer before implementing this additional format restriction.
+## Confirmed complete dates
+- Formats for DateTime, DateTimeOffset, and DateOnly must specify a complete date (year, month, day). Reject formats that require the BCL to fill missing date components. Time-only data should use TimeOnly; omitted seconds/fractions can retain zero defaults. The user approved this restriction.
+
+## Open decision: intentionally omitted output components
+- Proposal: selecting a format explicitly permits omission of time components or fractional seconds from output. For example, TimeOnly with HH:mm writes 14:30 even when the value also has seconds. Do not reject a value merely because its omitted components are nonzero; document that reading the result cannot recover those components. Existing date-completeness and timezone/offset requirements still apply.
+- Await the user's answer before implementing this output behavior.
 
 ## Remaining contract work
 - Settle interaction with Ignore/inherited annotations and exact format validation/missing-component rules.
