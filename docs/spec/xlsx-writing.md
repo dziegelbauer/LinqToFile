@@ -62,8 +62,11 @@
 ## Confirmed TimeOnly output
 - Write unannotated TimeOnly values as native numeric fractions of a day with a time display format, consistent with the XLSX reader's numeric time mapping. Explicit TemporalFormat continues to select text. The user approved this behavior; temporal precision remains a separate decision.
 
+## Confirmed TimeSpan output
+- Write unannotated TimeSpan as invariant constant-format text (c), consistent with CSV output, preserving negative/multi-day durations and tick precision. The user approved this behavior. Native elapsed-time output remains a future explicit option.
+
 ## Next decision
-- Recommend unannotated TimeSpan output as invariant constant-format text (c), consistent with CSV output, preserving negative/multi-day durations and tick precision. Native elapsed-time cells can remain a future explicit option. Await user confirmation.
+- Recommend strict temporal precision: throw if a native date/time serial satisfying the numeric precision policy cannot round-trip to the original .NET ticks through the reader. Do not silently round or switch cell types. Explicit TemporalFormat/custom converters provide text output for affected values. This can reject ordinary timestamps as well as high-precision values; explain the usability tradeoff when asking. Await user confirmation.
 
 ## Workflow
 - Work on feature/xlsx-writing. Update human guides and runnable package/AOT examples when behavior is implemented; keep unfinished features on the roadmap.
