@@ -29,9 +29,13 @@
 ## Confirmed null-token property types
 - Support NullToken on nullable built-in value types (including enums) and explicitly nullable string properties (string?). Reject non-nullable properties with a compiler diagnostic, since they cannot represent the annotated null value. The user approved this behavior. Custom converter interaction remains a separate decision.
 
-## Open decision: token whitespace
-- Proposal: require boolean and null tokens to be nonempty and have no leading/trailing .NET whitespace; invalid annotation values produce compiler diagnostics. Internal whitespace remains literal token content.
-- Input matching uses the field after configured WithFieldTrimming; no extra token-specific trimming occurs. This avoids padded tokens becoming unreadable when trimming is enabled. Await the user's answer before fixing this contract.
+## Confirmed token whitespace
+- Require boolean and null tokens to be nonempty and have no leading/trailing .NET whitespace; invalid annotation values produce compiler diagnostics. Internal whitespace remains literal token content. The user approved this behavior.
+- Input matching uses the field after configured WithFieldTrimming; no extra token-specific trimming occurs. This avoids padded tokens becoming unreadable when trimming is enabled.
+
+## Open decision: native XLSX cells
+- Proposal: apply tokens to CSV fields and XLSX text cells only. Native XLSX booleans keep their typed true/false values, independent of BooleanTokens. Native numeric/date/boolean cells cannot become null merely because their storage text matches a null token; existing target-type conversion boundaries remain unchanged. Empty/missing cells retain the already approved empty-field rules.
+- Await the user's answer before fixing this contract.
 
 ## Remaining contract work
 - Define case comparison with typed options, trimming, empty/null distinctions, applicable property types, native XLSX behavior, canonical null output, collision validation, and interaction with custom converters/temporal formats/inheritance/Ignore.
