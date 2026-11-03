@@ -11,4 +11,6 @@
 - Rider cannot inspect eng/Verify-Package.ps1 because it is outside a solution project. Verify its PowerShell parse and actual package-consumer execution separately. Markdown and project configuration are exempt from IDE linting; reviewed manually and through build/example/package checks.
 
 ## Final package and hosted checks
-- Pending final package, JIT/Native AOT, and Windows/Linux/macOS CI validation before PR handoff.
+- Final local command completed with exit zero: warning-free Release solution build, all 1,294 tests (none skipped), project JIT and Native AOT samples, alpha.19 package creation, fresh external package consumer under JIT and Native AOT, and repository sample restored from the local package under Native AOT with a separate package cache. All examples, including XLSX mutation, passed. Ignored log: artifacts/mutation-final.log.
+- Verify-Package.ps1 parsed and executed successfully. It also checks packaged README equality, cross-assembly generation, runtime assets, and the BCL-only dependency boundary.
+- Hosted Windows/Linux/macOS checks will be linked in the PR before handoff; no merge or publication is authorized from this feature branch.

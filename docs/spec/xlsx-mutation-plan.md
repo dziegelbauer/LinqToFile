@@ -1,6 +1,6 @@
 # XLSX mutation implementation plan
 
-Status: the user authorized all three stages, stopping for unresolved questions. Stages 1 and 2 are implemented under [the approved contract](xlsx-mutation.md). Stage 3 documentation and release validation are in progress.
+Status: all three stages are implemented under [the approved contract](xlsx-mutation.md). Local solution, package, JIT/Native AOT, guide-example, allocation, and IDE reviews passed. See [validation evidence](history/validation-xlsx-mutation.md). Hosted CI is checked on the feature PR before review handoff; merging requires human approval.
 
 ## Stage 1: package validation and mutation preparation
 - Build an explicit supported-feature check for Transitional/Strict packages, workbook-wide formulas/reference features, selected-sheet protection/merges, and unknown content.
