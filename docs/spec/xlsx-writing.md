@@ -85,8 +85,11 @@
 ## Confirmed path publication
 - Stage every XLSX path export in a temporary file beside its destination, including create-new output. Honor cancellation through preparation and immediately before publication; once publication starts, stop observing cancellation and report success if publication succeeds. Default publication must not overwrite a competing destination; explicit overwrite uses the approved replacement behavior. Delete owned temporary files on failure/cancellation. The user approved this contract.
 
+## Confirmed stream position
+- Start supplied-stream output at its current position without reading, seeking, rewinding, or truncating, including non-seekable streams. Treat that position as the exported archive origin. Callers prepare/reset/truncate seekable destinations as needed; leftover tail bytes can invalidate the workbook. The user approved this contract.
+
 ## Next decision
-- Recommend starting supplied-stream output at its current position without reading, seeking, rewinding, or truncating, including non-seekable streams. Treat that position as the exported archive origin. Callers prepare/reset/truncate seekable destinations as needed; leftover tail bytes can invalidate the workbook. Await user confirmation.
+- Recommend a plain worksheet export with only the styles required for native date/time display. Defer append/insertion/editing of existing workbooks, formulas, Excel tables/filters, automatic column sizing, and general presentation styling. All string data remains literal text. Await user confirmation.
 
 ## Workflow
 - Work on feature/xlsx-writing. Update human guides and runnable package/AOT examples when behavior is implemented; keep unfinished features on the roadmap.
