@@ -17,8 +17,13 @@
 ## Confirmed custom converter conflicts
 - Reject an effective mapping containing both TemporalFormat and ColumnConverter with a compiler diagnostic, including combinations inherited through overrides. A converter already owns parsing/formatting; silently prioritizing either annotation would hide a configuration error. The user approved this behavior.
 
-## Paused work
-- The user explicitly paused this branch to fix the failed main CI run after PR #4. Preserve these decisions and return after the CI fix is validated and merged. The user explicitly authorized merging that fix; this does not authorize merging the temporal-format PR.
+## CI interruption and resumption
+- The user explicitly paused this branch to fix the failed main CI run after PR #4 and explicitly authorized merging that fix. This does not authorize merging the temporal-format PR.
+- PR #5 merged as 30fbc34 after both branch and PR Windows/Linux/macOS matrices passed. Main run 41555256955 passed all platform checks and NuGet publication. This branch was rebased onto that fix, preserving all format decisions, and contract work has resumed.
+
+## Open decision: culture
+- Proposal: annotated formats use the configured WithCulture snapshot for both exact text parsing and CSV formatting, defaulting to InvariantCulture. Unannotated temporal formatting retains its existing invariant round-trip behavior; native XLSX conversion remains unchanged.
+- Await the user's answer before implementing this behavior.
 
 ## Remaining contract work
 - Settle interaction with ColumnConverter/Ignore/inherited annotations, culture selection, and exact temporal timezone/missing-component rules.
