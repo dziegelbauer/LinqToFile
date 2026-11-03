@@ -80,8 +80,11 @@
 ## Confirmed physical row limits
 - Reject the entire operation if new or shifted physical rows would exceed worksheet row 1,048,576, including trailing blank/formatted rows. Do not discard existing rows, fill gaps, compact the worksheet, or split into another sheet to make room. Enforce the limit before publication and preserve the original workbook on failure. The user approved this behavior.
 
+## Confirmed merged cells
+- Preserve merged ranges wholly above the selected header, such as title rows, but reject any merged range on the selected worksheet that reaches the header row or below, even outside mapped columns. This avoids needing merge-shift rules initially. Preserve merges on untouched worksheets; they do not alone block mutation. The user approved these rules.
+
 ## Next decision
-- Recommend preserving merged ranges wholly above the selected header, such as title rows, but rejecting any merged range on the selected worksheet that reaches the header row or below, even outside mapped columns. This avoids needing merge-shift rules initially. Preserve merges on untouched worksheets; they do not alone block mutation. Await user confirmation.
+- Recommend writing newly added text as inline strings, matching XlsxWriter<T>, while retaining the existing shared-string table and indexes unchanged. Do not deduplicate new strings into or rebuild that table. Existing shared-string validation/spill limits still apply where needed. Await user confirmation.
 
 ## Remaining design topics
 - Public path-source/mutation API and worksheet selection.
