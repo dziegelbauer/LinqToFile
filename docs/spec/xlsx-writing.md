@@ -52,9 +52,12 @@
 ## Confirmed DateOnly and DateTime output
 - Write unannotated DateOnly/DateTime properties as native Excel serial dates with date/date-time display formats. Retain the existing requirement that DateTime.Kind is Unspecified. Explicit TemporalFormat continues to select text output. The user approved this behavior; calendar/date-system range and temporal precision require subsequent decisions.
 
-## Next decision
-- Recommend the 1900 date system by default, with WithDateSystem(TabularDateSystem.Excel1904) as an explicit alternative. Reuse the existing enum, accepting Excel1900/Excel1904 and rejecting None/undefined values. Await user confirmation.
+## Confirmed date systems
+- Use the 1900 date system by default, with WithDateSystem(TabularDateSystem.Excel1904) as an explicit alternative. Reuse the existing enum, accepting Excel1900/Excel1904 and rejecting None/undefined values. The user approved this behavior.
 - Reference: [Microsoft Excel date systems](https://support.microsoft.com/en-us/excel/date-systems-in-excel) documents 1900 as the default in current Excel versions.
+
+## Next decision
+- Recommend native calendar dates from 1900-01-01 in the 1900 system or 1904-01-01 in the 1904 system, through the .NET date range's upper bound. Throw for earlier dates rather than silently switching cell types; an explicit TemporalFormat or custom converter can select text for them. Await user confirmation. Temporal precision remains a separate decision.
 
 ## Workflow
 - Work on feature/xlsx-writing. Update human guides and runnable package/AOT examples when behavior is implemented; keep unfinished features on the roadmap.
