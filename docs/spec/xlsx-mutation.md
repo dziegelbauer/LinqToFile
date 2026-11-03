@@ -38,8 +38,11 @@
 ## Confirmed preservation
 - Preserve untouched worksheet/part payloads without rewriting their XML; modify only the selected worksheet and supporting metadata strictly required by the mutation. Preserve existing cell values/types/styles, worksheet names/order/visibility, shared-string indexes, and workbook date system. ZIP compression/container bytes may change, so do not promise byte-identical archive output. The user approved these preservation rules; new-row styles and supporting metadata still require separate decisions.
 
+## Confirmed new-row formatting
+- Format new rows with the existing XLSX writer's native/text/annotation and strict precision rules, using the existing workbook's date system. Do not copy adjacent row/cell formatting automatically. Reuse compatible native date/time styles or add bounded required styles without changing existing style indexes; leave general style inheritance/configuration for future work. The user approved these rules.
+
 ## Next decision
-- Recommend formatting new rows with the existing XLSX writer's native/text/annotation and strict precision rules, using the existing workbook's date system. Do not copy adjacent row/cell formatting automatically. Reuse compatible native date/time styles or add bounded required styles without changing existing style indexes; leave general style inheritance/configuration for future work. Await user confirmation.
+- Recommend exact header/model matching for mutation, as with CSV writes: all mapped columns must exist, no extra header columns are permitted, and duplicate/invalid headers throw under configured comparison/trimming. Preserve existing header order and write new cells in that order rather than sorting or rewriting the header. Reading retains its existing extra-column behavior. Await user confirmation.
 
 ## Remaining design topics
 - Public path-source/mutation API and worksheet selection.
