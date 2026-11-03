@@ -1,5 +1,7 @@
 # Sources and async queries
 
+This guide covers reading. For writable streams and factories, see [CSV stream exports](csv-streams.md).
+
 These lifetime and query rules apply to CSV and XLSX.
 Use `Xlsx<T>` and `XlsxAsync<T>` instead of `Csv<T>` and `CsvAsync<T>` for workbooks.
 The [XLSX guide](xlsx.md) explains archive setup, temporary storage, and synchronous ZIP metadata operations.
