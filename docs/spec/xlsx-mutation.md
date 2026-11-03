@@ -26,8 +26,11 @@
 ## Confirmed worksheet selection
 - Match XLSX read selection: mutate the first worksheet in workbook order by default, or the existing sheet selected with WithWorksheet(name). Match names ordinal-ignore-case and throw when missing; never create a missing worksheet implicitly. The user approved this behavior. Existing read selection includes hidden/very-hidden worksheets; visibility does not change the selected worksheet.
 
+## Confirmed insertion indexes
+- Use zero-based long insertion indexes counting logical data records returned under the selected header/blank-row rules, excluding the header and skipped blank rows. Zero inserts before the first data record; the existing data-record count appends. Negative or greater indexes throw. WithHeaderRow retains its current physical one-based meaning. The user explicitly confirmed this contract after checking CSV parity. Exact physical placement and preservation of blank/formatted rows remain separate decisions.
+
 ## Next decision
-- Recommend zero-based long insertion indexes counting logical data records returned under the selected header/blank-row rules, excluding the header and skipped blank rows. Zero inserts before the first data record; the existing data-record count appends. Negative or greater indexes throw. WithHeaderRow retains its current physical one-based meaning. Await user confirmation; exact physical placement and preservation of blank/formatted rows remain separate decisions.
+- Recommend inserting new physical rows immediately before the indexed data row, keeping preceding blank rows in place and shifting that row and subsequent worksheet rows down by the inserted count. Append (including Insert at the data-record count) goes after the last existing physical row, including trailing blank/formatted row elements, rather than filling gaps. A declared dimension alone must not create artificial trailing rows. Preserve existing blank/formatted row elements rather than consuming them as insertion space. Await user confirmation; supported reference-bearing features still require separate scope decisions.
 
 ## Remaining design topics
 - Public path-source/mutation API and worksheet selection.
