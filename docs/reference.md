@@ -33,6 +33,7 @@ This rule also applies when a field or method hides that property.
 | `[TabularRecord]` | Makes a generated mapper for the partial class |
 | `[Column("header")]` | Uses the literal header name for a property |
 | `[ColumnConverter(typeof(MyConverter))]` | Uses static conversion methods for the property's complete type |
+| `[TemporalFormat("yyyy-MM-dd")]` | Uses one exact temporal format for text reads and CSV output |
 | `[Ignore]` | Excludes a property |
 
 A property without a column annotation uses its property name.
@@ -117,9 +118,10 @@ Quoted and unquoted empty fields have the same meaning.
 | `LTF003` | The property type is not supported |
 | `LTF004` | The mapping contains a conflict |
 | `LTF005` | The column converter type is invalid, inaccessible, or incompatible |
+| `LTF006` | The temporal format or target type is invalid or incompatible |
 
 An unmarked class cannot satisfy the generated interface constraint.
 The C# compiler reports that use as a constraint error.
 The [conversion guide](conversions.md) lists all types and their rules.
 Use [custom converters](custom-converters.md) for other types, tokens, or formats.
-Dedicated exact-format annotations are not supported.
+Use [temporal formats](temporal-formats.md) for exact date/time formats.

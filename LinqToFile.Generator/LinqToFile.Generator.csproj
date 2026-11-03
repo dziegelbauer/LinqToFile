@@ -7,6 +7,7 @@
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../LinqToFile/Mapping/TemporalFormatRules.cs" Link="TemporalFormatRules.cs" />
     <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
     <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" />

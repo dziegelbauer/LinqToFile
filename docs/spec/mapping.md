@@ -68,4 +68,4 @@
 ## Future objectives
 - Configurable missing-column handling.
 - Dedicated boolean-token and explicit null-token annotations. Custom converters can supply these rules now.
-- Exact date/time format annotations.
+- Multiple accepted temporal input formats or separate read/write formats; the initial TemporalFormat annotation uses one format for both. See temporal-formats.md.

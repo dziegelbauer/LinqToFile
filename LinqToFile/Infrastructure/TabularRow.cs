@@ -5,7 +5,7 @@ using LinqToFile.Reading;
 namespace LinqToFile.Infrastructure;
 
 /// <summary>Temporary parser storage used only by generated mappers. Do not retain this object.</summary>
-public sealed class TabularRow
+public sealed partial class TabularRow
 {
     private char[] buffer;
     private Range[] fields = new Range[16];

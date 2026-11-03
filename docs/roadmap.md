@@ -17,7 +17,7 @@ Priority and design can change.
 
 ## Conversion and error handling
 
-- Add exact date/time format annotations.
+- Support multiple input formats and separate input/output formats for temporal properties.
 - Add configurable boolean tokens and explicit null tokens.
 - Support platform-sized `nint` and `nuint` properties.
 - Configure missing-column handling.

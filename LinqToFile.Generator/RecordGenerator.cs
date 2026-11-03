@@ -12,13 +12,14 @@ using Microsoft.CodeAnalysis.Text;
 namespace LinqToFile.Generator;
 
 [Generator(LanguageNames.CSharp)]
-public sealed class RecordGenerator : IIncrementalGenerator
+public sealed partial class RecordGenerator : IIncrementalGenerator
 {
     private static readonly DiagnosticDescriptor InvalidModel = Rule("LTF001", "Unsupported record model");
     private static readonly DiagnosticDescriptor InvalidMember = Rule("LTF002", "Unsupported record member");
     private static readonly DiagnosticDescriptor InvalidType = Rule("LTF003", "Unsupported property type");
     private static readonly DiagnosticDescriptor Conflict = Rule("LTF004", "Conflicting column mapping");
     private static readonly DiagnosticDescriptor InvalidConverter = Rule("LTF005", "Unsupported column converter");
+    private static readonly DiagnosticDescriptor InvalidTemporalFormat = Rule("LTF006", "Unsupported temporal format");
     private static readonly SymbolDisplayFormat TypeFormat = SymbolDisplayFormat.FullyQualifiedFormat
         .WithMiscellaneousOptions(SymbolDisplayFormat.FullyQualifiedFormat.MiscellaneousOptions |
             SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
@@ -64,6 +65,7 @@ public sealed class RecordGenerator : IIncrementalGenerator
         var readers = new List<string>();
         var nullable = new List<bool>();
         var converters = new List<string?>();
+        var formats = new List<string?>();
         var enums = new List<KeyValuePair<int, INamedTypeSymbol>>();
         var seen = new Dictionary<string, ISymbol>(StringComparer.Ordinal);
         var columnSet = new HashSet<string>(StringComparer.Ordinal);
@@ -77,6 +79,7 @@ public sealed class RecordGenerator : IIncrementalGenerator
             {
                 AttributeData? column = null;
                 AttributeData? converter = null;
+                AttributeData? temporal = null;
                 bool ignored = false;
                 for (var declaration = property; declaration != null; declaration = declaration.OverriddenProperty)
                 {
@@ -85,6 +88,7 @@ public sealed class RecordGenerator : IIncrementalGenerator
                         var name = attribute.AttributeClass?.ToDisplayString();
                         if (name == "LinqToFile.ColumnAttribute" && column == null) column = attribute;
                         if (name == "LinqToFile.ColumnConverterAttribute" && converter == null) converter = attribute;
+                        if (name == "LinqToFile.TemporalFormatAttribute" && temporal == null) temporal = attribute;
                         if (name == "LinqToFile.IgnoreAttribute") ignored = true;
                     }
                 }
@@ -94,9 +98,9 @@ public sealed class RecordGenerator : IIncrementalGenerator
                     derived is IPropertySymbol derivedProperty && Overrides(derivedProperty, property))
                     continue;
 
-                if (ignored && (column != null || converter != null))
+                if ((ignored && (column != null || converter != null || temporal != null)) || (converter != null && temporal != null))
                 {
-                    Error(Conflict, property, "Column or ColumnConverter and Ignore cannot apply to the same effective property.");
+                    Error(Conflict, property, "Ignore cannot combine with mapping annotations; TemporalFormat cannot combine with ColumnConverter, including inherited annotations.");
                     continue;
                 }
                 if (ignored)
@@ -107,7 +111,7 @@ public sealed class RecordGenerator : IIncrementalGenerator
                 if (property.IsStatic || property.IsIndexer || property.DeclaredAccessibility != Accessibility.Public ||
                     property.SetMethod?.DeclaredAccessibility != Accessibility.Public)
                 {
-                    if (column != null || converter != null || property.IsRequired)
+                    if (column != null || converter != null || temporal != null || property.IsRequired)
                         Error(InvalidMember, property, "Mapped and required properties must be instance properties with a public setter or public init accessor, and cannot be indexers.");
                     continue;
                 }
@@ -130,6 +134,17 @@ public sealed class RecordGenerator : IIncrementalGenerator
                     n.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
                 if (isNullable) valueType = ((INamedTypeSymbol)valueType).TypeArguments[0];
                 int index = properties.Count;
+                string? format = null;
+                if (temporal != null)
+                {
+                    format = temporal.ConstructorArguments.FirstOrDefault().Value as string;
+                    string? formatError = ValidateTemporalFormat(valueType, format);
+                    if (formatError != null)
+                    {
+                        Error(InvalidTemporalFormat, property, formatError);
+                        continue;
+                    }
+                }
                 string? converterName = null;
                 if (converter != null)
                 {
@@ -149,6 +164,7 @@ public sealed class RecordGenerator : IIncrementalGenerator
                 var reader = converterName == null ? ReadExpression(valueType, index, property.Name) :
                     "row.ReadConverted<" + property.Type.ToDisplayString(TypeFormat) + ", " + converterName +
                     ">(ordinals[" + index + "], " + Literal(property.Name) + ")";
+                if (format != null) reader = "row.Read" + GetTemporalKind(valueType) + "Exact(ordinals[" + index + "], " + Literal(property.Name) + ", " + Literal(format) + ")";
                 if (reader == null)
                 {
                     Error(InvalidType, property, "Use a supported scalar type or enum, or annotate the property with ColumnConverter.");
@@ -161,6 +177,7 @@ public sealed class RecordGenerator : IIncrementalGenerator
                 readers.Add(reader);
                 nullable.Add(isNullable);
                 converters.Add(converterName);
+                formats.Add(format);
             }
 
             // Fields and methods can also hide an inherited property from an object initializer.
@@ -205,7 +222,8 @@ public sealed class RecordGenerator : IIncrementalGenerator
             source.Append(readers[i]).AppendLine(",");
         }
         source.AppendLine("};");
-        EmitWriter(source, model, modelName, properties, nullable, enums, converters);
+        EmitTemporalCultureValidation(source, properties, formats);
+        EmitWriter(source, model, modelName, properties, nullable, enums, converters, formats);
         foreach (var item in enums) EmitEnum(source, item.Key, item.Value);
         source.AppendLine("} }");
 
@@ -256,7 +274,7 @@ public sealed class RecordGenerator : IIncrementalGenerator
     }
 
     private static void EmitWriter(StringBuilder source, INamedTypeSymbol model, string modelName,
-        List<IPropertySymbol> properties, List<bool> nullable, List<KeyValuePair<int, INamedTypeSymbol>> enums, List<string?> converters)
+        List<IPropertySymbol> properties, List<bool> nullable, List<KeyValuePair<int, INamedTypeSymbol>> enums, List<string?> converters, List<string?> formats)
     {
         int unreadable = properties.FindIndex(p => !CanReadProperty(p, model));
         source.Append("public override bool CanWrite => ").Append(unreadable < 0 ? "true" : "false").AppendLine(";");
@@ -283,7 +301,9 @@ public sealed class RecordGenerator : IIncrementalGenerator
             if (nullable[i]) source.AppendLine("if (!field.HasValue) { value.SetText(null); return; }");
             string field = nullable[i] ? "field.Value" : "field";
             ITypeSymbol type = nullable[i] ? ((INamedTypeSymbol)properties[i].Type).TypeArguments[0] : properties[i].Type;
-            if (type.TypeKind == TypeKind.Enum)
+            if (formats[i] != null)
+                source.Append("value.Set(").Append(field).Append(", ").Append(Literal(formats[i]!)).AppendLine(");");
+            else if (type.TypeKind == TypeKind.Enum)
                 source.Append("WriteEnum_").Append(i).Append("(").Append(field).AppendLine(", value);");
             else if (type.SpecialType == SpecialType.System_String)
                 source.Append("value.SetText(").Append(field).AppendLine(");");

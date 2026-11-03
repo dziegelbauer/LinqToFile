@@ -35,7 +35,9 @@ public class CsvSource<T> : IEnumerable<T> where T : class, ITabularRecord<T>
     public virtual CsvSource<T> WithCulture(CultureInfo value)
     {
         ArgumentNullException.ThrowIfNull(value);
-        return Configure(options with { Culture = CultureInfo.ReadOnly((CultureInfo)value.Clone()) });
+        var culture = CultureInfo.ReadOnly((CultureInfo)value.Clone());
+        T.Mapper.ValidateCulture(culture);
+        return Configure(options with { Culture = culture });
     }
 
     public virtual CsvSource<T> WithDelimiter(char value)

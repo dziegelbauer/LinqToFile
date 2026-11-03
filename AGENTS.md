@@ -23,6 +23,7 @@ Read relevant topics before proposing contracts or changing code:
 - [Phased plan and acceptance criteria](docs/spec/plan.md)
 - [Mapping](docs/spec/mapping.md)
 - [Custom converter design](docs/spec/converters.md)
+- [Exact temporal format design](docs/spec/temporal-formats.md)
 - [Writing and row insertion planning](docs/spec/writing.md)
 - [Reading and errors](docs/spec/reading.md)
 - [Sources and query execution](docs/spec/sources.md)

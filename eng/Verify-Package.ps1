@@ -60,12 +60,12 @@ try {
 "@ | Set-Content (Join-Path $models 'Models.csproj')
     $examples[0].Groups[1].Value.Replace('namespace SampleModels;', 'namespace ConsumerModels;') | Set-Content (Join-Path $models 'Person.cs')
     # Compile the XLSX models in the external model assembly with the packaged generator.
-    foreach ($name in @('WorkbookEntry', 'WorkbookCells', 'ScalarRecord', 'Product', 'ConvertedStock')) {
+    foreach ($name in @('WorkbookEntry', 'WorkbookCells', 'ScalarRecord', 'Product', 'ConvertedStock', 'Appointment')) {
         $model = [System.IO.File]::ReadAllText((Join-Path $repository "samples/Models/$name.cs"))
         ("using System;`n" + $model.Replace('namespace SampleModels;', 'namespace ConsumerModels;')) |
             Set-Content (Join-Path $models "$name.cs")
     }
-    foreach ($name in @('WorkbookSample', 'WorkbookCellsSample', 'WorkbookAsyncSample', 'CsvWritingSample', 'QuickStartSample', 'ConverterSample')) {
+    foreach ($name in @('WorkbookSample', 'WorkbookCellsSample', 'WorkbookAsyncSample', 'CsvWritingSample', 'QuickStartSample', 'ConverterSample', 'TemporalFormatSample')) {
         $sample = [System.IO.File]::ReadAllText((Join-Path $repository "samples/NativeAot/$name.cs"))
         $sample.Replace('using SampleModels;', 'using ConsumerModels;') | Set-Content (Join-Path $app "$name.cs")
     }
@@ -106,6 +106,7 @@ WorkbookSample.Run();
 await WorkbookAsyncSample.RunAsync();
 await CsvWritingSample.RunAsync();
 await ConverterSample.RunAsync();
+await TemporalFormatSample.RunAsync();
 Console.WriteLine("Clean package consumer passed: README, CSV/XLSX sync/async, non-seekable input, and cross-assembly mapping.");
 '@
     $program | Set-Content (Join-Path $app 'Program.cs')

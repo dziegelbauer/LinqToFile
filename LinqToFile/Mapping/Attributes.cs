@@ -15,6 +15,13 @@ public sealed class ColumnAttribute(string name) : Attribute
 [AttributeUsage(AttributeTargets.Property, Inherited = true)]
 public sealed class IgnoreAttribute : Attribute;
 
+/// <summary>Uses one exact .NET temporal format for text reads and CSV output.</summary>
+[AttributeUsage(AttributeTargets.Property, Inherited = true)]
+public sealed class TemporalFormatAttribute(string format) : Attribute
+{
+    public string Format { get; } = format;
+}
+
 /// <summary>Uses a compile-time converter for the property's complete type.</summary>
 [AttributeUsage(AttributeTargets.Property, Inherited = true)]
 public sealed class ColumnConverterAttribute(Type converterType) : Attribute
