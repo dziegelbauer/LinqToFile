@@ -12,6 +12,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="../../README.md" Link="Examples/README.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../docs/temporal-formats.md" Link="Examples/temporal-formats.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../samples/Models/Appointment.cs" Link="Examples/Appointment.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../samples/NativeAot/TemporalFormatSample.cs" Link="Examples/TemporalFormatSample.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../docs/custom-converters.md" Link="Examples/custom-converters.md" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../samples/Models/Product.cs" Link="Examples/Product.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../samples/NativeAot/ConverterSample.cs" Link="Examples/ConverterSample.txt" CopyToOutputDirectory="PreserveNewest" />

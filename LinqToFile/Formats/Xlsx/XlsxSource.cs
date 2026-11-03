@@ -29,7 +29,9 @@ public sealed class XlsxSource<T> : IEnumerable<T> where T : class, ITabularReco
     public XlsxSource<T> WithCulture(CultureInfo value)
     {
         ArgumentNullException.ThrowIfNull(value);
-        return new(source, options with { Culture = CultureInfo.ReadOnly((CultureInfo)value.Clone()) });
+        var culture = CultureInfo.ReadOnly((CultureInfo)value.Clone());
+        T.Mapper.ValidateCulture(culture);
+        return new(source, options with { Culture = culture });
     }
 
     public XlsxSource<T> WithHeaderComparison(StringComparer value)

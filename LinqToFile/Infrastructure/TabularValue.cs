@@ -4,7 +4,7 @@ using System.Numerics;
 namespace LinqToFile.Infrastructure;
 
 /// <summary>Reusable scalar formatting storage for generated mappers. Do not retain this object.</summary>
-public sealed class TabularValue
+public sealed partial class TabularValue
 {
     private char[] buffer = new char[128];
     private int length;

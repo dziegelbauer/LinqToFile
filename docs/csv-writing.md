@@ -15,6 +15,9 @@ This check also applies to headers-only creation.
 They receive null values and the configured culture.
 CSV quoting, encoding, separators, and output limits still apply to their results.
 
+[Temporal format annotations](temporal-formats.md) select exact date/time output per property.
+They use the configured culture and can intentionally omit precision.
+
 ## Create with initial rows
 
 The following example uses the `Person` model from the sample.

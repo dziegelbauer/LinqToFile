@@ -12,6 +12,7 @@ The library supports standard LINQ, async queries, and Native AOT on .NET 10 and
 | Select worksheets and read workbook cells | [XLSX workbooks](xlsx.md) |
 | Convert values and select a culture | [Value conversions](conversions.md) |
 | Map custom types or override a column conversion | [Custom converters](custom-converters.md) |
+| Set exact date and time formats per property | [Temporal formats](temporal-formats.md) |
 | Use streams, async queries, and cancellation | [Sources and async queries](sources-and-async.md) |
 | Control memory and startup costs | [Performance and memory](performance.md) |
 | See unimplemented plans | [Roadmap](roadmap.md) |

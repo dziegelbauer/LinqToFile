@@ -13,6 +13,7 @@ Map headers to properties once, then work with C# values throughout your applica
 - Select sync or async I/O to suit your application.
 - Configure encodings, CSV syntax, culture, and size limits per source.
 - Map domain types or custom column values with [converter annotations](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/custom-converters.md).
+- Select [exact date and time formats](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/temporal-formats.md) per property for text input and CSV output.
 - Publish with Native AOT. Runtime mapping uses no reflection.
 - Keep deployment dependencies small: the runtime uses only the .NET BCL.
 

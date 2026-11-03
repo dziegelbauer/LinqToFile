@@ -138,6 +138,7 @@ Use the operation's cancellation token for normal cancellation.
 An override inherits the nearest converter annotation unless it declares another converter.
 `[Column]` can rename a converted property.
 `[Ignore]` cannot apply with an effective converter annotation.
+`[TemporalFormat]` also conflicts with a converter, including inherited combinations.
 The normal public setter or init accessor rules still apply.
 Writing also requires an accessible getter.
 

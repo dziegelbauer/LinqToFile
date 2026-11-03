@@ -30,12 +30,20 @@
 ## Confirmed complete dates
 - Formats for DateTime, DateTimeOffset, and DateOnly must specify a complete date (year, month, day). Reject formats that require the BCL to fill missing date components. Time-only data should use TimeOnly; omitted seconds/fractions can retain zero defaults. The user approved this restriction.
 
-## Open decision: intentionally omitted output components
-- Proposal: selecting a format explicitly permits omission of time components or fractional seconds from output. For example, TimeOnly with HH:mm writes 14:30 even when the value also has seconds. Do not reject a value merely because its omitted components are nonzero; document that reading the result cannot recover those components. Existing date-completeness and timezone/offset requirements still apply.
-- Await the user's answer before implementing this output behavior.
+## Confirmed intentionally omitted output components
+- Selecting a format explicitly permits omission of time components or fractional seconds from output. For example, TimeOnly with HH:mm writes 14:30 even when the value also has seconds. Do not reject a value merely because its omitted components are nonzero; document that reading the result cannot recover those components. Existing date-completeness and timezone/offset requirements still apply. The user approved this behavior.
 
-## Remaining contract work
-- Settle interaction with Ignore/inherited annotations and exact format validation/missing-component rules.
-- Keep empty nullable fields and existing error privacy/location rules unless the user approves a change. Use generated direct span-based calls rather than runtime annotation inspection.
-- Validate annotation values and applicable property types. Do not claim all .NET format strings can be completely validated at compile time without establishing a reliable validation contract.
-- Dedicated boolean/null tokens, TimeSpan formats, and other roadmap features are outside the authorized initial type scope.
+## Implementation choices
+- TemporalFormatAttribute(string) is a literal user-provided .NET format, not a magic string for a fixed option. The generated mapper emits direct ReadDateTime/DateTimeOffset/DateOnly/TimeOnlyExact calls and typed TabularValue.Set overloads with the format literal.
+- LTF006 diagnoses unsupported types, null/blank/malformed/incomplete formats, invalid type-specific components, and offset-dropping/normalizing formats. LTF004 covers effective Ignore/ColumnConverter conflicts, including override chains. The nearest same-kind override annotation wins; Column can rename an annotated property. Setter/init/getter restrictions stay unchanged.
+- Shared format analysis source compiles into both the netstandard2.0 generator and .NET 10 runtime. The generator also runs a fixed invariant BCL formatting/parsing syntax probe, expanding DateOnly/TimeOnly O/R portions for the older target. This is not a guarantee that every value/culture/calendar can use the format.
+- Standard formats: DateTime d/D/f/F/g/G/s/o/O; DateTimeOffset o/O; DateOnly d/D/o/O/r/R; TimeOnly t/T/o/O/r/R. Other patterns must satisfy full-date/type/offset rules. DateTime K permits an absent offset, but offset-bearing data is rejected. DateTimeOffset K still requires an actual explicit offset; zzz preserves both offset components.
+- DateTime uses no assumed-zone flags; parsing checks Unspecified kind. DateTimeOffset checks the BCL explicit-zone marker, then parses without normalizing its offset. Native cells route through existing readers. Field trimming precedes exact parsing; no additional whitespace tolerance or general/invariant-writer fallback is added.
+- WithCulture clones the culture and invokes generated ValidateCulture once during configuration to validate standard-pattern date/type/zone requirements. The new RecordMapper virtual has a no-op default for older/hand-written mappers. Ordinary query construction and per-row mapping do not add reflection, discovery, format-analysis objects, or format scans.
+- Existing nullable-empty behavior and private location-aware conversion/write errors are retained. CSV quoting, limits, encoding, and mutation semantics remain shared. Formatting uses the reusable scalar buffer; culture/calendar/value-specific failures remain errors, without raw values or inner format exceptions.
+- Dedicated boolean/null tokens, TimeSpan formats, and other roadmap features remain outside this change. Multiple input formats or separate read/write masks remain future objectives.
+
+## Validation and review
+- Human usage: docs/temporal-formats.md, mapped sample in samples/Models/Appointment.cs, and runnable TemporalFormatSample. Root GitHub/NuGet introduction and task guides link to it; no history is added to human guides.
+- See history/validation-temporal-formats.md for local evidence. The existing three-platform CI runs the new tests and project/package/external-consumer Native AOT cases.
+- Open the completed PR for human review after committing/pushing. The previous CI-fix merge authorization does not apply to this PR.
