@@ -56,8 +56,11 @@
 - Use the 1900 date system by default, with WithDateSystem(TabularDateSystem.Excel1904) as an explicit alternative. Reuse the existing enum, accepting Excel1900/Excel1904 and rejecting None/undefined values. The user approved this behavior.
 - Reference: [Microsoft Excel date systems](https://support.microsoft.com/en-us/excel/date-systems-in-excel) documents 1900 as the default in current Excel versions.
 
+## Confirmed native date range
+- Support native calendar dates from 1900-01-01 in the 1900 system or 1904-01-01 in the 1904 system, through the .NET date range's upper bound, subject to the pending temporal precision policy. Throw for earlier dates rather than silently switching cell types; an explicit TemporalFormat or custom converter can select text for them. The user approved this behavior.
+
 ## Next decision
-- Recommend native calendar dates from 1900-01-01 in the 1900 system or 1904-01-01 in the 1904 system, through the .NET date range's upper bound. Throw for earlier dates rather than silently switching cell types; an explicit TemporalFormat or custom converter can select text for them. Await user confirmation. Temporal precision remains a separate decision.
+- Recommend writing unannotated TimeOnly values as native numeric fractions of a day with a time display format, consistent with the XLSX reader's numeric time mapping. Explicit TemporalFormat continues to select text. Await user confirmation; temporal precision and TimeSpan output remain separate decisions.
 
 ## Workflow
 - Work on feature/xlsx-writing. Update human guides and runnable package/AOT examples when behavior is implemented; keep unfinished features on the roadmap.
