@@ -29,8 +29,11 @@
 ## Confirmed insertion indexes
 - Use zero-based long insertion indexes counting logical data records returned under the selected header/blank-row rules, excluding the header and skipped blank rows. Zero inserts before the first data record; the existing data-record count appends. Negative or greater indexes throw. WithHeaderRow retains its current physical one-based meaning. The user explicitly confirmed this contract after checking CSV parity. Exact physical placement and preservation of blank/formatted rows remain separate decisions.
 
+## Confirmed physical placement
+- Insert new physical rows immediately before the indexed data row, keeping preceding blank rows in place and shifting that row and subsequent worksheet rows down by the inserted count. Append (including Insert at the data-record count) goes after the last existing physical row, including trailing blank/formatted row elements, rather than filling gaps. A declared dimension alone must not create artificial trailing rows. Preserve existing blank/formatted row elements rather than consuming them as insertion space. The user approved this behavior; supported reference-bearing features still require separate scope decisions.
+
 ## Next decision
-- Recommend inserting new physical rows immediately before the indexed data row, keeping preceding blank rows in place and shifting that row and subsequent worksheet rows down by the inserted count. Append (including Insert at the data-record count) goes after the last existing physical row, including trailing blank/formatted row elements, rather than filling gaps. A declared dimension alone must not create artificial trailing rows. Preserve existing blank/formatted row elements rather than consuming them as insertion space. Await user confirmation; supported reference-bearing features still require separate scope decisions.
+- Recommend an initial plain-tabular-workbook scope: permit ordinary values, shared/inline strings, cell styles, and multiple worksheets; preserve supported existing content. Reject workbooks with formulas or reference-bearing features (such as tables, named ranges, charts, or drawings) that the implementation cannot reliably update/preserve. Do not rebuild arbitrary workbooks through typed read/write mapping or silently strip unsupported features. Await user confirmation; exact supported-feature validation and package preservation rules require subsequent specification.
 
 ## Remaining design topics
 - Public path-source/mutation API and worksheet selection.
