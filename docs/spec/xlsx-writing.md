@@ -37,8 +37,11 @@
 ## Confirmed formatting annotations
 - Explicit TemporalFormat and BooleanTokens annotations select text output using the same configured culture/literal tokens as CSV. These annotations override default native output for the annotated non-null value. The user approved this behavior.
 
+## Confirmed null output
+- Write null as a blank cell unless NullToken is present, in which case write the literal token as text. Custom converters continue to own null formatting. The user approved this behavior. Entirely blank rows still require a separate decision.
+
 ## Next decision
-- Recommend writing null as a blank cell unless NullToken is present, in which case write the literal token as text. Custom converters continue to own null formatting. Await user confirmation; text-token collisions and entirely blank rows require separate decisions.
+- Recommend applying null-token collision checks to non-null text output using the configured token comparison/trimming. Native numeric/boolean/date cells do not collide with text null tokens, consistent with the XLSX reader. For example, NullToken("0") on int? permits native numeric zero, while a non-null string equal to its null token throws. Await user confirmation.
 
 ## Workflow
 - Work on feature/xlsx-writing. Update human guides and runnable package/AOT examples when behavior is implemented; keep unfinished features on the roadmap.
