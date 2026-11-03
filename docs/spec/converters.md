@@ -12,9 +12,13 @@
 - Existing XLSX mapping distinguishes text, native numeric/boolean values, and ISO dates. Built-in readers apply cell-kind boundaries and special numeric date-system rules.
 - Custom converters can inspect native XLSX cells as well as text, receiving a value span plus cell kind, culture, and applicable date-system context. CSV values remain text. Do not implicitly convert every native value into culture-formatted text. The user approved this behavior.
 
-## Open decision: empty fields and null values
-- Proposal: an explicitly annotated converter receives empty input fields and null property values, and owns their interpretation. This permits custom null tokens and empty-field defaults without another option. Unannotated properties retain existing empty/null behavior.
-- Await the user's answer before implementing this behavior.
+## Confirmed empty fields and null values
+- An explicitly annotated converter receives empty input fields and null property values, and owns their interpretation. This permits custom null tokens and empty-field defaults without another option. Unannotated properties retain existing empty/null behavior. The user approved this behavior.
+
+## Open decision: converter failures
+- Proposal: follow BCL TryParse/TryFormat conventions. Parsing returns false for invalid input. Formatting returns false only when its destination span is too small; the library grows reusable storage and retries. A converter throws for a value it cannot format.
+- Failed parsing and converter exceptions become the existing location-aware conversion/write exceptions, without raw values or inner exceptions. Keep I/O, enumeration, and cancellation outside converter callbacks under their existing rules.
+- Await the user's answer before fixing this contract.
 
 ## Next design/implementation work
 - Define the annotation and a compile-time-checked parsing/formatting contract; settle null/empty and converter failure semantics.
