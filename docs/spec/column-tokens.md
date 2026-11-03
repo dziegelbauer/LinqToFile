@@ -22,9 +22,13 @@
 - Retain existing empty-field rules alongside the explicit null token. Empty strings remain empty strings; empty nullable value fields remain null. Null strings can use the explicit token, so null and empty string remain distinct. Quoted/unquoted empties remain equivalent. The user approved this behavior.
 - The explicit token is an additional null representation rather than a change to existing absence semantics.
 
-## Open decision: null comparison
-- Proposal: default NullToken matching to StringComparison.Ordinal (case-sensitive), so [NullToken("NULL")] does not consume ordinary text such as "null". Permit Comparison = StringComparison.OrdinalIgnoreCase as an explicit opt-in. Only these two enum values are supported, independent of culture.
-- CSV null output retains the exact spelling supplied in the annotation. Await the user's answer before fixing this contract.
+## Confirmed null comparison
+- Default NullToken matching to StringComparison.Ordinal (case-sensitive), so [NullToken("NULL")] does not consume ordinary text such as "null". Permit Comparison = StringComparison.OrdinalIgnoreCase as an explicit opt-in. Only these two enum values are supported, independent of culture. The user approved this behavior.
+- CSV null output retains the exact spelling supplied in the annotation.
+
+## Open decision: null-token property types
+- Proposal: support NullToken on nullable built-in value types (including enums) and explicitly nullable string properties (string?). Reject non-nullable properties with a compiler diagnostic, since they cannot represent the annotated null value. Custom converter interaction remains a separate decision.
+- Await the user's answer before fixing this contract.
 
 ## Remaining contract work
 - Define case comparison with typed options, trimming, empty/null distinctions, applicable property types, native XLSX behavior, canonical null output, collision validation, and interaction with custom converters/temporal formats/inheritance/Ignore.
