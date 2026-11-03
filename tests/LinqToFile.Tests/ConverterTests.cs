@@ -34,8 +34,8 @@ public sealed class ConverterTests
     public void TrimmingOccursBeforeTheConverterAndEmptyReferencesRemainUnderItsControl()
     {
         var source = Read<ConvertedText>("Value\n\" NULL \"\n\"\"\n");
-        Assert.Equal(new[] { " NULL ", "" }, source.Select(r => r.Value));
-        Assert.Equal(new string?[] { null, "" }, source.WithFieldTrimming().Select(r => r.Value));
+        Assert.Equal([" NULL ", ""], source.Select(r => r.Value));
+        Assert.Equal([null, ""], source.WithFieldTrimming().Select(r => r.Value));
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public sealed class ConverterTests
             Assert.Equal(new int?[] { null, 7 }, nullable.Select(r => r.Value));
 
             var amounts = TabularFile.Csv<ConvertedAmount>(amountPath).WithDelimiter(';').WithCulture(CultureInfo.GetCultureInfo("fr-FR"));
-            amounts.Create(new[] { new ConvertedAmount { Value = new(12.5m), Plain = 1 } });
+            await amounts.CreateAsync([new ConvertedAmount { Value = new(12.5m), Plain = 1 }]);
             Assert.Equal("amount;plain\n12,5;1\n", File.ReadAllText(amountPath));
             Assert.Equal(12.5m, amounts.Single().Value.Value);
         }
@@ -85,7 +85,7 @@ public sealed class ConverterTests
             Assert.Equal("a;b'c\n雪", rows[1].Value);
             await file.AppendAsync(new ConvertedText { Value = "tail" });
             await file.InsertAsync(1, new ConvertedText { Value = "middle" });
-            Assert.Equal(new string?[] { null, "middle", "a;b'c\n雪", "tail" }, file.Select(r => r.Value));
+            Assert.Equal([null, "middle", "a;b'c\n雪", "tail"], file.Select(r => r.Value));
             byte[] before = File.ReadAllBytes(path);
             Assert.Throws<TabularWriteException>(() => file.WithMaxFieldLength(8).Append(new ConvertedText { Value = "123456789" }));
             Assert.Equal(before, File.ReadAllBytes(path));
