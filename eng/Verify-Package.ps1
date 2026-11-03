@@ -65,7 +65,7 @@ try {
         ("using System;`n" + $model.Replace('namespace SampleModels;', 'namespace ConsumerModels;')) |
             Set-Content (Join-Path $models "$name.cs")
     }
-    foreach ($name in @('WorkbookSample', 'WorkbookCellsSample', 'WorkbookAsyncSample', 'CsvWritingSample', 'QuickStartSample', 'ConverterSample', 'TemporalFormatSample', 'TokenSample', 'StreamWritingSample')) {
+    foreach ($name in @('WorkbookSample', 'WorkbookCellsSample', 'WorkbookAsyncSample', 'CsvWritingSample', 'QuickStartSample', 'ConverterSample', 'TemporalFormatSample', 'TokenSample', 'StreamWritingSample', 'XlsxWritingSample')) {
         $sample = [System.IO.File]::ReadAllText((Join-Path $repository "samples/NativeAot/$name.cs"))
         $sample.Replace('using SampleModels;', 'using ConsumerModels;') | Set-Content (Join-Path $app "$name.cs")
     }
@@ -109,6 +109,7 @@ await ConverterSample.RunAsync();
 await TemporalFormatSample.RunAsync();
 await TokenSample.RunAsync();
 await StreamWritingSample.RunAsync();
+await XlsxWritingSample.RunAsync();
 Console.WriteLine("Clean package consumer passed: README, CSV/XLSX sync/async, non-seekable input, and cross-assembly mapping.");
 '@
     $program | Set-Content (Join-Path $app 'Program.cs')

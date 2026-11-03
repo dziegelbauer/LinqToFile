@@ -12,7 +12,9 @@ Priority and design can change.
 
 ## Writing
 
-- Extend writing to XLSX workbooks.
+- Add multiple worksheets and changes to existing XLSX workbooks.
+- Add XLSX formulas, tables/filters, column sizing, and general styling.
+- Add configurable XLSX starting positions, column order, shared-string output, and native elapsed-time output.
 - Add append and positional insertion for existing stream content.
 
 ## Conversion and error handling

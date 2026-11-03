@@ -35,3 +35,4 @@ Read relevant topics before proposing contracts or changing code:
 - [Performance and CI](docs/spec/performance.md)
 - [Release preparation](docs/spec/release.md)
 - [XLSX planning](docs/spec/xlsx.md)
+- [XLSX writing design](docs/spec/xlsx-writing.md)

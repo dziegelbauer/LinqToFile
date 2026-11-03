@@ -3,7 +3,7 @@
 ## Confirmed objective
 - Add write capability with an API intuitive to LINQ/EF Core users.
 - Begin with inserting or appending one or more rows to a file.
-- Implement CSV writing first. XLSX writing is future work.
+- CSV creation, append, and insertion are implemented. Complete-document XLSX exports are specified and implemented under xlsx-writing.md; XLSX mutation remains future work.
 - Support both appending records and inserting records at a specified row position.
 - Use direct write operations that execute when called, rather than staging Add/AddRange calls for SaveChanges.
 - Async operations are AppendAsync(record), AppendRangeAsync(records), InsertAsync(long position, record), and InsertRangeAsync(long position, records). Range inputs support IEnumerable<T> and IAsyncEnumerable<T>; all async operations accept an optional CancellationToken.
@@ -30,8 +30,8 @@
 - Initial file-mutation destinations are file paths only. Complete-document exports now also support separate writable-stream entry points; see [stream writing](stream-writing.md). Append and insertion into existing stream content remain future work.
 - Insert and append require an existing file to confirm developer intent; they must not implicitly create a missing destination.
 - Provide an explicit file-creation operation accepting an optional initial data set. Creation is part of the write scope.
-- Creation throws if the destination already exists; it must not overwrite an existing file.
-- Creation uses the same two write modes: by default, prepare headers and initial rows in a temporary file beside the destination, then publish without overwriting any existing destination. WithInPlaceWrites() creates the destination directly, and failures may leave a partial file. Neither mode permits overwriting an existing file. Default creation honors cancellation until immediately before non-overwriting publication; direct creation honors it until immediately before FileMode.CreateNew opens the destination. No operation-token cancellation is observed after the respective boundary.
+- Creation defaults to throwing if the destination exists. WithExistingFileBehavior(ExistingFileBehavior.Overwrite) explicitly permits staged replacement, also creating a missing destination. The option is immutable and applies only to creation; append/insert keep their existing behavior.
+- Creation defaults to preparing headers/rows beside the destination and publishing without overwrite. Explicit overwrite publishes a complete replacement only after success. WithInPlaceWrites() creates directly and may leave partial output; combining it with overwrite throws for creation, regardless of configuration order. Staged creation honors cancellation until immediately before publication; direct creation honors it until immediately before FileMode.CreateNew opens the destination. No operation-token cancellation is observed after the respective boundary. Overwrite restricts Unix temporary permissions using the original rwx bits and process mask; ACLs/ownership/other metadata are not generally preserved.
 - Insert and append reject an existing zero-byte file because it has no valid header. A valid header-only CSV accepts records; its data-row count is zero, so insertion index 0 is valid.
 - Reuse TabularRecord, Column, and Ignore annotations for writing. Generate direct property access at compile time; do not use runtime reflection.
 - Writing requires a getter accessible to the generated mapper for every mapped property. The user approved retaining reads for setter-only models and rejecting their writes before any file creation, including headers-only creation.

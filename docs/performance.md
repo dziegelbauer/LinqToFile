@@ -1,5 +1,14 @@
 # Performance and memory
 
+## XLSX exports
+
+[XLSX writing](xlsx-writing.md) processes input once with reusable scalar and active-row buffers.
+Text is stored in cells directly; the writer does not retain all unique strings or collect the full input.
+Memory includes ZIP/compression state, fixed workbook metadata, the active record, and incidental entry-finalization bytes.
+A very large row can grow the reusable row buffer.
+Async export drains ZIP finalization bytes through asynchronous destination writes.
+Path exports also require temporary disk space for the complete workbook before publication.
+
 ## Stream or materialize
 
 Use `foreach` or `await foreach` to process records one at a time.

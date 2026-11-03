@@ -14,6 +14,7 @@ The model must have a public parameterless constructor.
 Properties can have a public setter or a public init accessor.
 CSV writing also requires an accessible getter on each mapped property.
 See [CSV writing](csv-writing.md) for write methods, options, and error rules.
+Use [XLSX writing](xlsx-writing.md) for `XlsxWriter<T>` path, stream, and factory exports.
 The generator assigns required properties in an object initializer.
 An ignored required property or a required field causes a compiler error.
 

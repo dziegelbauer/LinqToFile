@@ -61,7 +61,7 @@ internal static class StreamWritingSample
         yield return new InventoryItem { Id = 3, Available = false, Note = "雪" };
     }
 
-    private sealed class AsyncOnlySink : Stream
+    internal sealed class AsyncOnlySink : Stream
     {
         private readonly MemoryStream storage = new();
         internal bool Disposed { get; private set; }

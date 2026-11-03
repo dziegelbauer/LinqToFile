@@ -29,6 +29,13 @@ public sealed class CsvFile<T> : CsvSource<T> where T : class, ITabularRecord<T>
     public CsvFile<T> WithAppendValidation(bool enabled = true) =>
         (CsvFile<T>)Configure(Options with { ValidateAppend = enabled });
 
+    public CsvFile<T> WithExistingFileBehavior(ExistingFileBehavior value)
+    {
+        if (value is not (ExistingFileBehavior.Throw or ExistingFileBehavior.Overwrite))
+            throw new ArgumentOutOfRangeException(nameof(value));
+        return (CsvFile<T>)Configure(Options with { ExistingFileBehavior = value });
+    }
+
     public long Insert(long position, T record)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(position);

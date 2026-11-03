@@ -12,6 +12,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="../../README.md" Link="Examples/README.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../docs/xlsx-writing.md" Link="Examples/xlsx-writing.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../samples/NativeAot/XlsxWritingSample.cs" Link="Examples/XlsxWritingSample.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../docs/csv-streams.md" Link="Examples/csv-streams.md" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../samples/NativeAot/StreamWritingSample.cs" Link="Examples/StreamWritingSample.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../docs/column-tokens.md" Link="Examples/column-tokens.md" CopyToOutputDirectory="PreserveNewest" />
