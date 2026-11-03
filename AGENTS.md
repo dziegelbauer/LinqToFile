@@ -11,6 +11,7 @@ Release license: Apache License 2.0 (SPDX: Apache-2.0).
 Build and maintain human-readable repository documentation using ASD-STE100 (Simplified Technical English). See the documentation topic for scope and verification. Human documentation describes current usage only; omit implementation history and validation logs. Keep unimplemented plans in docs/roadmap.md. Agent specifications, maintenance instructions, and historical evidence stay under docs/spec and are not user guides.
 
 Prefer Rider MCP for suitable project, file, analysis, build, and test operations.
+After editing a file, review Rider's warnings, suggestions, and hints. Evaluate each recommendation for correctness, clarity, compatibility, and performance; apply worthwhile changes and recheck affected files. Do this for every task, not only this PR. Record inspection limits and explain material recommendations left unchanged; see docs/spec/ide-review.md.
 
 Do all future work on feature branches and merge through pull requests into main. Successful main CI runs publish prototype prerelease packages to nuget.org; branch and pull-request runs validate only. See docs/spec/release.md for versioning and publishing setup.
 All merges to main require human approval. Open pull requests for review; never merge them or enable automatic merging yourself.
@@ -24,6 +25,7 @@ Read relevant topics before proposing contracts or changing code:
 - [Mapping](docs/spec/mapping.md)
 - [Custom converter design](docs/spec/converters.md)
 - [Exact temporal format design](docs/spec/temporal-formats.md)
+- [Boolean and null token design](docs/spec/column-tokens.md)
 - [Writing and row insertion planning](docs/spec/writing.md)
 - [Reading and errors](docs/spec/reading.md)
 - [Sources and query execution](docs/spec/sources.md)

@@ -10,7 +10,9 @@ public sealed partial class TabularValue
     private int length;
     private string? text;
     private readonly CultureInfo culture;
-    internal TabularValue(CultureInfo culture) => this.culture = culture;
+    private readonly bool trimFields;
+    internal TabularValue(CultureInfo culture, bool trimFields = false)
+    { this.culture = culture; this.trimFields = trimFields; }
     internal ReadOnlySpan<char> Text => text is null ? buffer.AsSpan(0, length) : text.AsSpan();
     internal void Reset() { text = null; length = 0; }
     /// <summary>Formats through a statically selected converter into reusable storage, including null values.</summary>

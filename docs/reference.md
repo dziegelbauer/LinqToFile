@@ -34,6 +34,8 @@ This rule also applies when a field or method hides that property.
 | `[Column("header")]` | Uses the literal header name for a property |
 | `[ColumnConverter(typeof(MyConverter))]` | Uses static conversion methods for the property's complete type |
 | `[TemporalFormat("yyyy-MM-dd")]` | Uses one exact temporal format for text reads and CSV output |
+| `[BooleanTokens("yes", "no")]` | Selects a true/false text pair for reads and CSV output |
+| `[NullToken("NULL")]` | Reads a text token as null and writes that token for null values |
 | `[Ignore]` | Excludes a property |
 
 A property without a column annotation uses its property name.
@@ -119,9 +121,11 @@ Quoted and unquoted empty fields have the same meaning.
 | `LTF004` | The mapping contains a conflict |
 | `LTF005` | The column converter type is invalid, inaccessible, or incompatible |
 | `LTF006` | The temporal format or target type is invalid or incompatible |
+| `LTF007` | The token values, comparison, or property type is invalid |
 
 An unmarked class cannot satisfy the generated interface constraint.
 The C# compiler reports that use as a constraint error.
 The [conversion guide](conversions.md) lists all types and their rules.
 Use [custom converters](custom-converters.md) for other types, tokens, or formats.
 Use [temporal formats](temporal-formats.md) for exact date/time formats.
+Use [column tokens](column-tokens.md) for boolean and null text rules.

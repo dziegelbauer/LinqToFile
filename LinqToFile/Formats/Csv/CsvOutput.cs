@@ -20,7 +20,7 @@ internal sealed class CsvOutput<T> where T : class, ITabularRecord<T>
     {
         this.options = options;
         this.headers = headers;
-        value = new(options.Culture);
+        value = new(options.Culture, options.TrimFields);
         var mapper = T.Mapper;
         if (!mapper.CanWrite)
         {

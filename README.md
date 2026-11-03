@@ -1,49 +1,36 @@
 # LinqToFile
 
-Query CSV and XLSX files with standard LINQ and typed C# models.
-Create CSV files, append rows, or insert rows at a selected position.
+Query CSV and XLSX files with the LINQ you already know.
 
-Use LinqToFile for data imports, reports from files, and CSV exports.
-Map headers to properties once, then work with C# values throughout your application.
+LinqToFile turns file data into typed C# objects, ready to filter, sort, group, and transform.
+Use it to import records, build reports, or export CSV data.
+Define your model once, then work with your data through familiar C# code.
 
 ## Why use it?
 
-- Use the same model annotations for CSV and XLSX.
-- Process records one at a time, or collect results in a list, array, or dictionary.
-- Select sync or async I/O to suit your application.
-- Configure encodings, CSV syntax, culture, and size limits per source.
-- Map domain types or custom column values with [converter annotations](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/custom-converters.md).
-- Select [exact date and time formats](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/temporal-formats.md) per property for text input and CSV output.
-- Publish with Native AOT. Runtime mapping uses no reflection.
-- Keep deployment dependencies small: the runtime uses only the .NET BCL.
+- **Keep your queries familiar.** Use standard LINQ with strongly typed records from CSV or XLSX files.
+- **Choose how much to load.** Stream records or collect the results you need in a list, array, or dictionary.
+- **Write as well as read.** Create CSV files, append batches, or insert rows with sync and async methods.
+- **Work with real-world data.** Select encodings, cultures, date formats, and boolean or null tokens for your files.
+- **Use your own types.** Add custom converters when your application needs its own value rules.
+- **Keep deployment simple.** Publish with Native AOT and no extra runtime package dependencies.
 
-The minimum target is .NET 10. Headers are required.
-
-| Format | Read | Write |
-|---|---|---|
-| CSV | Sync/async streams and collections | Create, append, and positional insertion; single rows and ranges |
-| XLSX | Sync/async streams and collections, with worksheet selection | Not supported |
-
-This is a prerelease library. The API can change before a stable release.
+The same model annotations work across CSV and XLSX, so you can reuse your mapping as your data sources change.
 
 ## Install
 
-From your application project directory, run:
+For .NET 10 or later, add the prerelease package to your model project:
 
 ```sh
 dotnet add package LinqToFile --prerelease
 ```
 
-The package includes the source generator.
-Add the package to each project that declares mapped models.
-See [Get started](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/getting-started.md) for local packages and Native AOT setup.
+See [Get started](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/getting-started.md) for project setup and Native AOT builds.
 
 ## Declare a model
 
-Put the model in a public partial class with a public parameterless constructor.
-The constructor can be implicit.
-Public setters and init accessors are supported.
-Writing also requires an accessible getter.
+Describe the records you want to work with.
+Use `[Column]` when a file column has a different name from your C# property.
 
 ```csharp
 using LinqToFile;
@@ -67,13 +54,12 @@ public sealed partial class Person
 }
 ```
 
-`Column` changes a header mapping. Properties without it use their property names.
-`Ignore` excludes a property.
+Properties use their own names by default. `[Ignore]` leaves a property out of the mapping.
 Add `using LinqToFile;` and `using SampleModels;` to the query file.
 
 ## Read and filter CSV
 
-For a CSV file at `path`:
+Suppose your CSV file at `path` contains these people:
 
 ```csv
 person_id,full_name,Age,Balance
@@ -81,7 +67,7 @@ person_id,full_name,Age,Balance
 2,Grace,17,
 ```
 
-Select adults with ordinary LINQ:
+Select the adults with a familiar LINQ query:
 
 ```csharp
 var adults = TabularFile.Csv<Person>(path)
@@ -89,22 +75,19 @@ var adults = TabularFile.Csv<Person>(path)
     .ToList();
 ```
 
-Use `foreach` to stream records.
-Use `AsAsyncEnumerable()` and `await foreach` for async streaming.
-To collect records by key:
+Use `foreach` to process records as they arrive, or `await foreach` with `AsAsyncEnumerable()` for async streaming.
+You can also collect records by key:
 
 ```csharp
 var peopleById = await TabularFile.Csv<Person>(path)
     .ToDictionaryAsync(person => person.Id);
 ```
 
-Set options such as `WithEncoding`, `WithDelimiter`, or `WithCulture` before applying LINQ operators.
+Chain options such as `WithEncoding`, `WithDelimiter`, or `WithCulture` before your LINQ query to suit your data.
 
 ## Create, append, and insert CSV rows
 
-Set `outputPath` to a new file path.
-Creation rejects an existing destination.
-Append and insertion require an existing file.
+Start with a new file at `outputPath`, then add rows as your data arrives:
 
 ```csharp
 var file = TabularFile.Csv<Person>(outputPath);
@@ -116,18 +99,12 @@ await file.AppendAsync(new Person { Id = 2, Name = "Grace", Age = 17 });
 await file.InsertAsync(1, new Person { Id = 3, Name = "Katherine", Age = 40 });
 ```
 
-The insertion position is a zero-based data-row index.
-Range methods accept `IEnumerable<T>`; async range methods also accept `IAsyncEnumerable<T>`.
-Write methods return the number of data rows written.
-
-By default, writes prepare a temporary result before publishing or replacing the destination.
-Use `WithInPlaceWrites()` when you accept partial changes on failure.
-See [CSV writing](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/csv-writing.md) for validation, quick append, cancellation, and encoding rules.
+Range methods let you write batches from ordinary or async sequences.
+See [CSV writing](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/csv-writing.md) for more examples and write options.
 
 ## Read an XLSX worksheet
 
-The same model can read matching workbook headers.
-Set `workbookPath` to the workbook path:
+Switch to a workbook at `workbookPath` and choose a worksheet. Your model and LINQ query stay familiar:
 
 ```csharp
 var workbookAdults = TabularFile.Xlsx<Person>(workbookPath)
@@ -136,9 +113,7 @@ var workbookAdults = TabularFile.Xlsx<Person>(workbookPath)
     .ToList();
 ```
 
-XLSX reading supports shared strings, native cell values, and saved formula results.
-It does not recalculate formulas.
-See [XLSX workbooks](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/xlsx.md) for supported cells, startup work, and temporary storage.
+See [XLSX workbooks](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/xlsx.md) for worksheet selection and cell conversion options.
 
 ## Learn more
 
@@ -146,6 +121,9 @@ See [XLSX workbooks](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/x
 - [Mapping and API reference](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/reference.md)
 - [CSV syntax and errors](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/csv-and-errors.md)
 - [Value conversions](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/conversions.md)
+- [Date and time formats](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/temporal-formats.md)
+- [Boolean and null tokens](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/column-tokens.md)
+- [Custom converters](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/custom-converters.md)
 - [Sources, async queries, and cancellation](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/sources-and-async.md)
 - [Performance and memory](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/performance.md)
 - [Roadmap](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/roadmap.md)

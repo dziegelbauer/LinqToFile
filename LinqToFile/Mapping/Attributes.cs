@@ -15,6 +15,23 @@ public sealed class ColumnAttribute(string name) : Attribute
 [AttributeUsage(AttributeTargets.Property, Inherited = true)]
 public sealed class IgnoreAttribute : Attribute;
 
+/// <summary>Uses one true/false token pair for text reads and CSV output.</summary>
+[AttributeUsage(AttributeTargets.Property, Inherited = true)]
+public sealed class BooleanTokensAttribute(string trueToken, string falseToken) : Attribute
+{
+    public string TrueToken { get; } = trueToken;
+    public string FalseToken { get; } = falseToken;
+    public StringComparison Comparison { get; set; } = StringComparison.OrdinalIgnoreCase;
+}
+
+/// <summary>Recognizes one text token as null and writes that token for null values.</summary>
+[AttributeUsage(AttributeTargets.Property, Inherited = true)]
+public sealed class NullTokenAttribute(string token) : Attribute
+{
+    public string Token { get; } = token;
+    public StringComparison Comparison { get; set; } = StringComparison.Ordinal;
+}
+
 /// <summary>Uses one exact .NET temporal format for text reads and CSV output.</summary>
 [AttributeUsage(AttributeTargets.Property, Inherited = true)]
 public sealed class TemporalFormatAttribute(string format) : Attribute

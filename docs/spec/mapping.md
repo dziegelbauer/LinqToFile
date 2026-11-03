@@ -35,8 +35,8 @@
 - Initial built-in conversions: string, char, bool, numeric primitives, decimal, Guid, enums, DateTime, DateTimeOffset, DateOnly, TimeOnly, and TimeSpan, plus applicable nullable forms.
 - Numeric scope is byte, sbyte, short, ushort, int, uint, long, ulong, Int128, UInt128, Half, float, double, and decimal. Platform-sized nint/nuint are deferred.
 - Types without a built-in conversion require a ColumnConverter annotation or produce compiler diagnostic LTF003. See converters.md for the shared static conversion contract.
-- Boolean conversion accepts only true and false, ignoring case. Other tokens such as 0/1 and yes/no are deferred to custom conversion.
-- Quoted and unquoted empty fields have identical conversion semantics. Special null tokens are deferred.
+- Unannotated boolean conversion accepts true and false, ignoring case. BooleanTokens selects one replacement text pair with ordinal comparison options; native boolean rules stay unchanged. See column-tokens.md.
+- Quoted and unquoted empty fields have identical conversion semantics. NullToken adds one explicit null text representation for supported nullable properties without changing empty-field rules; see column-tokens.md.
 - Enum conversion accepts case-sensitive names and comma-separated names for flags; reject numeric tokens and undefined values.
 - Each enum input token must be a declared name. Combinations of declared flags are allowed even if the combined numeric value has no separately named constant.
 - Enum token matching ignores surrounding whitespace, remains case-sensitive, permits declared aliases and signed/high-bit flags, and rejects empty or numeric tokens.
@@ -67,5 +67,5 @@
 
 ## Future objectives
 - Configurable missing-column handling.
-- Dedicated boolean-token and explicit null-token annotations. Custom converters can supply these rules now.
+- Multiple token aliases or separate input/output token forms. Initial BooleanTokens/NullToken annotations use one pair/token for both directions.
 - Multiple accepted temporal input formats or separate read/write formats; the initial TemporalFormat annotation uses one format for both. See temporal-formats.md.

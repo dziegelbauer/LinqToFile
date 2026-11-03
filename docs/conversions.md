@@ -34,7 +34,7 @@ The process's current culture does not change the default.
 
 Culture controls numeric and temporal parsing.
 It does not change enum name comparison.
-It does not add boolean tokens such as `yes` or `1`.
+Use [token annotations](column-tokens.md) for boolean text such as `yes` or `1`, and explicit null text.
 
 The [executable sample](../samples/NativeAot/Program.cs) uses this query:
 
@@ -51,6 +51,7 @@ Its model belongs to a separate assembly.
 ## Empty fields
 
 These rules apply to properties without a custom converter.
+`[NullToken]` adds an explicit null token while keeping these empty-field rules.
 An annotated converter decides how to handle empty fields itself.
 
 An empty field becomes an empty string for a string property.
@@ -89,6 +90,7 @@ A character field must contain exactly one UTF-16 code unit.
 A supplementary character uses two code units and does not fit a C# `char`.
 
 Boolean fields accept `true` and `false` without case sensitivity.
+An explicit `[BooleanTokens]` pair replaces those text tokens for its property.
 Other tokens cause conversion errors.
 The BCL boolean parser can ignore surrounding whitespace.
 
