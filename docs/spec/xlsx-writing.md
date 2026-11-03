@@ -5,9 +5,7 @@
 - Preserve .NET 10+, cross-platform support, Native AOT, BCL-only runtime, no runtime reflection, and minimized allocations.
 - Plan behavior with the user one decision at a time before implementation. A suggestion is not a confirmed contract.
 
-## Proposed initial scope
-- Export new workbooks with one named worksheet, headers, and typed cells using generated mappings.
-- Provide Write/WriteAsync for header-only, single-record, synchronous sequences, and asynchronous sequences where applicable; return data-row counts consistent with CSV exports.
+## Proposed remaining scope
 - Defer append, insertion, and editing existing workbooks.
 
 ## Confirmed existing-file behavior
@@ -23,8 +21,11 @@
 - Support paths, supplied writable streams, synchronous stream factories, and asynchronous stream factories initially. The user approved matching the CSV stream lifetime and reuse contracts.
 - Supplied streams default to leaveOpen=true, with one export attempt shared across derived configurations. Factory streams are fresh, library-owned, and disposed after each export; asynchronous exports await asynchronous disposal. Factory-backed configurations permit repeated/concurrent exports with independent destinations and buffers.
 
+## Confirmed operations
+- Match the CsvWriter operation family: Write()/WriteAsync() for headers only, single-record overloads, IEnumerable<T> overloads, and IAsyncEnumerable<T> for WriteAsync only. Return long/ValueTask<long> data-row counts, excluding headers. The user approved these operations.
+
 ## Next decision
-- Recommend the CsvWriter operation family: Write()/WriteAsync() for headers only, single-record overloads, IEnumerable<T> overloads, and IAsyncEnumerable<T> for WriteAsync only. Return long/ValueTask<long> data-row counts, excluding headers. Await user confirmation.
+- Recommend native numeric and boolean cells for unannotated numeric/bool properties, rather than formatting all values as text. Store string properties as text. Await user confirmation; large-number precision, temporal values, nulls, and annotation overrides still need separate decisions.
 
 ## Workflow
 - Work on feature/xlsx-writing. Update human guides and runnable package/AOT examples when behavior is implemented; keep unfinished features on the roadmap.
