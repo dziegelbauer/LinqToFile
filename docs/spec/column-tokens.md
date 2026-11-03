@@ -7,9 +7,13 @@
 - Update human usage documentation and runnable examples, validate generator/runtime/package/AOT/hosted CI, commit and push all changes, and open a PR for human review. Never merge it or enable auto-merge.
 - Ask unresolved public behavior questions one item at a time. Suggestions below are proposals until approved.
 
-## First open decision: boolean token scope
-- Proposal: [BooleanTokens("yes", "no")] specifies exactly one true token and one false token, used for both text parsing and CSV output. The annotation replaces built-in text tokens rather than silently also accepting true/false. Boolean properties without it keep current true/false behavior.
-- Multiple accepted aliases or separate read/write tokens can be considered later. Await the user's answer before fixing this contract.
+## Confirmed boolean token scope
+- [BooleanTokens("yes", "no")] specifies exactly one true token and one false token, used for both text parsing and CSV output. The annotation replaces built-in text tokens rather than silently also accepting true/false. Boolean properties without it keep current true/false behavior. The user approved this behavior.
+- Multiple accepted aliases or separate read/write tokens remain future objectives.
+
+## Open decision: boolean comparison
+- Proposal: default to StringComparison.OrdinalIgnoreCase, consistent with built-in boolean parsing. Permit an explicit Comparison = StringComparison.Ordinal for case-sensitive tokens. Only these two enum values are supported, keeping comparisons independent of culture.
+- CSV output uses the literal token spelling from the annotation; comparison changes input matching only. Await the user's answer before fixing this contract.
 
 ## Remaining contract work
 - Define case comparison with typed options, trimming, empty/null distinctions, applicable property types, native XLSX behavior, canonical null output, collision validation, and interaction with custom converters/temporal formats/inheritance/Ignore.
