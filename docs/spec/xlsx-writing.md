@@ -34,8 +34,11 @@
 ## Confirmed custom converter output
 - Write custom-converter output as literal text cells, preserving the existing span-based TryFormat contract without guessing a native cell type or interpreting formulas. The user approved this behavior. Formatting uses Text/None conversion context, as with CSV output.
 
+## Confirmed formatting annotations
+- Explicit TemporalFormat and BooleanTokens annotations select text output using the same configured culture/literal tokens as CSV. These annotations override default native output for the annotated non-null value. The user approved this behavior.
+
 ## Next decision
-- Recommend that explicit TemporalFormat and BooleanTokens annotations select text output using the same configured culture/literal tokens as CSV. These annotations override default native output for the annotated non-null value. NullToken/null behavior remains a separate decision. Await user confirmation.
+- Recommend writing null as a blank cell unless NullToken is present, in which case write the literal token as text. Custom converters continue to own null formatting. Await user confirmation; text-token collisions and entirely blank rows require separate decisions.
 
 ## Workflow
 - Work on feature/xlsx-writing. Update human guides and runnable package/AOT examples when behavior is implemented; keep unfinished features on the roadmap.
