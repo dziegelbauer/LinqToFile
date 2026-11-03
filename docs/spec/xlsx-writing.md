@@ -92,8 +92,13 @@
 1. Shared overwrite option and CSV backport: implement ExistingFileBehavior and immutable configuration for CSV Create/CreateAsync, staged replacement, rejection of in-place overwrite creation, failure/cancellation preservation, and regression coverage. Update CSV usage guides and examples in the same stage.
 2. XLSX writer: implement generated typed output, incremental package/worksheet serialization, approved cell/annotation/precision/limit policies, and all approved path/stream/factory operations. Cover sync/async parity, ownership/cancellation, native cell types, literal text, and round trips. Maintain runnable examples and human guides alongside code.
 3. Release and integration: review the shared introductory README and package metadata, finish API/usage guides and roadmap, validate allocations, package consumers and Native AOT, inspect all edited code with Rider, commit/push, and open a PR. Verify hosted Windows/Linux/macOS checks before review handoff; never merge.
-- These stages are proposed sequencing, not confirmation that implementation has begun. Next ask whether to start stage 1. Resolve any public-contract questions found during implementation with the user.
+- The user authorized completing all stages, stopping for public-contract questions if needed. Implementation is in progress. Resolve any public-contract questions found during implementation with the user.
 
 ## Workflow
 - Work on feature/xlsx-writing. Update human guides and runnable package/AOT examples when behavior is implemented; keep unfinished features on the roadmap.
 - Review Rider recommendations for edited code. Markdown is exempt. Commit notes before handoff; never merge to main or enable auto-merge.
+
+## Implementation progress and open API decision
+- Stage 1 implements immutable CSV overwrite configuration, staged replacement, preservation on input failure/cancellation, Unix permission restrictions, and creation-only rejection of in-place overwrite. The human CSV guide and runnable sample are updated.
+- Stage 2 has internal native-cell formatting infrastructure using existing generated WriteField calls: no runtime reflection or generator changes. It distinguishes native/text/blank output, applies invariant native numbers, 15-digit/range checks, strict serial tick precision, and text-only null-token collisions. No public XLSX writer is available yet.
+- Before constructing the unified XLSX writer API, ask whether calling the path-only WithExistingFileBehavior option on a stream/factory-backed writer should throw. Recommend an immediate InvalidOperationException rather than silently ignoring it. The default options still permit ordinary stream exports.

@@ -25,6 +25,7 @@ public sealed partial class TabularValue
     /// <summary>Rejects non-null output that would be read back as the configured null token.</summary>
     public void RejectNullToken(string token, StringComparison comparison)
     {
+        if (dateSystem != TabularDateSystem.None && OutputKind != ExportCellKind.Text) return;
         var field = trimFields ? Text.Trim() : Text;
         if (field.Equals(token.AsSpan(), comparison)) throw new FormatException();
     }

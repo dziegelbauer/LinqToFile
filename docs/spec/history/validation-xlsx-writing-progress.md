@@ -1,0 +1,10 @@
+# XLSX writing implementation progress
+
+## CSV overwrite and native formatting foundation
+- All 1,223 tests pass with warnings as errors: the original 1,214 cases plus five CSV overwrite cases and four native-value formatting cases. No skipped tests.
+- CSV coverage includes explicit/immutable overwrite, missing files, both operation kinds, failure/cancellation preservation and temporary cleanup, in-place rejection with append/insert unchanged, and Unix permission restrictions. The runnable CSV sample now exercises overwrite.
+- Native formatting tests cover invariant native values under a non-invariant culture, text-only null-token collisions, significant-digit checks, numeric range/non-finite rejection, both date systems, native calendar range, strict tick precision, offset text, and annotation text output.
+- Rider warnings/suggestions/hints reviewed for CsvCreation.cs, CsvFile.cs, CsvOptions.cs, ExistingFileBehavior.cs, TabularValue.cs, TabularValue.Xlsx.cs, TokenMapping.cs, CsvOverwriteTests.cs, and XlsxValueFormattingTests.cs. No errors. Retained the public root namespace, established field naming, explicit numeric counters, and intentional sync test calls; local-function/style/guard suggestions do not improve these contracts. Markdown is exempt and receives manual review/diff checks.
+- XLSX serialization, public writer entry points, package release metadata, and hosted validation remain unfinished. Implementation pauses for the path-only-option API question recorded in xlsx-writing.md.
+- Release solution build, JIT samples, and project-reference Native AOT publish/run passed on macOS arm64 with warnings as errors. The CSV overwrite example ran successfully in both sample modes. Logs are ignored under artifacts/overwrite-full.log and artifacts/xlsx-foundation.log.
+- Re-inspected CsvWritingSample.cs with Rider after the example change. Retained intentional synchronous operation coverage, existing collection/type style, and exact floating-point checks for round-trip assertions. XlsxValueFormattingTests.cs was also individually inspected: no findings and no timeout.
