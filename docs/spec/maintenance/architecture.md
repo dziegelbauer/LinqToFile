@@ -4,8 +4,8 @@
 
 | Project | Responsibility |
 |---|---|
-| `LinqToFile` | Shared query and mapping code, with a CSV adapter |
-| `LinqToFile.Generator` | Compiler diagnostics and typed mapper generation |
+| `src/LinqToFile` | Shared query and mapping code, with CSV and XLSX adapters |
+| `src/LinqToFile.Generator` | Compiler diagnostics and typed mapper generation |
 | `LinqToFile.Tests` | Format, source, query, and generator tests |
 | `Models` | Sample models in a separate assembly |
 | `NativeAot` | Executable sample for JIT, package, and Native AOT checks |
@@ -15,6 +15,9 @@ The runtime targets .NET 10.
 The generator targets .NET Standard 2.0 for compiler host compatibility.
 Roslyn dependencies belong to the generator and tests.
 The single consumer package includes the generator without runtime package dependencies.
+
+The solution groups the runtime and generator projects under `src`.
+Tests, samples, and benchmarks remain in their repository folders.
 
 ## Runtime layout
 

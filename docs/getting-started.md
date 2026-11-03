@@ -26,7 +26,7 @@ The repository provides a local prerelease package.
 To build it, run this command from the repository root:
 
 ```sh
-dotnet pack LinqToFile -c Release -o artifacts/feed
+dotnet pack src/LinqToFile -c Release -o artifacts/feed
 ```
 
 Add the package to each project that declares mapped models.

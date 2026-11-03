@@ -19,8 +19,8 @@
     <ItemGroup>
         <ProjectReference Include="../LinqToFile.Generator/LinqToFile.Generator.csproj" ReferenceOutputAssembly="false" PrivateAssets="all" />
         <None Include="../LinqToFile.Generator/bin/$(Configuration)/netstandard2.0/LinqToFile.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" />
-        <None Include="../README.md" Pack="true" PackagePath="/README.md" />
-        <None Include="../LICENSE" Pack="true" PackagePath="/" />
+        <None Include="../../README.md" Pack="true" PackagePath="/README.md" />
+        <None Include="../../LICENSE" Pack="true" PackagePath="/" />
     </ItemGroup>
 
 </Project>

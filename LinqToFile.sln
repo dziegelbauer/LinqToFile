@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqToFile", "LinqToFile\LinqToFile.csproj", "{1B2C63E4-836C-4BC2-92C8-463D932A2D29}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqToFile", "src\LinqToFile\LinqToFile.csproj", "{1B2C63E4-836C-4BC2-92C8-463D932A2D29}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqToFile.Generator", "LinqToFile.Generator\LinqToFile.Generator.csproj", "{A2C20F74-5C4B-4122-AE3F-4D75AD68FD1D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqToFile.Generator", "src\LinqToFile.Generator\LinqToFile.Generator.csproj", "{A2C20F74-5C4B-4122-AE3F-4D75AD68FD1D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
 EndProject
@@ -17,6 +17,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "benchmarks", "benchmarks", "{66320409-64EC-F7C5-3DEF-65E7510DAAD1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqToFile.Benchmarks", "benchmarks\LinqToFile.Benchmarks\LinqToFile.Benchmarks.csproj", "{108A9765-975D-409A-89DF-9C64A3BDE961}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{CA4142EB-4639-45BD-B893-CF22EE2A61CF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -105,6 +107,8 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{1B2C63E4-836C-4BC2-92C8-463D932A2D29} = {CA4142EB-4639-45BD-B893-CF22EE2A61CF}
+		{A2C20F74-5C4B-4122-AE3F-4D75AD68FD1D} = {CA4142EB-4639-45BD-B893-CF22EE2A61CF}
 		{3256C4A7-AE7B-479A-AD27-4BE2486E3D5E} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{0328DBBC-96BF-4407-A8AD-29587D679E88} = {5D20AA90-6969-D8BD-9DCD-8634F4692FDA}
 		{23AEFC47-EE82-485C-9717-F00AF6D9B54B} = {5D20AA90-6969-D8BD-9DCD-8634F4692FDA}
