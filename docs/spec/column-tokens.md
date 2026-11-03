@@ -26,9 +26,12 @@
 - Default NullToken matching to StringComparison.Ordinal (case-sensitive), so [NullToken("NULL")] does not consume ordinary text such as "null". Permit Comparison = StringComparison.OrdinalIgnoreCase as an explicit opt-in. Only these two enum values are supported, independent of culture. The user approved this behavior.
 - CSV null output retains the exact spelling supplied in the annotation.
 
-## Open decision: null-token property types
-- Proposal: support NullToken on nullable built-in value types (including enums) and explicitly nullable string properties (string?). Reject non-nullable properties with a compiler diagnostic, since they cannot represent the annotated null value. Custom converter interaction remains a separate decision.
-- Await the user's answer before fixing this contract.
+## Confirmed null-token property types
+- Support NullToken on nullable built-in value types (including enums) and explicitly nullable string properties (string?). Reject non-nullable properties with a compiler diagnostic, since they cannot represent the annotated null value. The user approved this behavior. Custom converter interaction remains a separate decision.
+
+## Open decision: token whitespace
+- Proposal: require boolean and null tokens to be nonempty and have no leading/trailing .NET whitespace; invalid annotation values produce compiler diagnostics. Internal whitespace remains literal token content.
+- Input matching uses the field after configured WithFieldTrimming; no extra token-specific trimming occurs. This avoids padded tokens becoming unreadable when trimming is enabled. Await the user's answer before fixing this contract.
 
 ## Remaining contract work
 - Define case comparison with typed options, trimming, empty/null distinctions, applicable property types, native XLSX behavior, canonical null output, collision validation, and interaction with custom converters/temporal formats/inheritance/Ignore.
