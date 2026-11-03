@@ -2,7 +2,7 @@
 
 ## Current artifact
 
-The current local package version is `0.1.0-alpha.16`.
+The current local package version is `0.1.0-alpha.17`.
 It is the local prerelease base version.
 Successful main CI runs append a unique run suffix and publish a prototype prerelease to nuget.org.
 See [publishing setup](publishing.md) for the one-time account configuration and feature-branch workflow.
@@ -54,7 +54,7 @@ It repeats the application run with Native AOT.
 Successful execution prints this message:
 
 ```text
-Package validation passed: LinqToFile 0.1.0-alpha.16 (osx-arm64)
+Package validation passed: LinqToFile 0.1.0-alpha.17 (osx-arm64)
 ```
 
 The script removes its temporary workspace after execution.
