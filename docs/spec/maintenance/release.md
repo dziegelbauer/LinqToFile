@@ -2,7 +2,7 @@
 
 ## Current artifact
 
-The current local package version is `0.1.0-alpha.14`.
+The current local package version is `0.1.0-alpha.15`.
 It is the local prerelease base version.
 Successful main CI runs append a unique run suffix and publish a prototype prerelease to nuget.org.
 See [publishing setup](publishing.md) for the one-time account configuration and feature-branch workflow.
@@ -47,12 +47,13 @@ It also compiles XLSX models in the separate model assembly.
 It compiles scalar writer models with the packaged generator, then runs CSV creation in both modes with sync and async input.
 It also runs append/insertion and every introductory CSV/XLSX example under JIT and Native AOT.
 It compiles custom converter models in the model assembly and runs CSV writes and native/text XLSX reads.
+It also compiles temporal format annotations across assemblies and runs exact culture-based CSV writes/reads and unchanged native XLSX dates.
 XLSX checks cover both variants, cached formulas, temporal values, shared-string spill, async queries, and non-seekable input.
 It repeats the application run with Native AOT.
 Successful execution prints this message:
 
 ```text
-Package validation passed: LinqToFile 0.1.0-alpha.14 (osx-arm64)
+Package validation passed: LinqToFile 0.1.0-alpha.15 (osx-arm64)
 ```
 
 The script removes its temporary workspace after execution.
@@ -85,7 +86,7 @@ CSV append supports full validation, quick append, both mutation modes, and sync
 CSV insertion uses long logical row indexes, full existing-file validation, both mutation modes, and sync/async ranges.
 It does not provide a custom `IQueryable` provider or change tracking.
 
-Other formats, headerless files, dedicated format/token annotations, and more model shapes remain future objectives.
+Other formats, headerless files, dedicated token annotations, multiple/separate temporal input/output formats, and more model shapes remain future objectives.
 Per-column error recovery, configurable missing columns, and opt-in raw diagnostic values are also future objectives.
 The shared source, query, schema, and mapping layers remain separate from the CSV adapter.
 A second real format must validate a public provider API before that API is published.

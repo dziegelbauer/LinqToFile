@@ -6,14 +6,14 @@
         <Nullable>enable</Nullable>
         <IsAotCompatible>true</IsAotCompatible>
         <PackageId>LinqToFile</PackageId>
-        <Description>Query CSV and XLSX files with typed C# models and standard LINQ. Create, append, and insert CSV rows. Map domain types with custom column converters. Sync/async APIs, BCL-only runtime, source-generated mapping, and Native AOT on .NET 10+.</Description>
+        <Description>Query CSV and XLSX with typed C# models and LINQ. Create, append, and insert CSV rows. Select exact date/time formats or custom column converters. Sync/async APIs, BCL-only runtime, source-generated mapping, and Native AOT on .NET 10+.</Description>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageProjectUrl>https://github.com/dziegelbauer/LinqToFile</PackageProjectUrl>
         <RepositoryUrl>https://github.com/dziegelbauer/LinqToFile.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>linq;csv;xlsx;tabular;streaming;nativeaot;source-generator</PackageTags>
-        <PackageReleaseNotes>Prerelease: per-column custom converters for CSV/XLSX reads and CSV writes. Static span-based parsing/formatting supports domain types, nullable values, culture, and native XLSX cell metadata without runtime reflection or converter instances. Includes LINQ queries and sync/async CSV creation, append, and positional insertion. API changes remain possible.</PackageReleaseNotes>
+        <PackageReleaseNotes>Prerelease: TemporalFormat annotations select one exact date/time format for CSV/XLSX text reads and CSV writes, using the configured culture. Native XLSX dates retain their existing rules. Complete dates and explicit offsets are validated; selected formats may omit precision. Includes custom converters, LINQ queries, and sync/async CSV creation, append, and insertion. BCL-only runtime and Native AOT support. API changes remain possible.</PackageReleaseNotes>
     </PropertyGroup>
 
     <ItemGroup>
