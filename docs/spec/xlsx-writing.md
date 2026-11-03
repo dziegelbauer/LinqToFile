@@ -38,13 +38,16 @@
 - Explicit TemporalFormat and BooleanTokens annotations select text output using the same configured culture/literal tokens as CSV. These annotations override default native output for the annotated non-null value. The user approved this behavior.
 
 ## Confirmed null output
-- Write null as a blank cell unless NullToken is present, in which case write the literal token as text. Custom converters continue to own null formatting. The user approved this behavior. Entirely blank rows still require a separate decision.
+- Write null as a blank cell unless NullToken is present, in which case write the literal token as text. Custom converters continue to own null formatting. The user approved this behavior; the blank-row restriction below applies.
 
 ## Confirmed null-token collisions
 - Apply null-token collision checks to non-null text output using the configured token comparison/trimming. Native numeric/boolean/date cells do not collide with text null tokens, consistent with the XLSX reader. For example, NullToken("0") on int? permits native numeric zero, while a non-null string equal to its null token throws. The user approved this behavior.
 
+## Confirmed entirely blank rows
+- Throw when a record would serialize entirely to blank cells/empty text, so the current reader's blank-row skipping does not silently lose the record. Determine blankness after formatting; numeric zero, boolean false, non-empty text (including whitespace), and explicit null tokens count as content. The user approved this restriction.
+
 ## Next decision
-- The current XLSX reader skips entirely blank rows, including rows of only empty text. Recommend throwing when a record would serialize entirely to blank cells/empty text, so a subsequent read does not silently lose the record. Determine blankness after formatting; numeric zero, boolean false, non-empty text (including whitespace), and explicit null tokens count as content. Await user confirmation.
+- Recommend writing unannotated DateTimeOffset values as invariant round-trip ISO 8601 text, preserving clock time and explicit offset, consistent with CSV output and existing XLSX text reading. Do not normalize to UTC or encode as an offset-free numeric serial. Await user confirmation. Other temporal types remain separate decisions.
 
 ## Workflow
 - Work on feature/xlsx-writing. Update human guides and runnable package/AOT examples when behavior is implemented; keep unfinished features on the roadmap.
