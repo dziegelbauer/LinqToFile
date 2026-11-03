@@ -2,7 +2,7 @@
 
 ## Current artifact
 
-The current local package version is `0.1.0-alpha.19`.
+The current local package version is `0.1.0-alpha.20`.
 It is the local prerelease base version.
 Successful main CI runs append a unique run suffix and publish a prototype prerelease to nuget.org.
 See [publishing setup](publishing.md) for the one-time account configuration and feature-branch workflow.
@@ -54,7 +54,7 @@ It repeats the application run with Native AOT.
 Successful execution prints this message:
 
 ```text
-Package validation passed: LinqToFile 0.1.0-alpha.19 (osx-arm64)
+Package validation passed: LinqToFile 0.1.0-alpha.20 (osx-arm64)
 ```
 
 The script removes its temporary workspace after execution.
@@ -76,7 +76,7 @@ NuGet metadata follows the [MSBuild package reference](https://learn.microsoft.c
 
 ## Scope of the initial release
 
-CSV implements the agreed initial reader scope. Headers are required.
+CSV supports header-based and explicit headerless reading. XLSX requires headers.
 The package also includes [sync/async XLSX reading](../../xlsx.md) with shared-string spill, cached formulas, native temporal conversions, and resource limits.
 XLSX accepts paths, streams, and sync/async factories.
 XLSX path sources also support staged append and positional insertion in supported existing tabular workbooks, with sync/async single records and ranges. Package validation executes these APIs from a fresh JIT and Native AOT consumer.

@@ -23,6 +23,7 @@ Read relevant topics before proposing contracts or changing code:
 - [Scope and roadmap](docs/spec/scope.md)
 - [Phased plan and acceptance criteria](docs/spec/plan.md)
 - [Mapping](docs/spec/mapping.md)
+- [Headerless CSV](docs/spec/headerless-csv.md)
 - [Custom converter design](docs/spec/converters.md)
 - [Exact temporal format design](docs/spec/temporal-formats.md)
 - [Boolean and null token design](docs/spec/column-tokens.md)

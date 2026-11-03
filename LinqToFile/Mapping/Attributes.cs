@@ -11,6 +11,13 @@ public sealed class ColumnAttribute(string name) : Attribute
     public string Name { get; } = name;
 }
 
+/// <summary>Maps a property to a zero-based field position for headerless CSV reads.</summary>
+[AttributeUsage(AttributeTargets.Property, Inherited = true)]
+public sealed class ColumnIndexAttribute(int index) : Attribute
+{
+    public int Index { get; } = index;
+}
+
 /// <summary>Excludes a property from mapping.</summary>
 [AttributeUsage(AttributeTargets.Property, Inherited = true)]
 public sealed class IgnoreAttribute : Attribute;

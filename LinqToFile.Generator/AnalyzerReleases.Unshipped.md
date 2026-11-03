@@ -11,3 +11,4 @@ LTF004 | LinqToFile | Error | Conflicting column mapping
 LTF005 | LinqToFile | Error | Unsupported column converter
 LTF006 | LinqToFile | Error | Unsupported temporal format
 LTF007 | LinqToFile | Error | Unsupported column tokens
+LTF008 | LinqToFile | Error | Unsupported column index

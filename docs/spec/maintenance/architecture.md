@@ -58,7 +58,8 @@ Cancellation and failure do not restore its allowance.
 
 A format factory returns an internal `IRecordReader`.
 That reader supplies rows, sync/async read operations, and format-specific width errors.
-Shared query code handles source lifetime, header binding, and typed mapping.
+Shared query code handles source lifetime, header or headerless schema binding, and typed mapping.
+HeaderlessSchema binds supplied names or generated indexes once per enumeration; CSV sources alone expose the headerless configuration.
 It does not reference CSV syntax or CSV option types.
 
 A synthetic byte-format test uses the shared query engine.

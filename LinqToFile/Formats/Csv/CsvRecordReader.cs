@@ -20,7 +20,9 @@ internal sealed class CsvRecordReader(TextReader reader, CsvOptions options, Sys
         int ordinal = Math.Min(Row.Count, expected);
         string? header = ordinal < Row.Headers.Length ? Row.Headers[ordinal] : null;
         string? member = ordinal < Row.TargetMembers.Length ? Row.TargetMembers[ordinal] : null;
-        return new CsvFormatException("The record field count differs from the header.",
+        return new CsvFormatException(options.BindingMode == ColumnBindingMode.Headers
+                ? "The record field count differs from the header."
+                : "The record field count differs from the expected field count.",
             Row.RecordNumber, Row.LineNumber, Row.FailureLineNumber, ordinal + 1, header, member);
     }
 

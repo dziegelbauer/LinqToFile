@@ -15,7 +15,7 @@
 - Reject multiple properties mapped to the same header under the configured comparison.
 - Compile-time source-generator tooling dependencies are allowed, isolated from the BCL-only runtime library.
 - Properties without a column annotation map by property name.
-- Throw if a mapped column is missing from the header.
+- Throw if a mapped column is missing from the header. Headerless CSV additionally supports supplied names and generated ColumnIndex metadata; see headerless-csv.md.
 - Ignore extra file columns with no mapped property.
 - Throw for duplicate header names under the configured header comparison, including unmapped headers.
 - Preserve empty string fields as empty strings, including for nullable string properties.
@@ -59,6 +59,9 @@
 ## XLSX foundation
 - Existing TabularRecord/Column/Ignore annotations are shared with XLSX, as approved during XLSX planning. Generated enum readers use GetTextField to enforce native-cell conversion boundaries; numeric/boolean native cells cannot masquerade as text tokens.
 - Native XLSX kinds and worksheet diagnostics extend TabularRow without runtime reflection or a second mapper registration mechanism. Stage 2 converts native serial/ISO dates with exact tick rounding and target-specific boundaries; text conversions retain the existing rules. Excel numeric temporal interpretation requires the reader's explicit date-system opt-in, so other formats retain their own semantics. Full XLSX conversion requirements are in xlsx.md.
+
+## Headerless CSV
+- ColumnIndex uses zero-based positions for explicitly selected CSV index reads. Named mapping and writing retain existing column names and output order. Negative/duplicate indexes are LTF008; inherited Ignore conflicts are LTF004. Completeness is checked by WithColumnIndexes, not by the compiler. See headerless-csv.md.
 
 ## Unresolved
 - Supported scalar conversions are implemented in phase 3. Further conversion families remain future work.

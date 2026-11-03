@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using LinqToFile.Infrastructure;
 using LinqToFile.Reading;
 using LinqToFile.Sources;
 
@@ -11,10 +12,20 @@ internal static class TabularQuery<T, TOptions> where T : class, ITabularRecord<
         using var lease = source.Open();
         ValidateReadable(lease.Stream);
         using var reader = format.Open(lease.Stream, options);
-        if (!reader.Read()) throw MissingHeader(reader.Row);
-        var ordinals = SchemaBinding<T>.Bind(reader.Row, options);
+        int[]? ordinals = PrepareHeaderless(reader, options);
+        if (!reader.Read())
+        {
+            if (options.BindingMode != ColumnBindingMode.Headers) yield break;
+            throw MissingHeader(reader.Row);
+        }
+        ordinals = BindFirst(reader, options, ordinals);
         var mapper = T.Mapper;
-        int count = reader.Row.Count;
+        int count = options.BindingMode == ColumnBindingMode.SuppliedNames ? options.ColumnNames.Length : reader.Row.Count;
+        if (options.BindingMode != ColumnBindingMode.Headers)
+        {
+            if (reader.Row.Count != count) throw reader.CreateFieldCountException(count);
+            yield return mapper.Read(reader.Row, ordinals);
+        }
         while (reader.Read())
         {
             if (reader.Row.Count != count) throw reader.CreateFieldCountException(count);
@@ -29,11 +40,21 @@ internal static class TabularQuery<T, TOptions> where T : class, ITabularRecord<
         cancellationToken.ThrowIfCancellationRequested();
         ValidateReadable(lease.Stream);
         await using var reader = await format.OpenAsync(lease.Stream, options, cancellationToken).ConfigureAwait(false);
-        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false)) throw MissingHeader(reader.Row);
+        int[]? ordinals = PrepareHeaderless(reader, options);
+        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            if (options.BindingMode != ColumnBindingMode.Headers) yield break;
+            throw MissingHeader(reader.Row);
+        }
         cancellationToken.ThrowIfCancellationRequested();
-        var ordinals = SchemaBinding<T>.Bind(reader.Row, options);
+        ordinals = BindFirst(reader, options, ordinals);
         var mapper = T.Mapper;
-        int count = reader.Row.Count;
+        int count = options.BindingMode == ColumnBindingMode.SuppliedNames ? options.ColumnNames.Length : reader.Row.Count;
+        if (options.BindingMode != ColumnBindingMode.Headers)
+        {
+            if (reader.Row.Count != count) throw reader.CreateFieldCountException(count);
+            yield return mapper.Read(reader.Row, ordinals);
+        }
         while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -42,12 +63,28 @@ internal static class TabularQuery<T, TOptions> where T : class, ITabularRecord<
         }
     }
 
+    private static int[]? PrepareHeaderless(IRecordReader reader, TabularOptions options)
+    {
+        if (options.BindingMode == ColumnBindingMode.SuppliedNames)
+            return HeaderlessSchema<T>.PrepareNames(reader.Row, options);
+        if (options.BindingMode == ColumnBindingMode.Indexes) HeaderlessSchema<T>.ValidateIndexes();
+        return null;
+    }
+
+    private static int[] BindFirst(IRecordReader reader, TabularOptions options, int[]? ordinals) =>
+        options.BindingMode switch
+        {
+            ColumnBindingMode.Headers => SchemaBinding<T>.Bind(reader.Row, options),
+            ColumnBindingMode.Indexes => HeaderlessSchema<T>.BindIndexes(reader.Row, options),
+            _ => ordinals!
+        };
+
     private static void ValidateReadable(Stream stream)
     {
         if (!stream.CanRead) throw new InvalidOperationException("The source stream does not support reading.");
     }
 
-    private static TabularSchemaException MissingHeader(LinqToFile.Infrastructure.TabularRow row) =>
+    private static TabularSchemaException MissingHeader(TabularRow row) =>
         row.WithLocation(new TabularSchemaException("The required header is missing.", 1,
             row.WorksheetName is null ? 1 : 0, row.WorksheetName is null ? 1 : 0));
 }

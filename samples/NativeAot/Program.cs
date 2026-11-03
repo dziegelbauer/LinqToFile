@@ -3,6 +3,7 @@ using SampleModels;
 using System.Globalization;
 using System.Text;
 
+await HeaderlessCsvSample.RunAsync();
 await CsvWritingSample.RunAsync();
 await QuickStartSample.RunAsync();
 await ConverterSample.RunAsync();

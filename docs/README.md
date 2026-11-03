@@ -10,6 +10,7 @@ The library supports standard LINQ, async queries, and Native AOT on .NET 10 and
 | Set CSV syntax, encoding, and limits | [CSV rules and errors](csv-and-errors.md) |
 | Create CSV files, append rows, or insert rows | [CSV writing](csv-writing.md) |
 | Export CSV to memory, HTTP, or compression streams | [CSV stream exports](csv-streams.md) |
+| Read CSV without headers | [Headerless CSV](headerless-csv.md) |
 | Select worksheets and read workbook cells | [XLSX workbooks](xlsx.md) |
 | Export typed records to Excel workbooks | [XLSX writing](xlsx-writing.md) |
 | Append or insert records in an existing workbook | [XLSX append and insertion](xlsx-mutation.md) |
@@ -21,7 +22,8 @@ The library supports standard LINQ, async queries, and Native AOT on .NET 10 and
 | Control memory and startup costs | [Performance and memory](performance.md) |
 | See unimplemented plans | [Roadmap](roadmap.md) |
 
-Headers are required for both formats.
+CSV uses headers by default. [Headerless CSV](headerless-csv.md) supports supplied names or model indexes.
+XLSX requires headers.
 CSV path sources support explicit creation, append, and positional insertion.
 XLSX path sources support append and positional insertion in existing workbooks.
 Invalid file data, missing columns, duplicate headers, and conversion failures throw exceptions.

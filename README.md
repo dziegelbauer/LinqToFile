@@ -11,11 +11,11 @@ Define your model once, then work with your data through familiar C# code.
 - **Keep your queries familiar.** Use standard LINQ with strongly typed records from CSV or XLSX files.
 - **Choose how much to load.** Stream records or collect the results you need in a list, array, or dictionary.
 - **Write as well as read.** Create CSV and Excel files, append or insert records in either format, and send exports to streams.
-- **Work with real-world data.** Select encodings, cultures, date formats, and boolean or null tokens for your files.
+- **Work with real-world data.** Read CSV with or without headers. Select encodings, cultures, date formats, and boolean or null tokens.
 - **Use your own types.** Add custom converters when your application needs its own value rules.
 - **Keep deployment simple.** Publish with Native AOT and no extra runtime package dependencies.
 
-The same model annotations work across CSV and XLSX, so you can reuse your mapping as your data sources change.
+Shared model annotations work across CSV and XLSX, so you can reuse your mapping as your data sources change.
 
 ## Install
 
@@ -82,6 +82,8 @@ You can also collect records by key:
 var peopleById = await TabularFile.Csv<Person>(path)
     .ToDictionaryAsync(person => person.Id);
 ```
+
+For CSV without headers, [supply column names or map field indexes](https://github.com/dziegelbauer/LinqToFile/blob/main/docs/headerless-csv.md).
 
 Chain options such as `WithEncoding`, `WithDelimiter`, or `WithCulture` before your LINQ query to suit your data.
 
