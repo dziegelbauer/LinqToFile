@@ -29,12 +29,16 @@
 - Stream exports honor the operation token throughout async input enumeration and output I/O, including after writing starts. Cancellation or other failures may leave partial output; no rollback, atomic publication, or complete-document guarantee applies. This supports responsive HTTP/network exports without adding temporary storage. The user approved this behavior.
 - Existing file-path staged/in-place cancellation rules remain unchanged.
 
-## Open decision: supplied-stream claim boundary
-- Proposal: after validating the call's arguments, atomically consume the supplied destination's one-export allowance when the export attempt starts, before observing operation cancellation or writing bytes. Subsequent failure/cancellation still consumes that attempt, including cancellation before any output. Derived configurations share the same claim.
-- Creating/configuring a writer does not consume its allowance; invalid arguments do not constitute an export attempt. Await the user's answer before fixing this boundary.
+## Confirmed supplied-stream claim boundary
+- After validating the call's arguments, atomically consume the supplied destination's one-export allowance when the export attempt starts, before observing operation cancellation or writing bytes. Subsequent failure/cancellation still consumes that attempt, including cancellation before any output. Derived configurations share the same claim. The user approved this boundary.
+- Creating/configuring a writer does not consume its allowance; invalid arguments do not constitute an export attempt.
+
+## Open decision: successful flushing
+- Proposal: successful Write/WriteAsync finalizes the export's encoder/library buffers and flushes the destination stream before returning. Async export uses asynchronous writes/flush and honors its token through the final flush. Owned stream disposal also completes before success is reported; supplied streams with leaveOpen=true remain open.
+- Flushing does not promise crash durability or finalize a caller-owned compression wrapper; its caller still controls wrapper disposal. Failure/cancellation cleanup and pending-buffer behavior remain implementation details to validate against the approved partial-output contract. Await the user's answer before fixing successful completion behavior.
 
 ## Remaining decisions
-- Flushing/BOM and factory concurrency remain to be settled.
+- BOM emission and factory concurrency remain to be settled.
 
 ## Existing contracts to preserve
 - Supplied read streams start at their current position, are single-use across derived configurations, and default to leaveOpen=true. Read factories return fresh library-owned streams.
