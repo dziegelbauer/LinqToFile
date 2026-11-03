@@ -1,7 +1,7 @@
 # Scope and roadmap
 
 ## Confirmed
-- C# library for LINQ over tabular files, starting with CSV.
+- C# library for LINQ over tabular files, starting with CSV. Headerless CSV now supports explicit supplied-name or model-index mapping; see headerless-csv.md.
 - Next format: XLSX. Stage 2 adds shared strings, rich text, cached formulas, native temporal conversions, and resource limits to synchronous paths/seekable streams. Local validation passes; the user confirmed CI passed after commit 32ff4d2, completing stage 2. Stage 3 adds sync/async factories, non-seekable spooling, async I/O/cancellation, and performance validation. Its local checks pass, and the user confirmed CI passed after commit 339dc55. All three XLSX stages are complete. See xlsx.md and xlsx-plan.md.
 - Keep source lifetime, shared queries, schema binding, and mapping separate from individual format readers. CSV code lives under Formats/Csv; shared layers stay reusable for future tabular formats within the single runtime package.
 - Minimum target: .NET 10, compatible with later versions.
@@ -30,7 +30,6 @@
 ## Future objectives
 - Platform-sized nint/nuint conversions.
 - Other tabular formats.
-- Headerless CSV.
 - Configurable per-column error handling through annotations.
 - Configurable missing-column handling (initially always throws).
 - Opt-in raw field values in errors through a sensitive-data diagnostic configuration.

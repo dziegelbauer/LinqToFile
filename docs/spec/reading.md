@@ -1,7 +1,7 @@
 # Reading and errors
 
 ## Confirmed
-- Headers required initially.
+- Headers are required by default. Headerless CSV supports supplied column names or model ColumnIndex annotations; see headerless-csv.md.
 - Throw when an error occurs.
 - Encoding configurable through an option such as WithEncoding.
 - Support incremental records and fully materialized collections.
@@ -51,7 +51,6 @@
 - Library ToDictionaryAsync duplicate-key errors preserve ArgumentException but omit the key. Its shared builder uses TryAdd rather than the BCL duplicate-key message. User callbacks and explicit BCL operations retain their own errors.
 
 ## Future
-- Headerless input.
 - Configurable per-column error behavior through annotations.
 - Opt-in configuration to include raw field values in error diagnostics, similar to EF sensitive-data diagnostics.
 
