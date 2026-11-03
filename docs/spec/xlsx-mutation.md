@@ -56,8 +56,11 @@
 ## Confirmed concurrency
 - Use the existing shared normalized-path write guard for XLSX mutations, so overlapping library writes to the same path fail immediately even when different worksheets or CSV/XLSX APIs are used. Do not queue or promise coordination with other processes, aliases, or external Excel sessions. The user approved this behavior.
 
+## Confirmed protection behavior
+- Reject mutation when workbook protection is present or the selected worksheet is protected. Do not remove protection, interpret individual permission flags, or provide a bypass initially. Protection confined to unselected worksheets does not alone prevent mutation of the selected unprotected sheet; preserve those parts unchanged. Encrypted workbooks remain unsupported. The user approved this behavior.
+
 ## Next decision
-- Recommend rejecting mutation when workbook protection is present or the selected worksheet is protected. Do not remove protection, interpret individual permission flags, or provide a bypass initially. Protection confined to unselected worksheets does not alone prevent mutation of the selected unprotected sheet; preserve those parts unchanged. Encrypted workbooks remain unsupported. Await user confirmation.
+- Recommend supporting both Transitional and Strict XLSX for the agreed mutation subset, matching reader coverage. Preserve the input variant rather than converting the workbook; generate new worksheet/style content with its existing namespaces/relationship conventions. Keep legacy/binary/macro-enabled/encrypted workbook formats out of scope. Await user confirmation.
 
 ## Remaining design topics
 - Public path-source/mutation API and worksheet selection.
