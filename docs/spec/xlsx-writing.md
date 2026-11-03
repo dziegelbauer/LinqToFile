@@ -46,8 +46,11 @@
 ## Confirmed entirely blank rows
 - Throw when a record would serialize entirely to blank cells/empty text, so the current reader's blank-row skipping does not silently lose the record. Determine blankness after formatting; numeric zero, boolean false, non-empty text (including whitespace), and explicit null tokens count as content. The user approved this restriction.
 
+## Confirmed DateTimeOffset output
+- Write unannotated DateTimeOffset values as invariant round-trip ISO 8601 text, preserving clock time and explicit offset, consistent with CSV output and existing XLSX text reading. Do not normalize to UTC or encode as an offset-free numeric serial. The user approved this behavior.
+
 ## Next decision
-- Recommend writing unannotated DateTimeOffset values as invariant round-trip ISO 8601 text, preserving clock time and explicit offset, consistent with CSV output and existing XLSX text reading. Do not normalize to UTC or encode as an offset-free numeric serial. Await user confirmation. Other temporal types remain separate decisions.
+- Recommend native Excel serial dates with date/date-time display formats for unannotated DateOnly/DateTime properties. Retain the existing requirement that DateTime.Kind is Unspecified. Explicit TemporalFormat continues to select text output. Await user confirmation; calendar/date-system range and temporal precision require subsequent decisions.
 
 ## Workflow
 - Work on feature/xlsx-writing. Update human guides and runnable package/AOT examples when behavior is implemented; keep unfinished features on the roadmap.
