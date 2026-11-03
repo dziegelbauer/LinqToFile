@@ -20,8 +20,11 @@
 ## Confirmed operation family
 - Provide Append/AppendRange and Insert/InsertRange, with corresponding async variants. Single-record and IEnumerable<T> inputs support sync/async methods; IAsyncEnumerable<T> ranges support async methods only. Return long/ValueTask<long> inserted-row counts; async methods accept an optional CancellationToken. The user approved this CSV-parity method family.
 
+## Confirmed publication and cancellation
+- Require an existing workbook and use staged replacement only initially: prepare changes in a temporary file beside it, and replace only after successful completion. Honor cancellation until immediately before replacement; once replacement starts, report success if it succeeds. The user approved this contract. Do not expose in-place XLSX mutation initially.
+
 ## Next decision
-- Recommend staged replacement only for initial XLSX mutation: require an existing workbook, prepare changes in a temporary file beside it, and replace only after successful completion. Honor cancellation until immediately before replacement; once replacement starts, report success if it succeeds. Do not expose in-place XLSX mutation initially. Await user confirmation.
+- Recommend matching XLSX read selection: mutate the first worksheet in workbook order by default, or the existing sheet selected with WithWorksheet(name). Match names ordinal-ignore-case and throw when missing; never create a missing worksheet implicitly. Await user confirmation. Preservation of other sheets/parts and unsupported workbook features remains a separate decision.
 
 ## Remaining design topics
 - Public path-source/mutation API and worksheet selection.
