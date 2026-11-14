@@ -22,20 +22,23 @@ public sealed class ColumnIndexAttribute(int index) : Attribute
 [AttributeUsage(AttributeTargets.Property, Inherited = true)]
 public sealed class IgnoreAttribute : Attribute;
 
-/// <summary>Uses one true/false token pair for text reads and CSV output.</summary>
+/// <summary>Uses a true/false token pair for text reads and CSV output, with optional input aliases.</summary>
 [AttributeUsage(AttributeTargets.Property, Inherited = true)]
 public sealed class BooleanTokensAttribute(string trueToken, string falseToken) : Attribute
 {
     public string TrueToken { get; } = trueToken;
     public string FalseToken { get; } = falseToken;
+    public string[] TrueAliases { get; set; } = [];
+    public string[] FalseAliases { get; set; } = [];
     public StringComparison Comparison { get; set; } = StringComparison.OrdinalIgnoreCase;
 }
 
-/// <summary>Recognizes one text token as null and writes that token for null values.</summary>
+/// <summary>Recognizes a text token and optional input aliases as null, and writes the token for null values.</summary>
 [AttributeUsage(AttributeTargets.Property, Inherited = true)]
 public sealed class NullTokenAttribute(string token) : Attribute
 {
     public string Token { get; } = token;
+    public string[] Aliases { get; set; } = [];
     public StringComparison Comparison { get; set; } = StringComparison.Ordinal;
 }
 

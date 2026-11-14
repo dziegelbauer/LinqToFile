@@ -7,7 +7,8 @@ Properties without them keep the [built-in conversions](conversions.md).
 
 ## Declare a model
 
-This model accepts `yes`, `no`, or `NULL` for availability.
+This model accepts `yes`, `y`, and `1` for true, and `no`, `n`, and `0` for false.
+It accepts `NULL` and `N/A` for null availability.
 It keeps an empty note distinct from a null note.
 Its nullable date also uses an [exact temporal format](temporal-formats.md).
 
@@ -21,10 +22,11 @@ public sealed partial class InventoryItem
 {
     public int Id { get; init; }
 
-    [BooleanTokens("yes", "no"), NullToken("NULL")]
+    [BooleanTokens("yes", "no", TrueAliases = new[] { "y", "1" }, FalseAliases = new[] { "n", "0" })]
+    [NullToken("NULL", Aliases = new[] { "N/A" })]
     public bool? Available { get; init; }
 
-    [NullToken("NULL")]
+    [NullToken("NULL", Aliases = new[] { "N/A" })]
     public string? Note { get; init; }
 
     [NullToken("NULL"), TemporalFormat("yyyy-MM-dd")]
@@ -70,6 +72,13 @@ Both must be nonempty strings with no leading or trailing .NET whitespace.
 Internal whitespace, quotes, separators, and line breaks are literal token content.
 CSV escaping still applies when writing them.
 
+Use `TrueAliases` and `FalseAliases` to accept more input spellings.
+Aliases use the same comparison and whitespace rules as the constructor tokens.
+A true token or alias must not match any false token or alias.
+Repeated spellings for the same value are allowed.
+Empty alias arrays are allowed; null arrays and null elements produce `LTF007`.
+Aliases affect input only. CSV output uses the constructor tokens.
+
 ## Null tokens and empty fields
 
 `[NullToken("NULL")]` selects one token for reading and writing null.
@@ -82,7 +91,11 @@ Use `[NullToken("NULL", Comparison = StringComparison.OrdinalIgnoreCase)]` to ig
 Only these two comparisons are supported. They are independent of the boolean comparison.
 Writing null always uses the annotation's exact token spelling.
 
-The null token must also be nonempty and have no leading or trailing whitespace.
+Use `[NullToken("NULL", Aliases = new[] { "N/A", "missing" })]` to accept more null spellings.
+The aliases use the null comparison. Null output still writes `NULL`.
+Alias arrays follow the same validation rules as boolean alias arrays.
+
+The null token and each alias must also be nonempty and have no leading or trailing whitespace.
 It adds an explicit null representation without changing empty-field rules:
 
 | Property | Empty field | Matching null token |
@@ -103,8 +116,8 @@ It can also combine with `[TemporalFormat]` on nullable temporal properties.
 The reader checks the null token before ordinary conversion.
 The writer handles null before boolean, temporal, enum, or other value formatting.
 
-A null token reserves that decoded text for null.
-Writing a non-null value that matches it throws `TabularWriteException`.
+A null token and its aliases reserve their decoded text for null.
+Writing a non-null value that matches any of them throws `TabularWriteException`.
 The check uses the null comparison and configured field trimming.
 For example, `[NullToken("0")] int?` reads text `0` as null and rejects writing non-null zero.
 `[NullToken("NULL")] string?` rejects a non-null literal `NULL`.
@@ -126,6 +139,7 @@ Missing and empty cells keep their existing empty-field meaning.
 
 Overrides inherit the nearest annotation of each kind.
 An override can replace a boolean pair or a null token independently.
+Each replacement also replaces all aliases for that annotation.
 `[Column]` can rename the property.
 An effective `[Ignore]` or `[ColumnConverter]` cannot combine with either token annotation.
 These restrictions also apply to inherited combinations.

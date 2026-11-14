@@ -19,7 +19,7 @@ Priority and design can change.
 ## Conversion and error handling
 
 - Support multiple input formats and separate input/output formats for temporal properties.
-- Support multiple boolean/null input aliases and separate input/output tokens.
+- Support separately configured boolean/null input and output tokens.
 - Support platform-sized `nint` and `nuint` properties.
 - Configure missing-column handling.
 - Configure per-column error handling through annotations.
