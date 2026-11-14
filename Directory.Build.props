@@ -3,7 +3,6 @@
     <BaseIntermediateOutputPath Condition="'$(UseLocalPackage)' == 'true'">obj/package/</BaseIntermediateOutputPath>
     <BaseOutputPath Condition="'$(UseLocalPackage)' == 'true'">bin/package/</BaseOutputPath>
     <DefaultItemExcludes>$(DefaultItemExcludes);obj/**;bin/**</DefaultItemExcludes>
-    <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <Deterministic>true</Deterministic>

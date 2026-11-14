@@ -12,7 +12,11 @@
 | `LinqToFile.Benchmarks` | Repeatable measurements of typed streaming |
 
 The runtime targets .NET 10 and .NET 11.
+The SDK selects C# 14 for `net10.0` and C# 15 for `net11.0`.
+Do not set a repository-wide `LangVersion` override.
 The generator targets .NET Standard 2.0 for compiler host compatibility.
+Its implementation uses an explicit C# 14 language version.
+Generated source must remain compatible with .NET 10 consumer compilers.
 Roslyn dependencies belong to the generator and tests.
 The single consumer package includes the generator without runtime package dependencies.
 
