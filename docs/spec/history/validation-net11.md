@@ -20,6 +20,6 @@
 ## IDE and manual review
 
 - The only edited code/script file is eng/Verify-Package.ps1. Rider lint_files reports that it is not included in the loaded solution, so IDE inspection is unavailable. PowerShell parser validation and end-to-end execution pass for both allowed framework values. Manual review confirms that only validated framework names enter generated project XML.
-- Project/build configuration and Markdown are exempt from IDE linting. Manually review the branch diff and check whitespace before handoff.
+- Project/build configuration and Markdown are exempt from IDE linting. The complete branch diff was manually reviewed and whitespace checks passed.
 - CI expands to six jobs with framework-specific artifact names. Only Linux/net11.0 retains the publication package; publication still waits for every validation job and runs only after a main push. Human approval is required for merge.
-- Hosted CI results will be recorded after the feature PR runs.
+- Initial hosted Windows checks completed consumer validation but failed to remove the temporary cache because a reused MSBuild server held ILCompiler.Build.Tasks.dll open. Disable build servers for external consumer restore/run/publish so package task assemblies are released before cleanup. Linux/macOS and rerun results follow.

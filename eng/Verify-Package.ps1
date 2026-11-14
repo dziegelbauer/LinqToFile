@@ -16,7 +16,8 @@ $version = if ([string]::IsNullOrWhiteSpace($PackageVersion)) {
 $package = Join-Path $feed "LinqToFile.$version.nupkg"
 
 function Invoke-Dotnet {
-    & dotnet @args
+    # Release package task assemblies before the temporary cache is removed on Windows.
+    & dotnet @args --disable-build-servers
     if ($LASTEXITCODE -ne 0) { throw "dotnet failed with exit code $LASTEXITCODE" }
 }
 
