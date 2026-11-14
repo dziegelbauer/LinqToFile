@@ -8,6 +8,8 @@ Use enums or other typed options for fixed configuration choices; do not use mag
 
 Release license: Apache License 2.0 (SPDX: Apache-2.0).
 
+Document every new or changed externally visible library API with XML comments for IDE tooltips. Include a clear summary, all parameters and type parameters, return values, and relevant defaults, ownership, cancellation, limits, and exceptions. Cover public mapper infrastructure as well as application APIs. Keep XML documentation generation and package validation enabled. See docs/spec/documentation.md.
+
 Build and maintain human-readable repository documentation using ASD-STE100 (Simplified Technical English). See the documentation topic for scope and verification. Human documentation describes current usage only; omit implementation history and validation logs. Keep unimplemented plans in docs/roadmap.md. Agent specifications, maintenance instructions, and historical evidence stay under docs/spec and are not user guides.
 
 Prefer Rider MCP for suitable project, file, analysis, build, and test operations.

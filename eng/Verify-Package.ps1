@@ -24,8 +24,20 @@ function Invoke-Dotnet {
 # Check the shipped artifact rather than the project metadata alone.
 $archive = [System.IO.Compression.ZipFile]::OpenRead($package)
 try {
-    foreach ($entry in @('lib/net10.0/LinqToFile.dll', 'lib/net11.0/LinqToFile.dll', 'analyzers/dotnet/cs/LinqToFile.Generator.dll', 'LICENSE', 'README.md')) {
+    foreach ($entry in @('lib/net10.0/LinqToFile.dll', 'lib/net11.0/LinqToFile.dll', 'lib/net10.0/LinqToFile.xml', 'lib/net11.0/LinqToFile.xml', 'analyzers/dotnet/cs/LinqToFile.Generator.dll', 'LICENSE', 'README.md')) {
         if ($null -eq $archive.GetEntry($entry)) { throw "Missing package asset: $entry" }
+    }
+    foreach ($framework in @('net10.0', 'net11.0')) {
+        $reader = [System.IO.StreamReader]::new($archive.GetEntry("lib/$framework/LinqToFile.xml").Open())
+        try { [xml] $documentation = $reader.ReadToEnd() } finally { $reader.Dispose() }
+        if ($documentation.doc.assembly.name -ne 'LinqToFile') { throw 'Incorrect XML documentation assembly.' }
+        $members = @($documentation.doc.members.member)
+        if ($members.Count -eq 0) { throw 'XML documentation has no API members.' }
+        foreach ($member in $members) {
+            if ([string]::IsNullOrWhiteSpace($member.SelectSingleNode('summary').InnerText)) {
+                throw "Missing API summary: $($member.name)"
+            }
+        }
     }
     $reader = [System.IO.StreamReader]::new($archive.GetEntry('LinqToFile.nuspec').Open())
     try { [xml] $manifest = $reader.ReadToEnd() } finally { $reader.Dispose() }

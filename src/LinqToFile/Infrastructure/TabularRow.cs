@@ -84,6 +84,9 @@ public sealed partial class TabularRow
         fieldStart = length;
     }
 
+    /// <summary>Gets the field text after configured trimming. The span is valid only until the row buffer changes.</summary>
+    /// <param name="ordinal">The zero-based field or mapper position.</param>
+    /// <returns>A span over the field text. Do not retain it after the row changes.</returns>
     public ReadOnlySpan<char> GetField(int ordinal)
     {
         if ((uint)ordinal >= (uint)Count) throw new ArgumentOutOfRangeException(nameof(ordinal));
@@ -91,6 +94,10 @@ public sealed partial class TabularRow
         return TrimFields ? value.Trim() : value;
     }
 
+    /// <summary>Reads a field as String for a generated mapper.</summary>
+    /// <param name="ordinal">The zero-based field or mapper position.</param>
+    /// <param name="member">The target property name used in error diagnostics.</param>
+    /// <returns>The converted field value.</returns>
     public string ReadString(int ordinal, string member)
     {
         var value = GetField(ordinal);
@@ -99,9 +106,18 @@ public sealed partial class TabularRow
         // Shared strings are already immutable owned values; reuse them when trimming did not alter the field.
         return retainedStrings?[ordinal] is string retained && retained.Length == value.Length ? retained : value.ToString();
     }
+    /// <summary>Tests whether the field is empty after configured trimming.</summary>
+    /// <param name="ordinal">The zero-based field or mapper position.</param>
+    /// <returns>True when the trimmed field is empty; otherwise, false.</returns>
     public bool IsEmpty(int ordinal) => GetField(ordinal).IsEmpty;
 
     /// <summary>Invokes a generated, statically selected converter, including for empty fields.</summary>
+    /// <typeparam name="T">The mapped value type.</typeparam>
+    /// <typeparam name="TConverter">The statically selected converter type.</typeparam>
+    /// <param name="ordinal">The zero-based field or mapper position.</param>
+    /// <param name="member">The target property name used in error diagnostics.</param>
+    /// <returns>The converted field value.</returns>
+    /// <exception cref="TabularConversionException">The field cannot be converted to the requested type.</exception>
     public T ReadConverted<T, TConverter>(int ordinal, string member) where TConverter : IColumnConverter<T>
     {
         var text = GetField(ordinal);
@@ -133,6 +149,11 @@ public sealed partial class TabularRow
     }
 
     // Generated enum readers use this boundary too; native numeric/boolean cells are not text.
+    /// <summary>Gets a text cell for a generated mapper; rejects native non-text cells.</summary>
+    /// <param name="ordinal">The zero-based field or mapper position.</param>
+    /// <param name="member">The target property name used in error diagnostics.</param>
+    /// <returns>A span over the field text. Do not retain it after the row changes.</returns>
+    /// <exception cref="TabularConversionException">The field is not valid for the requested type or format.</exception>
     public ReadOnlySpan<char> GetTextField(int ordinal, string member)
     {
         RequireKind(ordinal, member, CellKind.Text);
@@ -145,6 +166,13 @@ public sealed partial class TabularRow
             throw CreateConversionException(ordinal, member);
     }
 
+    /// <summary>Reads a finite numeric value with the configured text culture or invariant native XLSX syntax.</summary>
+    /// <typeparam name="T">The mapped value type.</typeparam>
+    /// <param name="ordinal">The zero-based field or mapper position.</param>
+    /// <param name="member">The target property name used in error diagnostics.</param>
+    /// <param name="styles">The permitted numeric syntax.</param>
+    /// <returns>The converted field value.</returns>
+    /// <exception cref="TabularConversionException">The field cannot be converted to the requested type.</exception>
     public T ReadNumber<T>(int ordinal, string member, NumberStyles styles) where T : struct, INumberBase<T>
     {
         var text = GetField(ordinal);
@@ -162,12 +190,27 @@ public sealed partial class TabularRow
         throw CreateConversionException(ordinal, member);
     }
 
+    /// <summary>Reads a field as Int32 for a generated mapper.</summary>
+    /// <param name="ordinal">The zero-based field or mapper position.</param>
+    /// <param name="member">The target property name used in error diagnostics.</param>
+    /// <returns>The converted field value.</returns>
+    /// <exception cref="TabularConversionException">The field is not valid for the requested type or format.</exception>
     public int ReadInt32(int ordinal, string member) => ReadNumber<int>(ordinal, member, NumberStyles.Integer);
 
+    /// <summary>Reads a field as Decimal for a generated mapper.</summary>
+    /// <param name="ordinal">The zero-based field or mapper position.</param>
+    /// <param name="member">The target property name used in error diagnostics.</param>
+    /// <returns>The converted field value.</returns>
+    /// <exception cref="TabularConversionException">The field is not valid for the requested type or format.</exception>
     public decimal ReadDecimal(int ordinal, string member) =>
         ReadNumber<decimal>(ordinal, member,
             NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite);
 
+    /// <summary>Reads a field as Boolean for a generated mapper.</summary>
+    /// <param name="ordinal">The zero-based field or mapper position.</param>
+    /// <param name="member">The target property name used in error diagnostics.</param>
+    /// <returns>The converted field value.</returns>
+    /// <exception cref="TabularConversionException">The field is not valid for the requested type or format.</exception>
     public bool ReadBoolean(int ordinal, string member)
     {
         RequireKind(ordinal, member, CellKind.Boolean);
@@ -176,15 +219,30 @@ public sealed partial class TabularRow
             ? value : throw CreateConversionException(ordinal, member);
     }
 
+    /// <summary>Reads a field as Guid for a generated mapper.</summary>
+    /// <param name="ordinal">The zero-based field or mapper position.</param>
+    /// <param name="member">The target property name used in error diagnostics.</param>
+    /// <returns>The converted field value.</returns>
+    /// <exception cref="TabularConversionException">The field is not valid for the requested type or format.</exception>
     public Guid ReadGuid(int ordinal, string member) =>
         Guid.TryParse(GetTextField(ordinal, member), out var value) ? value : throw CreateConversionException(ordinal, member);
 
+    /// <summary>Reads a field as Char for a generated mapper.</summary>
+    /// <param name="ordinal">The zero-based field or mapper position.</param>
+    /// <param name="member">The target property name used in error diagnostics.</param>
+    /// <returns>The converted field value.</returns>
+    /// <exception cref="TabularConversionException">The field is not valid for the requested type or format.</exception>
     public char ReadChar(int ordinal, string member)
     {
         var text = GetTextField(ordinal, member);
         return text.Length == 1 ? text[0] : throw CreateConversionException(ordinal, member);
     }
 
+    /// <summary>Reads a field as DateTime for a generated mapper.</summary>
+    /// <param name="ordinal">The zero-based field or mapper position.</param>
+    /// <param name="member">The target property name used in error diagnostics.</param>
+    /// <returns>The converted field value.</returns>
+    /// <exception cref="TabularConversionException">The field is not valid for the requested type or format.</exception>
     public DateTime ReadDateTime(int ordinal, string member)
     {
         if (kinds is not null && kinds[ordinal] == CellKind.Number)
@@ -202,6 +260,11 @@ public sealed partial class TabularRow
         throw CreateConversionException(ordinal, member);
     }
 
+    /// <summary>Reads a field as DateTimeOffset for a generated mapper.</summary>
+    /// <param name="ordinal">The zero-based field or mapper position.</param>
+    /// <param name="member">The target property name used in error diagnostics.</param>
+    /// <returns>The converted field value.</returns>
+    /// <exception cref="TabularConversionException">The field is not valid for the requested type or format.</exception>
     public DateTimeOffset ReadDateTimeOffset(int ordinal, string member)
     {
         if (kinds is not null && kinds[ordinal] == CellKind.IsoDate)
@@ -220,6 +283,11 @@ public sealed partial class TabularRow
         throw CreateConversionException(ordinal, member);
     }
 
+    /// <summary>Reads a field as DateOnly for a generated mapper.</summary>
+    /// <param name="ordinal">The zero-based field or mapper position.</param>
+    /// <param name="member">The target property name used in error diagnostics.</param>
+    /// <returns>The converted field value.</returns>
+    /// <exception cref="TabularConversionException">The field is not valid for the requested type or format.</exception>
     public DateOnly ReadDateOnly(int ordinal, string member)
     {
         if (kinds is not null && kinds[ordinal] == CellKind.Number)
@@ -234,6 +302,11 @@ public sealed partial class TabularRow
             ? value : throw CreateConversionException(ordinal, member);
     }
 
+    /// <summary>Reads a field as TimeOnly for a generated mapper.</summary>
+    /// <param name="ordinal">The zero-based field or mapper position.</param>
+    /// <param name="member">The target property name used in error diagnostics.</param>
+    /// <returns>The converted field value.</returns>
+    /// <exception cref="TabularConversionException">The field is not valid for the requested type or format.</exception>
     public TimeOnly ReadTimeOnly(int ordinal, string member)
     {
         if (kinds is not null && kinds[ordinal] == CellKind.Number)
@@ -244,6 +317,11 @@ public sealed partial class TabularRow
             ? value : throw CreateConversionException(ordinal, member);
     }
 
+    /// <summary>Reads a field as TimeSpan for a generated mapper.</summary>
+    /// <param name="ordinal">The zero-based field or mapper position.</param>
+    /// <param name="member">The target property name used in error diagnostics.</param>
+    /// <returns>The converted field value.</returns>
+    /// <exception cref="TabularConversionException">The field is not valid for the requested type or format.</exception>
     public TimeSpan ReadTimeSpan(int ordinal, string member)
     {
         if (kinds is not null && kinds[ordinal] == CellKind.Number)
@@ -253,6 +331,10 @@ public sealed partial class TabularRow
         return TimeSpan.TryParse(text, Culture, out var value) ? value : throw CreateConversionException(ordinal, member);
     }
 
+    /// <summary>Creates a conversion error with field and source location metadata, without raw values.</summary>
+    /// <param name="ordinal">The zero-based field or mapper position.</param>
+    /// <param name="member">The target property name used in error diagnostics.</param>
+    /// <returns>An exception with field and source location metadata.</returns>
     public TabularConversionException CreateConversionException(int ordinal, string member) =>
         WithLocation(new TabularConversionException(RecordNumber, LineNumber, FailureLineNumber, ordinal + 1,
             ordinal < Headers.Length ? Headers[ordinal] : null, member));

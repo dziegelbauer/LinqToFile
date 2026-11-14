@@ -19,6 +19,13 @@
 - Contributor architecture and maintenance instructions are separate internal references, not part of the user guide.
 - Documentation updates and verification of runnable examples are completion criteria for every implementation slice.
 
+## Public API XML documentation
+- Document every new or changed externally visible library type and member with XML comments for IDE tooltips. Include enum values, attributes and their constructor parameters, fluent options, factories, queries, write operations, exceptions, and public generated-mapper support contracts.
+- Give each API a specific summary. Document all parameters and type parameters. Document return values for non-void methods. Explain relevant defaults, valid ranges, null behavior, ownership, deferred execution, cancellation boundaries, and exceptions.
+- Document overload-specific behavior. Keep comments aligned with the implementation. Do not use placeholder descriptions or rely on undocumented overrides.
+- Generate LinqToFile.xml for each runtime target and ship it beside LinqToFile.dll in the NuGet package. Treat missing and malformed public XML comments as build errors. Keep package checks for XML presence, assembly identity, and nonempty API summaries.
+- Review XML comments as human documentation. Use short, direct sentences and the existing technical vocabulary. Do not claim formal STE certification.
+
 ## Verification
 - Identify and consult the authoritative edition before claiming conformance; do not invent standard rules.
 - Keep API examples aligned with implementation and identify planned APIs as proposals.
