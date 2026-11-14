@@ -2,7 +2,9 @@
 
 ## Requirements
 
-Use .NET 10 or later.
+Use .NET 10 or .NET 11. The package includes an assembly for each target.
+To build this repository, install both SDKs.
+Use `-f net11.0` to run the repository sample on .NET 11.
 The runtime uses only the BCL.
 The package includes the source generator that creates typed mappers during compilation.
 
@@ -93,7 +95,7 @@ For example, use `win-x64` for Windows x64 or `linux-x64` for Linux x64.
 From the repository root, run:
 
 ```sh
-dotnet run --project samples/NativeAot -c Release
+dotnet run --project samples/NativeAot -c Release -f net10.0
 ```
 
 The sample runs CSV/XLSX queries, creation, append, and insertion with models from a separate assembly.

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
+        <TargetFrameworks>net10.0;net11.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsAotCompatible>true</IsAotCompatible>
@@ -13,7 +13,7 @@
         <RepositoryUrl>https://github.com/dziegelbauer/LinqToFile.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>linq;csv;xlsx;tabular;streaming;nativeaot;source-generator</PackageTags>
-        <PackageReleaseNotes>Prerelease: Append and insert records in existing XLSX files with the same single/range and sync/async method families as CSV. Preserves supported workbook content through validated staged replacement, with streaming row rewriting and existing date-system/style indexes. Supports Transitional and Strict plain tabular workbooks; unsafe reference features are rejected. Includes LINQ queries, CSV/XLSX exports, Native AOT, and a BCL-only runtime. API changes remain possible.</PackageReleaseNotes>
+        <PackageReleaseNotes>Prerelease: Targets .NET 10 and .NET 11, with Native AOT support for both. Append and insert records in existing XLSX files with the same single/range and sync/async method families as CSV. Preserves supported workbook content through validated staged replacement, with streaming row rewriting and existing date-system/style indexes. Supports Transitional and Strict plain tabular workbooks; unsafe reference features are rejected. Includes LINQ queries, CSV/XLSX exports, Native AOT, and a BCL-only runtime. API changes remain possible.</PackageReleaseNotes>
     </PropertyGroup>
 
     <ItemGroup>

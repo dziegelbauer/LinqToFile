@@ -11,7 +11,7 @@
 | `NativeAot` | Executable sample for JIT, package, and Native AOT checks |
 | `LinqToFile.Benchmarks` | Repeatable measurements of typed streaming |
 
-The runtime targets .NET 10.
+The runtime targets .NET 10 and .NET 11.
 The generator targets .NET Standard 2.0 for compiler host compatibility.
 Roslyn dependencies belong to the generator and tests.
 The single consumer package includes the generator without runtime package dependencies.

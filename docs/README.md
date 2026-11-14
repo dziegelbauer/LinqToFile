@@ -1,7 +1,7 @@
 # User guide
 
 Use LinqToFile to read CSV and XLSX files as typed C# objects.
-The library supports standard LINQ, async queries, and Native AOT on .NET 10 and later.
+The library supports standard LINQ, async queries, and Native AOT on .NET 10 and .NET 11.
 
 | Task | Guide |
 |---|---|

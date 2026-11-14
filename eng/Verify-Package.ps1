@@ -2,6 +2,7 @@ param(
     [Parameter(Mandatory = $true)][string] $RuntimeIdentifier,
     [string] $PackageDirectory = 'artifacts/feed',
     [string] $PackageVersion = $env:LinqToFileVersion,
+    [ValidateSet('net10.0', 'net11.0')][string] $TargetFramework = 'net10.0',
     [switch] $KeepWorkspace
 )
 $ErrorActionPreference = 'Stop'
@@ -15,14 +16,15 @@ $version = if ([string]::IsNullOrWhiteSpace($PackageVersion)) {
 $package = Join-Path $feed "LinqToFile.$version.nupkg"
 
 function Invoke-Dotnet {
-    & dotnet @args
+    # Release package task assemblies before the temporary cache is removed on Windows.
+    & dotnet @args --disable-build-servers
     if ($LASTEXITCODE -ne 0) { throw "dotnet failed with exit code $LASTEXITCODE" }
 }
 
 # Check the shipped artifact rather than the project metadata alone.
 $archive = [System.IO.Compression.ZipFile]::OpenRead($package)
 try {
-    foreach ($entry in @('lib/net10.0/LinqToFile.dll', 'analyzers/dotnet/cs/LinqToFile.Generator.dll', 'LICENSE', 'README.md')) {
+    foreach ($entry in @('lib/net10.0/LinqToFile.dll', 'lib/net11.0/LinqToFile.dll', 'analyzers/dotnet/cs/LinqToFile.Generator.dll', 'LICENSE', 'README.md')) {
         if ($null -eq $archive.GetEntry($entry)) { throw "Missing package asset: $entry" }
     }
     $reader = [System.IO.StreamReader]::new($archive.GetEntry('LinqToFile.nuspec').Open())
@@ -33,7 +35,7 @@ try {
     if ($metadata.repository.url -ne 'https://github.com/dziegelbauer/LinqToFile.git') { throw 'Incorrect repository URL.' }
     if ($manifest.SelectNodes("//*[local-name()='dependency']").Count -ne 0) { throw 'Runtime package dependencies are not empty.' }
     $dlls = @($archive.Entries | Where-Object { $_.FullName.EndsWith('.dll') })
-    if ($dlls.Count -ne 2) { throw 'Unexpected DLL payload in package.' }
+    if ($dlls.Count -ne 3) { throw 'Unexpected DLL payload in package.' }
     $reader = [System.IO.StreamReader]::new($archive.GetEntry('LICENSE').Open())
     try { $license = $reader.ReadToEnd() } finally { $reader.Dispose() }
     if ($license -cne [System.IO.File]::ReadAllText((Join-Path $repository 'LICENSE'))) { throw 'Packaged license differs from repository license.' }
@@ -54,7 +56,7 @@ try {
     New-Item -ItemType Directory -Path $models, $app | Out-Null
     @"
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable><IsAotCompatible>true</IsAotCompatible></PropertyGroup>
+  <PropertyGroup><TargetFramework>$TargetFramework</TargetFramework><Nullable>enable</Nullable><IsAotCompatible>true</IsAotCompatible></PropertyGroup>
   <ItemGroup><PackageReference Include="LinqToFile" Version="$version" /></ItemGroup>
 </Project>
 "@ | Set-Content (Join-Path $models 'Models.csproj')
@@ -69,12 +71,12 @@ try {
         $sample = [System.IO.File]::ReadAllText((Join-Path $repository "samples/NativeAot/$name.cs"))
         $sample.Replace('using SampleModels;', 'using ConsumerModels;') | Set-Content (Join-Path $app "$name.cs")
     }
-    @'
+    @"
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><PublishAot>true</PublishAot></PropertyGroup>
+  <PropertyGroup><TargetFramework>$TargetFramework</TargetFramework><OutputType>Exe</OutputType><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><PublishAot>true</PublishAot></PropertyGroup>
   <ItemGroup><ProjectReference Include="../Models/Models.csproj" /></ItemGroup>
 </Project>
-'@ | Set-Content (Join-Path $app 'Consumer.csproj')
+"@ | Set-Content (Join-Path $app 'Consumer.csproj')
     $program = @'
 using System.Text;
 using ConsumerModels;
