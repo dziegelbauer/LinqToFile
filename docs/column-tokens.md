@@ -145,7 +145,7 @@ An effective `[Ignore]` or `[ColumnConverter]` cannot combine with either token 
 These restrictions also apply to inherited combinations.
 Custom converters already control their own parsing, formatting, and null rules.
 
-The usual public setter/init and write getter requirements still apply.
+The [mapping rules](reference.md) apply to setters, constructor bindings, and write getters.
 Invalid types, token values, comparisons, or boolean pairs produce compiler diagnostic `LTF007`.
 Conflicting annotations produce `LTF004`.
 Read failures use `TabularConversionException`; write failures use `TabularWriteException`.

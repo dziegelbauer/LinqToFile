@@ -140,7 +140,7 @@ An override inherits the nearest converter annotation unless it declares another
 `[Ignore]` cannot apply with an effective converter annotation.
 `[TemporalFormat]` also conflicts with a converter, including inherited combinations.
 The same rule applies to `[BooleanTokens]` and `[NullToken]`.
-The normal public setter or init accessor rules still apply.
+The [mapping rules](reference.md) apply to setters, constructor bindings, and write getters.
 Writing also requires an accessible getter.
 
 Invalid converter mappings produce compiler diagnostic `LTF005`.

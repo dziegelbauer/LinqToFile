@@ -7,6 +7,7 @@ public sealed class DocumentationTests
 {
     [Theory]
     [InlineData("README.md", 5)]
+    [InlineData("reference.md", 1)]
     [InlineData("csv-and-errors.md", 1)]
     [InlineData("conversions.md", 1)]
     [InlineData("sources-and-async.md", 2)]
@@ -25,7 +26,7 @@ public sealed class DocumentationTests
         var readme = File.ReadAllText(Path.Combine(directory, file));
         var examples = Regex.Matches(readme, "```csharp\\r?\\n(.*?)```", RegexOptions.Singleline);
         Assert.Equal(expectedCount, examples.Count);
-        var sources = new[] { "Person.txt", "Program.txt", "WorkbookEntry.txt", "WorkbookSample.txt", "WorkbookCellsSample.txt", "WorkbookAsyncSample.txt", "CsvWritingSample.txt", "QuickStartSample.txt", "Product.txt", "ConverterSample.txt", "Appointment.txt", "TemporalFormatSample.txt", "InventoryItem.txt", "TokenSample.txt", "StreamWritingSample.txt", "XlsxWritingSample.txt", "XlsxMutationSample.txt", "HeaderlessEntry.txt", "HeaderlessCsvSample.txt" }
+        var sources = new[] { "ImmutableProduct.txt", "Person.txt", "Program.txt", "WorkbookEntry.txt", "WorkbookSample.txt", "WorkbookCellsSample.txt", "WorkbookAsyncSample.txt", "CsvWritingSample.txt", "QuickStartSample.txt", "Product.txt", "ConverterSample.txt", "Appointment.txt", "TemporalFormatSample.txt", "InventoryItem.txt", "TokenSample.txt", "StreamWritingSample.txt", "XlsxWritingSample.txt", "XlsxMutationSample.txt", "HeaderlessEntry.txt", "HeaderlessCsvSample.txt" }
             .Select(name => Normalize(File.ReadAllText(Path.Combine(directory, name)))).ToArray();
         foreach (Match example in examples)
             Assert.Contains(sources, source => source.Contains(Normalize(example.Groups[1].Value), StringComparison.Ordinal));
