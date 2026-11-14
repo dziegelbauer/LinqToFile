@@ -4,6 +4,10 @@ public sealed partial class TabularRow
 {
     /// <summary>Tests only text cells, after configured field trimming.</summary>
     public bool IsNullToken(int ordinal, string token, StringComparison comparison)
+        => IsTextToken(ordinal, token, comparison);
+
+    /// <summary>Tests a literal token only in text cells, after configured field trimming.</summary>
+    public bool IsTextToken(int ordinal, string token, StringComparison comparison)
     {
         var field = GetField(ordinal);
         return (kinds is null || kinds[ordinal] == CellKind.Text) && field.Equals(token.AsSpan(), comparison);

@@ -195,8 +195,7 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
                     "row.ReadConverted<" + property.Type.ToDisplayString(TypeFormat) + ", " + converterName +
                     ">(ordinals[" + index + "], " + Literal(property.Name) + ")";
                 if (format != null) reader = "row.Read" + GetTemporalKind(valueType) + "Exact(ordinals[" + index + "], " + Literal(property.Name) + ", " + Literal(format) + ")";
-                if (tokenMapping?.TrueToken != null) reader = "row.ReadBooleanTokens(ordinals[" + index + "], " + Literal(property.Name) + ", " +
-                    Literal(tokenMapping.TrueToken) + ", " + Literal(tokenMapping.FalseToken!) + ", " + ComparisonExpression(tokenMapping.BooleanComparison) + ")";
+                if (tokenMapping?.TrueToken != null) reader = ReadBooleanExpression(index, property.Name, tokenMapping);
                 if (reader == null)
                 {
                     Error(InvalidType, property, "Use a supported scalar type or enum, or annotate the property with ColumnConverter.");
@@ -259,6 +258,9 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
         for (int i = 0; i < properties.Count; i++)
         {
             source.Append("@").Append(properties[i].Name).Append(" = ");
+            if (tokens[i] is { } mapping)
+                foreach (var alias in mapping.NullAliases)
+                    source.Append(TextTokenExpression(i, alias, mapping.NullComparison)).Append(" ? null : ");
             if (tokens[i]?.NullToken is { } nullToken)
                 source.Append("row.IsNullToken(ordinals[").Append(i).Append("], ").Append(Literal(nullToken)).Append(", ")
                     .Append(ComparisonExpression(tokens[i]!.NullComparison)).Append(") ? null : ");
@@ -364,7 +366,11 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
                 source.AppendLine(");");
             }
             if (tokens[i]?.NullToken is { } token)
+            {
                 source.Append("value.RejectNullToken(").Append(Literal(token)).Append(", ").Append(ComparisonExpression(tokens[i]!.NullComparison)).AppendLine(");");
+                foreach (var alias in tokens[i]!.NullAliases)
+                    source.Append("value.RejectNullToken(").Append(Literal(alias)).Append(", ").Append(ComparisonExpression(tokens[i]!.NullComparison)).AppendLine(");");
+            }
             source.AppendLine("return; }");
         }
         source.AppendLine("default: throw new global::System.ArgumentOutOfRangeException(nameof(ordinal)); } }");

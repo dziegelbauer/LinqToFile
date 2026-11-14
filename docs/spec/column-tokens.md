@@ -9,14 +9,14 @@
 
 ## Confirmed boolean token scope
 - [BooleanTokens("yes", "no")] specifies exactly one true token and one false token, used for both text parsing and CSV output. The annotation replaces built-in text tokens rather than silently also accepting true/false. Boolean properties without it keep current true/false behavior. The user approved this behavior.
-- Multiple accepted aliases or separate read/write tokens remain future objectives.
+- Input-only aliases are now approved; see the alias contract below. Separate read/write tokens remain a future objective.
 
 ## Confirmed boolean comparison
 - Default to StringComparison.OrdinalIgnoreCase, consistent with built-in boolean parsing. Permit an explicit Comparison = StringComparison.Ordinal for case-sensitive tokens. Only these two enum values are supported, keeping comparisons independent of culture. The user approved this behavior.
 - CSV output uses the literal token spelling from the annotation; comparison changes input matching only.
 
 ## Confirmed null token scope
-- [NullToken("NULL")] specifies one token used both to recognize null on text input and to serialize null to CSV. Do not automatically recognize other null spellings. The user approved this behavior. Multiple aliases or separate read/write null tokens remain future work.
+- [NullToken("NULL")] specifies one token used both to recognize null on text input and to serialize null to CSV. Do not automatically recognize other null spellings. The user approved this behavior. Input-only aliases are now approved; see below. Separate read/write null tokens remain future work.
 
 ## Confirmed empty fields
 - Retain existing empty-field rules alongside the explicit null token. Empty strings remain empty strings; empty nullable value fields remain null. Null strings can use the explicit token, so null and empty string remain distinct. Quoted/unquoted empties remain equivalent. The user approved this behavior.
@@ -61,3 +61,11 @@
 - Tests cover diagnostics, inheritance, nullable composition, comparison/trimming, native cell boundaries, reserved-value output guards, private locations, CSV escaping/limits, and zero additional allocations in warmed token operations.
 - Project/package and fresh external-consumer samples include cross-assembly boolean/null/date annotations, async input, append/insertion, collision protection, and native XLSX preservation. See history/validation-column-tokens.md for evidence.
 - Commit and push all changes, run hosted checks, and open a PR for human review. Do not merge this PR or enable auto-merge.
+
+## Approved input aliases
+- The user approved TrueAliases and FalseAliases string-array properties on BooleanTokensAttribute, and Aliases on NullTokenAttribute. Constructor tokens remain accepted on input and are the only output tokens.
+- Apply each annotation's existing comparison, trimming, property-type, inheritance, converter-conflict, and native XLSX rules to its aliases. A replacement annotation replaces its aliases too.
+- Alias arrays default to empty. Reject null arrays, null elements, empty/padded strings, and any true/false cross-set ambiguity with LTF007. Repeated aliases for the same value are harmless and allowed.
+- Null aliases have the same input priority as the primary null token. Check all null aliases when guarding non-null output, with the null comparison and configured trimming. Overlap with boolean spellings remains allowed.
+- Emit literal span comparisons, with no runtime attribute discovery or per-field alias collections. Preserve unannotated mappings and canonical output.
+- Validate generator diagnostics, inherited replacement, sync/async CSV, text/native XLSX, comparison/trimming, private collision errors, warmed generated-mapper allocations, and cross-assembly package/Native AOT samples.

@@ -31,7 +31,7 @@ internal static class TokenSample
 
             byte[] before = await File.ReadAllBytesAsync(path);
             bool rejected = false;
-            try { await file.AppendAsync(new InventoryItem { Id = 5, Note = " NULL " }); }
+            try { await file.AppendAsync(new InventoryItem { Id = 5, Note = " N/A " }); }
             catch (TabularWriteException error) when (error is { TargetMember: "Note", InnerException: null }) { rejected = true; }
             byte[] after = await File.ReadAllBytesAsync(path);
             if (!rejected || !before.AsSpan().SequenceEqual(after))
@@ -41,6 +41,12 @@ internal static class TokenSample
             var native = await TabularFile.Xlsx<NativeTokenNumber>(workbookPath).ToListAsync();
             if (!native.Select(r => r.Id).SequenceEqual(new int?[] { 1, 2 }))
                 throw new InvalidOperationException("A null token consumed a native numeric cell.");
+
+            var aliases = await TabularFile.Csv<InventoryItem>(() => new MemoryStream(System.Text.Encoding.UTF8.GetBytes(
+                "Id,Available,Note,ExpiresOn\n1,Y,N/A,NULL\n2,0,,NULL\n3,N/A,ordinary,NULL\n"))).ToArrayAsync();
+            if (aliases[0].Available != true || aliases[0].Note is not null || aliases[1].Available != false ||
+                aliases[1].Note != "" || aliases[2].Available is not null)
+                throw new InvalidOperationException("Boolean/null input aliases failed.");
         }
         finally { File.Delete(path); File.Delete(workbookPath); }
         Console.WriteLine("Column tokens: boolean/null values, empty strings, temporal formats, async ranges, collisions, and native XLSX passed.");
