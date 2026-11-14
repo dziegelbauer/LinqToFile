@@ -1,10 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFrameworks>net10.0;net11.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsAotCompatible>true</IsAotCompatible>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <WarningsAsErrors>$(WarningsAsErrors);CS1591;CS1570;CS1572;CS1573;CS1574;CS1580;CS1581;CS1584;CS1587;CS1711;CS1712</WarningsAsErrors>
         <PackageId>LinqToFile</PackageId>
         <Description>Bring familiar LINQ queries to CSV and XLSX files. Work with typed C# objects, stream results, create files, and append or insert records in either format. Export to paths or streams, with date formats, boolean/null tokens, and custom converters. .NET 10+, Native AOT, and no extra runtime package dependencies.</Description>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>

@@ -6,5 +6,6 @@ namespace LinqToFile;
 /// <typeparam name="TSelf">The mapped record class.</typeparam>
 public interface ITabularRecord<TSelf> where TSelf : class, ITabularRecord<TSelf>
 {
+    /// <summary>Gets the compile-time mapper for this record type.</summary>
     static abstract RecordMapper<TSelf> Mapper { get; }
 }
