@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><TargetFramework>net10.0</TargetFramework><IsPackable>false</IsPackable><IsAotCompatible>true</IsAotCompatible></PropertyGroup>
+  <PropertyGroup><TargetFrameworks>net10.0;net11.0</TargetFrameworks><IsPackable>false</IsPackable><IsAotCompatible>true</IsAotCompatible></PropertyGroup>
   <ItemGroup Condition="'$(UseLocalPackage)' != 'true'">
     <ProjectReference Include="../../src/LinqToFile/LinqToFile.csproj" />
     <ProjectReference Include="../../src/LinqToFile.Generator/LinqToFile.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />

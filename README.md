@@ -19,7 +19,7 @@ Shared model annotations work across CSV and XLSX, so you can reuse your mapping
 
 ## Install
 
-For .NET 10 or later, add the prerelease package to your model project:
+For .NET 10 or .NET 11, add the prerelease package to your model project:
 
 ```sh
 dotnet add package LinqToFile --prerelease

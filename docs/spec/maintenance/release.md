@@ -10,7 +10,7 @@ The API can change before a stable release.
 
 The package contains the runtime, source generator, README, and Apache-2.0 license.
 The package README is the root README, with absolute documentation links. The consumer check verifies exact equality and runs its model plus four API examples.
-The runtime targets .NET 10 and has no NuGet dependencies.
+The runtime targets .NET 10 and .NET 11 and has no NuGet dependencies.
 The generator runs during compilation. Applications do not register mappers.
 Each project that declares models must reference the package.
 

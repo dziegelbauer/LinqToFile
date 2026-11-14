@@ -4,7 +4,7 @@
 - C# library for LINQ over tabular files, starting with CSV. Headerless CSV now supports explicit supplied-name or model-index mapping; see headerless-csv.md.
 - Next format: XLSX. Stage 2 adds shared strings, rich text, cached formulas, native temporal conversions, and resource limits to synchronous paths/seekable streams. Local validation passes; the user confirmed CI passed after commit 32ff4d2, completing stage 2. Stage 3 adds sync/async factories, non-seekable spooling, async I/O/cancellation, and performance validation. Its local checks pass, and the user confirmed CI passed after commit 339dc55. All three XLSX stages are complete. See xlsx.md and xlsx-plan.md.
 - Keep source lifetime, shared queries, schema binding, and mapping separate from individual format readers. CSV code lives under Formats/Csv; shared layers stay reusable for future tabular formats within the single runtime package.
-- Minimum target: .NET 10, compatible with later versions.
+- Minimum target: .NET 10. The user approved explicit net10.0/net11.0 runtime assets, tests and package-consumer/Native AOT checks on Windows, Linux, and macOS. Keep the generator on netstandard2.0.
 - Support every platform supported by the target .NET runtime.
 - Production library dependencies: BCL only.
 - Distribute one consumer NuGet package containing the BCL-only runtime and build-time source generator; no separate generator installation or manual registration is required.
