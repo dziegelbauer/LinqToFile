@@ -18,6 +18,7 @@
 - Fluent configuration is immutable: options return a new configuration without changing existing queries.
 - EF Core-like fluent configuration, including WithEncoding.
 - Strongly typed materialization, incremental record streaming, and full collections.
+- Explicit TabularConstructor mapping supports ordinary immutable classes for CSV/XLSX through generated calls. See mapping.md.
 - Prioritize efficiency and avoid unnecessary allocations.
 - Native AOT compatibility is a top-level requirement; designs and validation must account for it.
 - Minimizing allocations is a top-level requirement across parsing, mapping, streaming, and materialization.

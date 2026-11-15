@@ -27,7 +27,7 @@ Priority and design can change.
 
 ## Model mapping
 
-- Support parameterized constructor mapping.
+- Extend constructor mapping to records and primary constructors.
 - Extend mapping to additional model shapes, including non-public and generic classes.
 
 ## Features to evaluate

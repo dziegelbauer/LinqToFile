@@ -22,6 +22,7 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
     private static readonly DiagnosticDescriptor InvalidTemporalFormat = Rule("LTF006", "Unsupported temporal format");
     private static readonly DiagnosticDescriptor InvalidTokens = Rule("LTF007", "Unsupported column tokens");
     private static readonly DiagnosticDescriptor InvalidIndex = Rule("LTF008", "Unsupported column index");
+    private static readonly DiagnosticDescriptor InvalidConstructor = Rule("LTF009", "Unsupported constructor mapping");
     private static readonly SymbolDisplayFormat TypeFormat = SymbolDisplayFormat.FullyQualifiedFormat
         .WithMiscellaneousOptions(SymbolDisplayFormat.FullyQualifiedFormat.MiscellaneousOptions |
             SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
@@ -55,10 +56,30 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
             accessible &= owner.DeclaredAccessibility == Accessibility.Public && owner.Arity == 0 &&
                 owner.DeclaringSyntaxReferences.All(r =>
                     r.GetSyntax() is TypeDeclarationSyntax declaration && declaration.Modifiers.Any(SyntaxKind.PartialKeyword));
-        if (model.TypeKind != TypeKind.Class || model.IsRecord || model.IsAbstract || model.IsStatic ||
-            !accessible || !model.InstanceConstructors.Any(c => c.DeclaredAccessibility == Accessibility.Public && c.Parameters.Length == 0))
+        if (model.StaticConstructors.Any(c => c.GetAttributes().Any(a =>
+            a.AttributeClass?.ToDisplayString() == "LinqToFile.TabularConstructorAttribute")))
+            Error(InvalidConstructor, model, "TabularConstructor requires an instance constructor.");
+        var constructors = model.InstanceConstructors.Where(c => c.GetAttributes().Any(a =>
+            a.AttributeClass?.ToDisplayString() == "LinqToFile.TabularConstructorAttribute")).ToArray();
+        if (constructors.Length > 1)
         {
-            Error(InvalidModel, model, "Use a public, partial, non-generic, non-abstract class with a public parameterless constructor. Containing types must be public, partial, and non-generic. Record classes are not supported yet.");
+            Error(InvalidConstructor, model, "Select exactly one constructor with TabularConstructor.");
+            return;
+        }
+        var constructor = constructors.SingleOrDefault();
+        if (constructor != null && (constructor.DeclaredAccessibility != Accessibility.Public ||
+            constructor.Parameters.Any(p => p.RefKind != RefKind.None || p.IsParams)))
+        {
+            Error(InvalidConstructor, constructor, "Select a public instance constructor with ordinary value parameters; ref, in, out, and params parameters are not supported.");
+            return;
+        }
+        bool setsRequiredMembers = constructor?.GetAttributes().Any(a =>
+            a.AttributeClass?.ToDisplayString() == "System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute") == true;
+        if (model.TypeKind != TypeKind.Class || model.IsRecord || model.IsAbstract || model.IsStatic ||
+            !accessible || model.DeclaringSyntaxReferences.Any(r => r.GetSyntax() is ClassDeclarationSyntax { ParameterList: not null }) ||
+            (constructor == null && !model.InstanceConstructors.Any(c => c.DeclaredAccessibility == Accessibility.Public && c.Parameters.Length == 0)))
+        {
+            Error(InvalidModel, model, "Use a public, partial, non-generic, non-abstract class with a public parameterless constructor or a public constructor marked with TabularConstructor. Primary constructors are not supported. Containing types must be public, partial, and non-generic. Record classes are not supported yet.");
             return;
         }
 
@@ -122,11 +143,14 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
                     if (property.IsRequired) Error(InvalidMember, property, "A required property cannot be ignored.");
                     continue;
                 }
+                bool constructorBound = constructor?.Parameters.Any(p =>
+                    string.Equals(p.Name, property.Name, StringComparison.OrdinalIgnoreCase)) == true;
                 if (property.IsStatic || property.IsIndexer || property.DeclaredAccessibility != Accessibility.Public ||
-                    property.SetMethod?.DeclaredAccessibility != Accessibility.Public)
+                    (constructorBound ? property.GetMethod?.DeclaredAccessibility != Accessibility.Public :
+                        property.SetMethod?.DeclaredAccessibility != Accessibility.Public))
                 {
                     if (columnIndex != null || column != null || converter != null || temporal != null || booleanTokens != null || nullToken != null || property.IsRequired)
-                        Error(InvalidMember, property, "Mapped and required properties must be instance properties with a public setter or public init accessor, and cannot be indexers.");
+                        Error(InvalidMember, property, "Mapped and required properties must be public instance properties with a public setter/init accessor or a public getter bound to TabularConstructor, and cannot be indexers.");
                     continue;
                 }
                 if (seen.ContainsKey(property.Name))
@@ -217,6 +241,26 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
             foreach (var member in type.GetMembers())
                 if (!seen.ContainsKey(member.Name)) seen.Add(member.Name, member);
         }
+        var constructorIndexes = new List<int>();
+        if (constructor != null)
+        {
+            foreach (var parameter in constructor.Parameters)
+            {
+                var matches = properties.Select((property, index) => (property, index)).Where(item =>
+                    string.Equals(item.property.Name, parameter.Name, StringComparison.OrdinalIgnoreCase)).ToArray();
+                if (matches.Length != 1 || !SymbolEqualityComparer.IncludeNullability.Equals(matches[0].property.Type, parameter.Type))
+                {
+                    Error(InvalidConstructor, parameter, "Each parameter must match exactly one mapped public property by name (OrdinalIgnoreCase) and type, including nullability.");
+                    continue;
+                }
+                int index = matches[0].index;
+                if (constructorIndexes.Contains(index))
+                    Error(InvalidConstructor, parameter, "Multiple constructor parameters cannot bind the same property.");
+                if (properties[index].IsRequired && !setsRequiredMembers)
+                    Error(InvalidConstructor, parameter, "A constructor that binds a required property must have SetsRequiredMembers.");
+                constructorIndexes.Add(index);
+            }
+        }
         if (failed) return;
 
         string modelName = model.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
@@ -253,11 +297,13 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
         source.Append("public override global::System.ReadOnlySpan<string> Members => ")
             .AppendLine(sharedNames ? "names;" : "members;");
         source.Append("public override ").Append(modelName)
-            .AppendLine(" Read(global::LinqToFile.Infrastructure.TabularRow row, global::System.ReadOnlySpan<int> ordinals) =>");
-        source.Append("new ").Append(modelName).AppendLine(" {");
+            .Append(" Read(global::LinqToFile.Infrastructure.TabularRow row, global::System.ReadOnlySpan<int> ordinals)");
+        source.AppendLine(constructor == null ? " =>" : " {");
+        if (constructor == null) source.Append("new ").Append(modelName).AppendLine(" {");
         for (int i = 0; i < properties.Count; i++)
         {
-            source.Append("@").Append(properties[i].Name).Append(" = ");
+            if (constructor == null) source.Append("@").Append(properties[i].Name).Append(" = ");
+            else source.Append(properties[i].Type.ToDisplayString(TypeFormat)).Append(" value_").Append(i).Append(" = ");
             if (tokens[i] is { } mapping)
                 foreach (var alias in mapping.NullAliases)
                     source.Append(TextTokenExpression(i, alias, mapping.NullComparison)).Append(" ? null : ");
@@ -265,9 +311,19 @@ public sealed partial class RecordGenerator : IIncrementalGenerator
                 source.Append("row.IsNullToken(ordinals[").Append(i).Append("], ").Append(Literal(nullToken)).Append(", ")
                     .Append(ComparisonExpression(tokens[i]!.NullComparison)).Append(") ? null : ");
             if (nullable[i] && converters[i] == null) source.Append("row.IsEmpty(ordinals[").Append(i).Append("]) ? null : ");
-            source.Append(readers[i]).AppendLine(",");
+            source.Append(readers[i]).AppendLine(constructor == null ? "," : ";");
+        }
+        if (constructor != null)
+        {
+            source.Append("return new ").Append(modelName).Append("(");
+            source.Append(string.Join(", ", constructorIndexes.Select(i => "value_" + i.ToString(CultureInfo.InvariantCulture))));
+            source.AppendLine(") {");
+            for (int i = 0; i < properties.Count; i++)
+                if (!constructorIndexes.Contains(i))
+                    source.Append("@").Append(properties[i].Name).Append(" = value_").Append(i).AppendLine(",");
         }
         source.AppendLine("};");
+        if (constructor != null) source.AppendLine("}");
         EmitTemporalCultureValidation(source, properties, formats);
         EmitWriter(source, model, modelName, properties, nullable, enums, converters, formats, tokens);
         foreach (var item in enums) EmitEnum(source, item.Key, item.Value);

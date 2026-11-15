@@ -12,3 +12,4 @@ LTF005 | LinqToFile | Error | Unsupported column converter
 LTF006 | LinqToFile | Error | Unsupported temporal format
 LTF007 | LinqToFile | Error | Unsupported column tokens
 LTF008 | LinqToFile | Error | Unsupported column index
+LTF009 | LinqToFile | Error | Unsupported constructor mapping

@@ -11,6 +11,8 @@
     <ProjectReference Include="../../src/LinqToFile.Generator/LinqToFile.Generator.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="../../docs/reference.md" Link="Examples/reference.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../samples/Models/ImmutableProduct.cs" Link="Examples/ImmutableProduct.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../docs/headerless-csv.md" Link="Examples/headerless-csv.md" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../samples/Models/HeaderlessEntry.cs" Link="Examples/HeaderlessEntry.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../samples/NativeAot/HeaderlessCsvSample.cs" Link="Examples/HeaderlessCsvSample.txt" CopyToOutputDirectory="PreserveNewest" />

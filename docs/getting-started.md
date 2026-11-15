@@ -45,11 +45,11 @@ Keep the local feed available when you restore the package on another machine.
 
 Use the model and query in the [repository README](../README.md).
 A mapped class must be public, partial, and non-abstract.
-It must have a public parameterless constructor.
+Use a public parameterless constructor or select a public constructor with `[TabularConstructor]`.
 A class without an explicit constructor has an implicit parameterless constructor.
 
 Mark the class with `[TabularRecord]`.
-Properties need a public setter or init accessor.
+Properties need a public setter or init accessor, or a public getter with a constructor binding.
 Use `[Column("header")]` when a column name differs from the property name.
 Use `[Ignore]` to exclude a property.
 The [mapping reference](reference.md) gives the complete model rules.

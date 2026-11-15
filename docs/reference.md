@@ -12,8 +12,11 @@ The class and its containing types must be non-generic.
 Containing types must also be public and partial.
 C# record declarations are not supported.
 
-The model must have a public parameterless constructor.
+Use a public parameterless constructor or select a public constructor with `[TabularConstructor]`.
+Primary constructors are not supported.
 Properties can have a public setter or a public init accessor.
+A property supplied by the selected constructor can have a public getter without a setter.
+See [constructor mapping](#constructor-mapping) below.
 CSV writing also requires an accessible getter on each mapped property.
 See [CSV writing](csv-writing.md) for write methods, options, and error rules.
 Use [XLSX writing](xlsx-writing.md) for `XlsxWriter<T>` path, stream, and factory exports.
@@ -34,6 +37,7 @@ This rule also applies when a field or method hides that property.
 | Attribute | Effect |
 |---|---|
 | `[TabularRecord]` | Makes a generated mapper for the partial class |
+| `[TabularConstructor]` | Selects the public constructor used to create each record |
 | `[ColumnIndex(0)]` | Maps a property to a zero-based field position for headerless CSV reading |
 | `[Column("header")]` | Uses the literal header name for a property |
 | `[ColumnConverter(typeof(MyConverter))]` | Uses static conversion methods for the property's complete type |
@@ -46,9 +50,64 @@ A property without a column annotation uses its property name.
 An empty or whitespace-only annotation name causes a compiler error.
 The generator preserves whitespace in a meaningful annotation name.
 
-The generator ignores ordinary read-only properties and indexers.
+The generator ignores read-only properties that have no constructor binding, and all indexers.
 A column or converter annotation on such a member causes a compiler error.
 Public fields are not mapped.
+
+## Constructor mapping
+
+Put `[TabularConstructor]` on one public instance constructor.
+Each parameter must match exactly one mapped public property.
+Names use ordinal comparison without case sensitivity.
+Types must match, including nullable annotations.
+Keep column names, indexes, converters, temporal formats, and tokens on properties.
+
+```csharp
+using LinqToFile;
+
+namespace SampleModels;
+
+[TabularRecord]
+public sealed partial class ImmutableProduct
+{
+    [Column("product_id")]
+    public int Id { get; }
+    public string Name { get; }
+
+    [TabularConstructor]
+    public ImmutableProduct(int id, string name)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(id);
+        Id = id;
+        Name = name;
+    }
+}
+```
+
+This model works with CSV and XLSX reading and writing.
+The generated mapper converts all mapped values before it calls the constructor.
+It passes arguments in constructor parameter order.
+It assigns remaining mapped properties through public setters or init accessors.
+A property supplied by the constructor must have a public getter.
+The mapper does not assign that property again.
+
+The constructor can bind inherited properties.
+Ignored properties cannot supply constructor arguments.
+An optional parameter still needs a mapped column; its default does not replace missing input.
+The selected constructor cannot use `ref`, `in`, `out`, or `params` parameters.
+Records and primary constructors are not supported.
+
+If a constructor parameter binds a `required` property, put
+`[System.Diagnostics.CodeAnalysis.SetsRequiredMembers]` on the constructor.
+The application constructor must initialize the required members that this attribute promises.
+The mapper still assigns other mapped properties through their setters or init accessors.
+Required fields and ignored required properties remain unsupported.
+
+Invalid or ambiguous bindings produce `LTF009` compiler errors.
+Application constructor exceptions propagate unchanged.
+They can contain application data; the library does not remove that data.
+Schema and conversion errors keep their existing location and privacy rules.
+Without `[TabularConstructor]`, the mapper uses the parameterless construction rules.
 
 ## Source methods
 
@@ -135,6 +194,7 @@ Quoted and unquoted empty fields have the same meaning.
 | `LTF006` | The temporal format or target type is invalid or incompatible |
 | `LTF007` | The token values, comparison, or property type is invalid |
 | `LTF008` | A column index is negative or duplicates another mapped index |
+| `LTF009` | Constructor selection or parameter binding is invalid or ambiguous |
 
 An unmarked class cannot satisfy the generated interface constraint.
 The C# compiler reports that use as a constraint error.

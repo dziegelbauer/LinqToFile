@@ -9,7 +9,7 @@
 - Define an annotation to supply a column header.
 - Support public setters and init-only setters.
 - Writing additionally requires getters accessible from the generated mapper. Preserve reading for setter-only/inaccessible-getter models; reject their writes, including headers-only creation, before creating a file. Public getters work across assemblies; same-assembly internal access is supported.
-- Require a public parameterless constructor initially.
+- Use a public parameterless constructor unless TabularConstructor selects a public instance constructor. See the confirmed constructor contract below.
 - Header matching defaults to ordinal, case-sensitive comparison and is configurable.
 - Initial supported header comparisons: StringComparer.Ordinal and StringComparer.OrdinalIgnoreCase only.
 - Reject multiple properties mapped to the same header under the configured comparison.
@@ -48,9 +48,9 @@
 - A char field must contain exactly one UTF-16 code unit; longer or empty non-nullable char fields throw.
 - Initial mapped data members are properties only. Field mapping is deferred; required fields make a model unsupported and produce compiler diagnostics.
 - Materialized records own their values and remain safe to retain after enumeration advances or ends. String properties require owned strings; avoid temporary per-field strings for numeric conversion.
-- Map inherited public writable properties. Ignore public read-only properties and indexers unless explicitly annotated for mapping, in which case emit compiler diagnostics.
+- Map inherited public writable properties. Map public getter properties bound to the selected constructor. Ignore other public read-only properties and indexers unless explicitly annotated for mapping, in which case emit compiler diagnostics.
 - Map overridden properties once, using the most-derived declaration. Hidden properties that create ambiguous mappings produce compiler diagnostics.
-- Combining [Column] and [Ignore] on one property produces a compiler error. Properties annotated for mapping without a public setter or public init accessor also produce compiler errors.
+- Combining [Column] and [Ignore] on one property produces a compiler error. Properties annotated for mapping without a public setter, public init accessor, or constructor binding also produce compiler errors.
 - Avoid runtime reflection; use compile-time source generation for typed mapping.
 - Exact duplicate column mappings produce compiler diagnostics. WithHeaderComparison rejects comparison-dependent property mapping collisions immediately; file header validation still occurs during enumeration.
 - Generated member metadata supplies TargetMember for missing columns and parser/width errors when the header identifies a mapped property.
@@ -65,10 +65,29 @@
 
 ## Unresolved
 - Supported scalar conversions are implemented in phase 3. Further conversion families remain future work.
-- Additional model shapes beyond phase 1. Parameterized constructor mapping is deferred.
+- Additional model shapes beyond ordinary classes, including records and primary constructors, are deferred.
 - Further inheritance edge cases can be validated as the generator expands; current phase 3 coverage is recorded in validation-phase3.md.
 
 ## Future objectives
 - Configurable missing-column handling.
 - Multiple token aliases or separate input/output token forms. Initial BooleanTokens/NullToken annotations use one pair/token for both directions.
 - Multiple accepted temporal input formats or separate read/write formats; the initial TemporalFormat annotation uses one format for both. See temporal-formats.md.
+
+## Constructor mapping
+
+### Confirmed by the user
+- Ordinary immutable classes are the first slice; records and primary constructors are deferred.
+- TabularConstructor selects one public constructor. Without it, retain parameterless construction.
+- Bind each parameter to one mapped public property by ordinal case-insensitive name and matching type.
+- Keep all existing column/conversion annotations on properties.
+- Bound getter-only properties are supported. Assign remaining properties through public setters/init accessors.
+- Diagnose unmatched and ambiguous mappings at compile time. Support CSV/XLSX with direct generated constructor calls, no runtime reflection, and Native AOT compatibility.
+
+### Implementation details
+- Bound properties require public getters. Parameter/property types include reference nullability.
+- LTF009 covers invalid selection, unmatched/type-incompatible parameters, duplicate bindings, and case-insensitive ambiguity.
+- Reject static/private constructors and ref/in/out/params parameters. Optional parameters still bind input and do not change missing-column behavior.
+- Convert all mapped fields once, in mapped property order, before calling the constructor. Pass values in parameter order and initialize remaining properties afterward. No extra runtime containers or delegates are needed.
+- Required bound properties require SetsRequiredMembers on the selected constructor. This preserves C# required-member checks without assigning bound properties twice. Remaining required properties retain initializer assignment; ignored required properties and required fields remain errors.
+- Constructor exceptions propagate unchanged, including any application-supplied data. Library schema/conversion errors retain property metadata and existing privacy rules.
+- Inheritance, override annotations, headerless indexes, converters, tokens, formats, and write getters retain their existing contracts.

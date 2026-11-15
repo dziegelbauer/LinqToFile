@@ -4,6 +4,20 @@ namespace LinqToFile;
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
 public sealed class TabularRecordAttribute : Attribute;
 
+/// <summary>Selects the public constructor used by the generated record mapper.</summary>
+/// <remarks>
+/// Apply to one ordinary instance constructor on a TabularRecord class. Each parameter must match
+/// one mapped public property by name, ignoring case, and by type, including nullability.
+/// Keep column and conversion annotations on properties. Bound properties require public getters.
+/// Other mapped properties require public setters or init accessors. Required properties bound by
+/// the constructor require SetsRequiredMembers on that constructor. Without this attribute, mapping
+/// uses a public parameterless constructor. Records, primary constructors, and ref, in, out, or params
+/// parameters are not supported. Optional parameters still require mapped input columns.
+/// Values are converted before construction. Exceptions from application constructors propagate unchanged.
+/// </remarks>
+[AttributeUsage(AttributeTargets.Constructor, Inherited = false)]
+public sealed class TabularConstructorAttribute : Attribute;
+
 /// <summary>Maps a property to a literal column header.</summary>
 /// <param name="name">The literal column header.</param>
 [AttributeUsage(AttributeTargets.Property, Inherited = true)]
