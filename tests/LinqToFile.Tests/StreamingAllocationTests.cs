@@ -1,4 +1,4 @@
-using System.Text;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Xunit;
 
@@ -16,9 +16,15 @@ public sealed class StreamingAllocationTests
     public async Task NumericStreamingAllocatesOnlyOwnedModelsAsRecordCountGrows(bool asynchronous, bool headerless, bool indexes)
     {
         // Every read completes inline: no unrelated thread allocations enter this counter.
-        // Warm both parsing and buffer refills; 1,000 short rows fit in the initial buffer.
-        await Scan(100_000, asynchronous, headerless, indexes);
-        ModelBytes(1000);
+        // Exercise both measured sizes through tiered compilation before taking samples.
+        // A short scan can finish before runtime warmup work starts on a slower CI host.
+        long warmupStart = Stopwatch.GetTimestamp();
+        do
+        {
+            await Scan(10_000, asynchronous, headerless, indexes);
+            await Scan(1_000_000, asynchronous, headerless, indexes);
+            ModelBytes(990_000);
+        } while (Stopwatch.GetElapsedTime(warmupStart) < TimeSpan.FromSeconds(3));
         // One-time runtime work can occur on the measured thread. The minimum of repeated
         // scans excludes that noise; a per-record allocation regression remains in every scan.
         long small = long.MaxValue, large = long.MaxValue;
@@ -64,8 +70,8 @@ public sealed class StreamingAllocationTests
     // Generate a virtual file using fixed storage, without seeking or buffering all records.
     private sealed class RepeatedStream(int records, bool headerless) : Stream
     {
-        private static readonly byte[] Header = Encoding.UTF8.GetBytes("Value\n");
-        private static readonly byte[] Row = Encoding.UTF8.GetBytes("42\n");
+        private static readonly byte[] Header = "Value\n"u8.ToArray();
+        private static readonly byte[] Row = "42\n"u8.ToArray();
         private readonly int headerLength = headerless ? 0 : Header.Length;
         private long position;
         public override bool CanRead => true;

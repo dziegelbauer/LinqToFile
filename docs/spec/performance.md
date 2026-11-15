@@ -33,3 +33,10 @@
 - CI: Windows x64, Linux x64, macOS arm64; warning-free Release build, tests, JIT sample, project and package Native AOT publish/run, recorded benchmarks. Timing is informational, with no host-specific time gate.
 - Repository published. First reported Windows failure: package-consumer publish interpreted the HTTPS --source as a local path (NU1301). Use explicit dotnet restore with .github/package-validation.nuget.config, then publish --no-restore. The config keeps source strings out of publish argument processing and resolves the local feed relative to the config file.
 - The user confirmed that all three hosted jobs passed after correction 61536a1. Phase 5 is complete. This records user-reported results; the agent did not independently retrieve the private run logs. Other .NET platforms remain a compatibility requirement, not a claim of execution on all targets.
+
+## Constructor PR streaming allocation guard
+
+- Push run 43655910136 failed the existing header-based async streaming guard on Windows for net10.0 and net11.0: 6,592 and 6,664 excess bytes against the unchanged ±4,096-byte bound. The pull-request run 43655927539 at the identical commit passed all six platform/framework jobs. Constructor-specific tests passed in both runs.
+- Treat this as intermittent allocation-measurement overhead; the exact allocation source has not been traced. The old 100,000-row warmup does not exercise the full measured workload through a sustained runtime warmup period.
+- Warm both measured sizes (10,000 and 1,000,000 rows), plus the model-only baseline, for at least three seconds before collecting the existing minimum-of-three samples. Keep all six sync/async/header variants and the allocation bound unchanged. This follows the sustained/full-workload warmup used by performance harnesses.
+- A temporary extra object per async row fails all three async variants at 23,760,000 excess bytes; sync variants pass. Remove the mutation before final validation. No production code or CI gate changes are required.
